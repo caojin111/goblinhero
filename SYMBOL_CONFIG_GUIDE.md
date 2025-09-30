@@ -212,6 +212,9 @@ let currentLevel = SymbolLibrary.getCurrentUnlockLevel()
 
 // 获取已解锁的符号
 let unlockedSymbols = SymbolConfigManager.shared.getUnlockedSymbols()
+
+// 获取随机初始符号（每次游戏开始都会不同）
+let randomStartingSymbols = SymbolLibrary.startingSymbols
 ```
 
 ## 🎨 可视化配置界面

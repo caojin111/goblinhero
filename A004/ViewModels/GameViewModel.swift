@@ -67,9 +67,9 @@ class GameViewModel: ObservableObject {
         gamePhase = .spinning
         showGameOver = false
         
-        // 初始化符号池
+        // 初始化符号池（随机选择3个符号）
         symbolPool = SymbolLibrary.startingSymbols
-        print("🎮 [新游戏] 初始符号池: \(symbolPool.map { $0.name })")
+        print("🎮 [新游戏] 随机初始符号池: \(symbolPool.map { $0.name })")
         
         // 初始化老虎机
         initializeSlotMachine()
@@ -251,9 +251,9 @@ class GameViewModel: ObservableObject {
     
     /// 显示符号选择阶段
     private func showSymbolSelectionPhase() {
-        print("🎯 [选择符号] 生成 \(symbolChoiceCount) 个可选符号")
         gamePhase = .selectingSymbol
-        availableSymbols = SymbolLibrary.getRandomSymbols(count: symbolChoiceCount)
+        availableSymbols = SymbolLibrary.getSymbolChoiceOptions()
+        print("🎯 [选择符号] 生成3个可选符号: \(availableSymbols.map { $0.name })")
         showSymbolSelection = true
     }
     

@@ -67,7 +67,7 @@ xcodebuild -scheme A004 -destination 'platform=iOS Simulator,name=iPhone 15' bui
 房租: 50
 回合: 1
 旋转次数: 10
-符号池: [铜币, 苹果, 香蕉] (3个)
+符号池: [随机3个已解锁符号] (随机选择)
 ```
 
 ### 符号类型

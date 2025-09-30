@@ -46,10 +46,50 @@ struct SymbolLibrary {
     
     // 初始符号池（游戏开始时的符号）
     static var startingSymbols: [Symbol] {
-        return configManager.getUnlockedSymbols()
-            .filter { $0.unlockLevel == 1 }
-            .prefix(3)
-            .map { configManager.convertToGameSymbol($0) }
+        let unlockedSymbols = configManager.getUnlockedSymbols()
+        guard !unlockedSymbols.isEmpty else {
+            // 如果没有解锁符号，返回默认的3个基础符号
+            return [
+                Symbol(name: "铜币", icon: "🪙", baseValue: 1, rarity: .common, type: .coin, description: "基础金币，提供1金币"),
+                Symbol(name: "苹果", icon: "🍎", baseValue: 2, rarity: .common, type: .fruit, description: "基础水果，提供2金币"),
+                Symbol(name: "香蕉", icon: "🍌", baseValue: 2, rarity: .common, type: .fruit, description: "基础水果，提供2金币")
+            ]
+        }
+        
+        // 从已解锁的符号中随机选择3个不同的符号
+        var selectedSymbols: [Symbol] = []
+        let shuffledSymbols = unlockedSymbols.shuffled()
+        
+        // 选择3个不同的符号
+        for symbolConfig in shuffledSymbols {
+            if selectedSymbols.count >= 3 { break }
+            
+            let gameSymbol = configManager.convertToGameSymbol(symbolConfig)
+            
+            // 确保不重复选择相同名称的符号
+            if !selectedSymbols.contains(where: { $0.name == gameSymbol.name }) {
+                selectedSymbols.append(gameSymbol)
+            }
+        }
+        
+        // 如果选择的符号不足3个，用默认符号补充
+        if selectedSymbols.count < 3 {
+            let defaultSymbols = [
+                Symbol(name: "铜币", icon: "🪙", baseValue: 1, rarity: .common, type: .coin, description: "基础金币，提供1金币"),
+                Symbol(name: "苹果", icon: "🍎", baseValue: 2, rarity: .common, type: .fruit, description: "基础水果，提供2金币"),
+                Symbol(name: "香蕉", icon: "🍌", baseValue: 2, rarity: .common, type: .fruit, description: "基础水果，提供2金币")
+            ]
+            
+            for defaultSymbol in defaultSymbols {
+                if !selectedSymbols.contains(where: { $0.name == defaultSymbol.name }) {
+                    selectedSymbols.append(defaultSymbol)
+                    if selectedSymbols.count >= 3 { break }
+                }
+            }
+        }
+        
+        // 确保返回恰好3个符号
+        return Array(selectedSymbols.prefix(3))
     }
     
     // 根据稀有度获取符号
@@ -61,6 +101,54 @@ struct SymbolLibrary {
     static func getRandomSymbols(count: Int) -> [Symbol] {
         let configSymbols = configManager.getRandomSymbols(count: count)
         return configSymbols.map { configManager.convertToGameSymbol($0) }
+    }
+    
+    // 获取符号选择选项（确保始终有3个不同选项）
+    static func getSymbolChoiceOptions() -> [Symbol] {
+        let unlockedSymbols = configManager.getUnlockedSymbols()
+        guard !unlockedSymbols.isEmpty else {
+            // 如果没有解锁符号，返回默认的3个基础符号
+            return [
+                Symbol(name: "铜币", icon: "🪙", baseValue: 1, rarity: .common, type: .coin, description: "基础金币，提供1金币"),
+                Symbol(name: "苹果", icon: "🍎", baseValue: 2, rarity: .common, type: .fruit, description: "基础水果，提供2金币"),
+                Symbol(name: "香蕉", icon: "🍌", baseValue: 2, rarity: .common, type: .fruit, description: "基础水果，提供2金币")
+            ]
+        }
+        
+        // 从已解锁的符号中随机选择3个不同的符号
+        var selectedSymbols: [Symbol] = []
+        let shuffledSymbols = unlockedSymbols.shuffled()
+        
+        // 选择3个不同的符号
+        for symbolConfig in shuffledSymbols {
+            if selectedSymbols.count >= 3 { break }
+            
+            let gameSymbol = configManager.convertToGameSymbol(symbolConfig)
+            
+            // 确保不重复选择相同名称的符号
+            if !selectedSymbols.contains(where: { $0.name == gameSymbol.name }) {
+                selectedSymbols.append(gameSymbol)
+            }
+        }
+        
+        // 如果选择的符号不足3个，用默认符号补充
+        if selectedSymbols.count < 3 {
+            let defaultSymbols = [
+                Symbol(name: "铜币", icon: "🪙", baseValue: 1, rarity: .common, type: .coin, description: "基础金币，提供1金币"),
+                Symbol(name: "苹果", icon: "🍎", baseValue: 2, rarity: .common, type: .fruit, description: "基础水果，提供2金币"),
+                Symbol(name: "香蕉", icon: "🍌", baseValue: 2, rarity: .common, type: .fruit, description: "基础水果，提供2金币")
+            ]
+            
+            for defaultSymbol in defaultSymbols {
+                if !selectedSymbols.contains(where: { $0.name == defaultSymbol.name }) {
+                    selectedSymbols.append(defaultSymbol)
+                    if selectedSymbols.count >= 3 { break }
+                }
+            }
+        }
+        
+        // 确保返回恰好3个符号
+        return Array(selectedSymbols.prefix(3))
     }
     
     // 获取符号配置信息
