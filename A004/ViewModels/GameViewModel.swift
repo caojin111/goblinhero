@@ -64,7 +64,7 @@ class GameViewModel: ObservableObject {
         loadGameSettings()
         totalEarnings = 0
         currentRound = 1
-        gamePhase = .spinning
+        gamePhase = .selectingSymbol
         showGameOver = false
         
         // 初始化符号池（随机选择3个符号）
@@ -74,9 +74,9 @@ class GameViewModel: ObservableObject {
         // 初始化老虎机
         initializeSlotMachine()
         
-        // 自动执行第一次旋转
+        // 显示初始符号选择
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            self.spin()
+            self.showInitialSymbolSelection()
         }
     }
     
@@ -135,7 +135,8 @@ class GameViewModel: ObservableObject {
         
         // 计算应该显示的符号数量（基于符号池大小）
         let targetSymbolCount = getTargetSymbolCount()
-        print("🎰 [生成结果] 目标显示符号数量: \(targetSymbolCount)/\(slotCount)")
+        let uniqueSymbolCount = Set(symbolPool.map { $0.name }).count
+        print("🎰 [生成结果] 符号池总数量: \(symbolPool.count), 不同种类: \(uniqueSymbolCount), 目标显示: \(targetSymbolCount)/\(slotCount)")
         
         // 随机选择要显示的符号
         var symbolsToShow: [Symbol] = []
@@ -155,9 +156,11 @@ class GameViewModel: ObservableObject {
         print("🎰 [生成结果] 实际显示符号: \(slotMachine.compactMap { $0.symbol }.count)/\(slotCount)")
     }
     
-    /// 获取目标符号数量（基于符号池大小）
+    /// 获取目标符号数量（基于符号池中不同符号的种类数量）
     private func getTargetSymbolCount() -> Int {
-        return configManager.getSymbolDisplayCount(for: symbolPool.count)
+        // 计算符号池中不同符号的种类数量
+        let uniqueSymbolCount = Set(symbolPool.map { $0.name }).count
+        return configManager.getSymbolDisplayCount(for: uniqueSymbolCount)
     }
     
     
@@ -249,11 +252,21 @@ class GameViewModel: ObservableObject {
         }
     }
     
-    /// 显示符号选择阶段
-    private func showSymbolSelectionPhase() {
+    /// 显示初始符号选择（游戏开始时的第一次选择）
+    private func showInitialSymbolSelection() {
+        print("🎯 [初始选择] 游戏开始，请选择第一个符号")
         gamePhase = .selectingSymbol
         availableSymbols = SymbolLibrary.getSymbolChoiceOptions()
-        print("🎯 [选择符号] 生成3个可选符号: \(availableSymbols.map { $0.name })")
+        print("🎯 [初始选择] 生成3个可选符号: \(availableSymbols.map { $0.name })")
+        showSymbolSelection = true
+    }
+    
+    /// 显示符号选择阶段（回合结束后的选择）
+    private func showSymbolSelectionPhase() {
+        print("🎯 [回合选择] 回合结束，请选择新符号")
+        gamePhase = .selectingSymbol
+        availableSymbols = SymbolLibrary.getSymbolChoiceOptions()
+        print("🎯 [回合选择] 生成3个可选符号: \(availableSymbols.map { $0.name })")
         showSymbolSelection = true
     }
     
@@ -263,10 +276,21 @@ class GameViewModel: ObservableObject {
         symbolPool.append(symbol)
         showSymbolSelection = false
         
-        // 继续下一轮
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            self.gamePhase = .spinning
-            self.spin()
+        // 判断是初始选择还是回合选择
+        if currentRound == 1 && symbolPool.count == 4 {
+            // 初始选择完成，开始第一回合
+            print("🎮 [初始选择完成] 现在有4个符号，开始第一回合")
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                self.gamePhase = .spinning
+                self.spin()
+            }
+        } else {
+            // 回合选择完成，继续下一轮
+            print("🎮 [回合选择完成] 继续下一轮")
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                self.gamePhase = .spinning
+                self.spin()
+            }
         }
     }
     

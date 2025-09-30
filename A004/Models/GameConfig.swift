@@ -148,6 +148,10 @@ class GameConfigManager: ObservableObject {
         
         if poolSize <= 3 {
             return multiplier["3"] ?? 3
+        } else if poolSize == 4 {
+            return multiplier["4"] ?? 4
+        } else if poolSize == 5 {
+            return multiplier["5"] ?? 5
         } else if poolSize <= 6 {
             return multiplier["6"] ?? 6
         } else if poolSize <= 10 {

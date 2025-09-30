@@ -298,12 +298,12 @@ struct SymbolSelectionView: View {
     
     var body: some View {
         VStack(spacing: 25) {
-            Text("🎯 选择一个符号加入符号池")
+            Text(viewModel.currentRound == 1 && viewModel.symbolPool.count == 3 ? "🎯 选择你的第一个符号" : "🎯 选择一个符号加入符号池")
                 .font(.title2)
                 .fontWeight(.bold)
                 .foregroundColor(.white)
             
-            Text("选择符号将增加它在老虎机中出现的概率")
+            Text(viewModel.currentRound == 1 && viewModel.symbolPool.count == 3 ? "选择符号开始你的第一回合" : "选择符号将增加它在老虎机中出现的概率")
                 .font(.subheadline)
                 .foregroundColor(.white.opacity(0.8))
             
