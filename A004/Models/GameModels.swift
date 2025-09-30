@@ -26,11 +26,24 @@ enum SymbolRarity: String, Codable {
 }
 
 // MARK: - 符号类型
-enum SymbolType: String, Codable {
-    case fruit = "水果"
-    case coin = "金币"
-    case animal = "动物"
-    case special = "特殊"
+enum SymbolType: String, Codable, CaseIterable {
+    case fruit = "fruit"
+    case coin = "coin"
+    case animal = "animal"
+    case special = "special"
+    case gem = "gem"
+    case magic = "magic"
+    
+    var displayName: String {
+        switch self {
+        case .fruit: return "水果"
+        case .coin: return "金币"
+        case .animal: return "动物"
+        case .special: return "特殊"
+        case .gem: return "宝石"
+        case .magic: return "魔法"
+        }
+    }
 }
 
 // MARK: - 符号模型

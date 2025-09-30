@@ -1,0 +1,452 @@
+{
+  "symbolCategories": {
+    "fruit": {
+      "name": "水果类",
+      "description": "基础收益符号，提供稳定的金币收入",
+      "color": "#4CAF50",
+      "icon": "🍎"
+    },
+    "coin": {
+      "name": "金币类", 
+      "description": "直接的金币收益符号",
+      "color": "#FFD700",
+      "icon": "💰"
+    },
+    "animal": {
+      "name": "动物类",
+      "description": "具有特殊效果的生物符号",
+      "color": "#8BC34A", 
+      "icon": "🐝"
+    },
+    "special": {
+      "name": "特殊类",
+      "description": "稀有且强力的特殊符号",
+      "color": "#9C27B0",
+      "icon": "⭐️"
+    },
+    "gem": {
+      "name": "宝石类",
+      "description": "高价值的宝石符号",
+      "color": "#00BCD4",
+      "icon": "💎"
+    },
+    "magic": {
+      "name": "魔法类",
+      "description": "具有魔法效果的符号",
+      "color": "#E91E63",
+      "icon": "🔮"
+    }
+  },
+  "raritySettings": {
+    "common": {
+      "name": "普通",
+      "weight": 0.5,
+      "color": "#9E9E9E",
+      "description": "最常见的符号类型"
+    },
+    "rare": {
+      "name": "稀有", 
+      "weight": 0.3,
+      "color": "#2196F3",
+      "description": "较为稀有的符号"
+    },
+    "epic": {
+      "name": "史诗",
+      "weight": 0.15,
+      "color": "#9C27B0", 
+      "description": "非常稀有的强力符号"
+    },
+    "legendary": {
+      "name": "传说",
+      "weight": 0.05,
+      "color": "#FF9800",
+      "description": "极其稀有的传说符号"
+    }
+  },
+  "symbols": [
+    {
+      "id": "apple",
+      "name": "苹果",
+      "icon": "🍎",
+      "category": "fruit",
+      "rarity": "common",
+      "baseValue": 2,
+      "description": "基础水果，提供2金币",
+      "effects": [],
+      "unlockLevel": 1,
+      "isEnabled": true
+    },
+    {
+      "id": "banana", 
+      "name": "香蕉",
+      "icon": "🍌",
+      "category": "fruit",
+      "rarity": "common",
+      "baseValue": 2,
+      "description": "基础水果，提供2金币",
+      "effects": [],
+      "unlockLevel": 1,
+      "isEnabled": true
+    },
+    {
+      "id": "orange",
+      "name": "橙子", 
+      "icon": "🍊",
+      "category": "fruit",
+      "rarity": "common",
+      "baseValue": 2,
+      "description": "基础水果，提供2金币",
+      "effects": [],
+      "unlockLevel": 1,
+      "isEnabled": true
+    },
+    {
+      "id": "grape",
+      "name": "葡萄",
+      "icon": "🍇", 
+      "category": "fruit",
+      "rarity": "common",
+      "baseValue": 3,
+      "description": "基础水果，提供3金币",
+      "effects": [],
+      "unlockLevel": 1,
+      "isEnabled": true
+    },
+    {
+      "id": "watermelon",
+      "name": "西瓜",
+      "icon": "🍉",
+      "category": "fruit", 
+      "rarity": "rare",
+      "baseValue": 4,
+      "description": "稀有水果，提供4金币",
+      "effects": [],
+      "unlockLevel": 3,
+      "isEnabled": true
+    },
+    {
+      "id": "copper_coin",
+      "name": "铜币",
+      "icon": "🪙",
+      "category": "coin",
+      "rarity": "common", 
+      "baseValue": 1,
+      "description": "基础金币，提供1金币",
+      "effects": [],
+      "unlockLevel": 1,
+      "isEnabled": true
+    },
+    {
+      "id": "silver_coin",
+      "name": "银币",
+      "icon": "💰",
+      "category": "coin",
+      "rarity": "common",
+      "baseValue": 3,
+      "description": "银币，提供3金币", 
+      "effects": [],
+      "unlockLevel": 1,
+      "isEnabled": true
+    },
+    {
+      "id": "gold_coin",
+      "name": "金币",
+      "icon": "💎",
+      "category": "coin",
+      "rarity": "rare",
+      "baseValue": 5,
+      "description": "金币，提供5金币",
+      "effects": [],
+      "unlockLevel": 2,
+      "isEnabled": true
+    },
+    {
+      "id": "treasure_chest",
+      "name": "宝箱",
+      "icon": "💼",
+      "category": "coin",
+      "rarity": "epic",
+      "baseValue": 8,
+      "description": "宝箱，提供8金币",
+      "effects": [],
+      "unlockLevel": 5,
+      "isEnabled": true
+    },
+    {
+      "id": "bee",
+      "name": "蜜蜂",
+      "icon": "🐝",
+      "category": "animal",
+      "rarity": "common",
+      "baseValue": 2,
+      "description": "蜜蜂，相邻水果额外+1金币",
+      "effects": [
+        {
+          "type": "adjacent_bonus",
+          "targetCategory": "fruit",
+          "bonusValue": 1,
+          "description": "相邻水果符号+1金币"
+        }
+      ],
+      "unlockLevel": 2,
+      "isEnabled": true
+    },
+    {
+      "id": "rabbit",
+      "name": "兔子",
+      "icon": "🐰",
+      "category": "animal",
+      "rarity": "rare",
+      "baseValue": 3,
+      "description": "幸运兔子，提供3金币",
+      "effects": [],
+      "unlockLevel": 3,
+      "isEnabled": true
+    },
+    {
+      "id": "cat",
+      "name": "小猫",
+      "icon": "🐱",
+      "category": "animal",
+      "rarity": "rare",
+      "baseValue": 4,
+      "description": "可爱小猫，提供4金币",
+      "effects": [],
+      "unlockLevel": 4,
+      "isEnabled": true
+    },
+    {
+      "id": "clover",
+      "name": "幸运草",
+      "icon": "🍀",
+      "category": "special",
+      "rarity": "epic",
+      "baseValue": 5,
+      "description": "幸运草，提供5金币",
+      "effects": [],
+      "unlockLevel": 6,
+      "isEnabled": true
+    },
+    {
+      "id": "star",
+      "name": "星星",
+      "icon": "⭐️",
+      "category": "special",
+      "rarity": "epic",
+      "baseValue": 7,
+      "description": "闪耀星星，提供7金币",
+      "effects": [],
+      "unlockLevel": 7,
+      "isEnabled": true
+    },
+    {
+      "id": "diamond",
+      "name": "钻石",
+      "icon": "💎",
+      "category": "gem",
+      "rarity": "legendary",
+      "baseValue": 10,
+      "description": "稀有钻石，提供10金币",
+      "effects": [],
+      "unlockLevel": 8,
+      "isEnabled": true
+    },
+    {
+      "id": "crystal_ball",
+      "name": "水晶球",
+      "icon": "🔮",
+      "category": "magic",
+      "rarity": "epic",
+      "baseValue": 6,
+      "description": "神秘水晶球，提供6金币",
+      "effects": [
+        {
+          "type": "multiplier",
+          "targetCategory": "all",
+          "multiplier": 1.2,
+          "description": "所有符号收益+20%"
+        }
+      ],
+      "unlockLevel": 9,
+      "isEnabled": false
+    },
+    {
+      "id": "rainbow",
+      "name": "彩虹",
+      "icon": "🌈",
+      "category": "magic",
+      "rarity": "legendary",
+      "baseValue": 12,
+      "description": "神奇彩虹，提供12金币",
+      "effects": [
+        {
+          "type": "rainbow_bonus",
+          "description": "集齐7种不同颜色符号时额外+50金币"
+        }
+      ],
+      "unlockLevel": 10,
+      "isEnabled": false
+    },
+    {
+      "id": "cherry",
+      "name": "樱桃",
+      "icon": "🍒",
+      "category": "fruit",
+      "rarity": "common",
+      "baseValue": 2,
+      "description": "小樱桃，提供2金币",
+      "effects": [],
+      "unlockLevel": 1,
+      "isEnabled": true
+    },
+    {
+      "id": "lemon",
+      "name": "柠檬",
+      "icon": "🍋",
+      "category": "fruit",
+      "rarity": "common",
+      "baseValue": 2,
+      "description": "酸柠檬，提供2金币",
+      "effects": [],
+      "unlockLevel": 1,
+      "isEnabled": true
+    },
+    {
+      "id": "peach",
+      "name": "桃子",
+      "icon": "🍑",
+      "category": "fruit",
+      "rarity": "rare",
+      "baseValue": 3,
+      "description": "甜美桃子，提供3金币",
+      "effects": [],
+      "unlockLevel": 4,
+      "isEnabled": true
+    },
+    {
+      "id": "emerald",
+      "name": "翡翠",
+      "icon": "💚",
+      "category": "gem",
+      "rarity": "epic",
+      "baseValue": 8,
+      "description": "珍贵翡翠，提供8金币",
+      "effects": [],
+      "unlockLevel": 6,
+      "isEnabled": true
+    },
+    {
+      "id": "ruby",
+      "name": "红宝石",
+      "icon": "❤️",
+      "category": "gem",
+      "rarity": "epic",
+      "baseValue": 9,
+      "description": "火红宝石，提供9金币",
+      "effects": [],
+      "unlockLevel": 7,
+      "isEnabled": true
+    },
+    {
+      "id": "sapphire",
+      "name": "蓝宝石",
+      "icon": "💙",
+      "category": "gem",
+      "rarity": "epic",
+      "baseValue": 9,
+      "description": "深海蓝宝石，提供9金币",
+      "effects": [],
+      "unlockLevel": 7,
+      "isEnabled": true
+    },
+    {
+      "id": "dragon",
+      "name": "龙",
+      "icon": "🐉",
+      "category": "magic",
+      "rarity": "legendary",
+      "baseValue": 15,
+      "description": "传说中的龙，提供15金币",
+      "effects": [
+        {
+          "type": "dragon_breath",
+          "description": "清除所有空格子，用随机符号填充"
+        }
+      ],
+      "unlockLevel": 12,
+      "isEnabled": false
+    },
+    {
+      "id": "phoenix",
+      "name": "凤凰",
+      "icon": "🔥",
+      "category": "magic",
+      "rarity": "legendary",
+      "baseValue": 20,
+      "description": "不死凤凰，提供20金币",
+      "effects": [
+        {
+          "type": "rebirth",
+          "description": "游戏失败时有一次重生机会"
+        }
+      ],
+      "unlockLevel": 15,
+      "isEnabled": false
+    }
+  ],
+  "unlockSettings": {
+    "levelBasedUnlock": true,
+    "maxUnlockLevel": 20,
+    "unlockRequirements": {
+      "level_1": "游戏开始",
+      "level_2": "通过第2回合",
+      "level_3": "通过第5回合", 
+      "level_4": "通过第8回合",
+      "level_5": "通过第12回合",
+      "level_6": "通过第15回合",
+      "level_7": "通过第18回合",
+      "level_8": "通过第20回合",
+      "level_9": "通过第25回合",
+      "level_10": "通过第30回合",
+      "level_12": "通过第40回合",
+      "level_15": "通过第50回合"
+    }
+  },
+  "effectTypes": {
+    "adjacent_bonus": {
+      "name": "相邻加成",
+      "description": "相邻特定类型符号时获得额外收益"
+    },
+    "multiplier": {
+      "name": "倍率加成", 
+      "description": "对特定类型或所有符号提供倍率加成"
+    },
+    "rainbow_bonus": {
+      "name": "彩虹奖励",
+      "description": "集齐特定组合时获得大量奖励"
+    },
+    "dragon_breath": {
+      "name": "龙息",
+      "description": "特殊能力，可以改变棋盘状态"
+    },
+    "rebirth": {
+      "name": "重生",
+      "description": "提供额外的游戏机会"
+    }
+  },
+  "balanceSettings": {
+    "maxSymbolsPerCategory": 10,
+    "maxSymbolsPerRarity": {
+      "common": 15,
+      "rare": 8,
+      "epic": 5,
+      "legendary": 3
+    },
+    "valueRange": {
+      "common": [1, 4],
+      "rare": [3, 6],
+      "epic": [5, 10],
+      "legendary": [10, 25]
+    }
+  }
+}
