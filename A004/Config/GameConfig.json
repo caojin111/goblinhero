@@ -1,0 +1,72 @@
+{
+  "rentSettings": {
+    "mode": "custom",
+    "initialRent": 50,
+    "incrementMultiplier": 1.5,
+    "customRentSequence": [
+      50, 75, 112, 168, 252, 378, 567, 850, 1275, 1912,
+      2868, 4302, 6453, 9679, 14518, 21777, 32665, 48997, 73495, 110242
+    ],
+    "difficultyPresets": {
+      "easy": {
+        "initialRent": 30,
+        "incrementMultiplier": 1.2,
+        "customRentSequence": [
+          30, 36, 43, 52, 62, 74, 89, 107, 128, 154,
+          185, 222, 266, 319, 383, 460, 552, 662, 794, 953
+        ]
+      },
+      "normal": {
+        "initialRent": 50,
+        "incrementMultiplier": 1.5,
+        "customRentSequence": [
+          50, 75, 112, 168, 252, 378, 567, 850, 1275, 1912,
+          2868, 4302, 6453, 9679, 14518, 21777, 32665, 48997, 73495, 110242
+        ]
+      },
+      "hard": {
+        "initialRent": 100,
+        "incrementMultiplier": 1.8,
+        "customRentSequence": [
+          100, 180, 324, 583, 1050, 1890, 3402, 6124, 11023, 19841,
+          35714, 64285, 115713, 208283, 374909, 674836, 1214705, 2186469, 3935644, 7084159
+        ]
+      },
+      "extreme": {
+        "initialRent": 200,
+        "incrementMultiplier": 2.0,
+        "customRentSequence": [
+          200, 400, 800, 1600, 3200, 6400, 12800, 25600, 51200, 102400,
+          204800, 409600, 819200, 1638400, 3276800, 6553600, 13107200, 26214400, 52428800, 104857600
+        ]
+      }
+    }
+  },
+  "gameSettings": {
+    "initialCoins": 10,
+    "spinsPerRound": 10,
+    "slotCount": 20,
+    "symbolChoiceCount": 3,
+    "startingSymbolCount": 3
+  },
+  "symbolSettings": {
+    "displayMultiplier": {
+      "3": 3,
+      "6": 6,
+      "10": 10,
+      "15": 15,
+      "20": 20
+    },
+    "rarityWeights": {
+      "common": 0.5,
+      "rare": 0.3,
+      "epic": 0.15,
+      "legendary": 0.05
+    }
+  },
+  "uiSettings": {
+    "animationDuration": 1.0,
+    "spinDelay": 0.1,
+    "resultDisplayTime": 1.5
+  }
+}
