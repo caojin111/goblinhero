@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct GameView: View {
-    @StateObject private var viewModel = GameViewModel()
+    @ObservedObject var viewModel: GameViewModel
     @State private var showDifficultySelection = false
     
     var body: some View {
@@ -21,22 +21,24 @@ struct GameView: View {
             )
             .ignoresSafeArea()
             
-            VStack(spacing: 20) {
-                // 顶部信息栏
+            VStack(spacing: 12) {
+                // 顶部信息栏（包含哥布林）
                 TopInfoBar(viewModel: viewModel, showDifficultySelection: $showDifficultySelection)
                     .padding(.horizontal)
+                    .padding(.top, 10)
                 
                 // 老虎机主体
                 SlotMachineView(viewModel: viewModel)
-                    .padding()
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
                 
                 // 控制按钮区域
                 ControlPanel(viewModel: viewModel)
-                    .padding()
+                    .padding(.horizontal)
+                    .padding(.bottom, 8)
                 
-                Spacer()
+                Spacer(minLength: 0)
             }
-            .padding(.top, 20)
             
             // 符号选择弹窗
             if viewModel.showSymbolSelection {
@@ -71,10 +73,32 @@ struct GameView: View {
                 EarningsTipView(text: viewModel.earningsTipText)
                     .transition(.scale.combined(with: .opacity))
             }
+            
+            // 哥布林buff气泡提示
+            if viewModel.showGoblinBuffTip, let goblin = viewModel.selectedGoblin {
+                GoblinBuffTipView(goblin: goblin)
+                    .transition(.scale.combined(with: .opacity))
+            }
+            
+            // 符号buff气泡提示
+            if viewModel.showSymbolBuffTip, let symbol = viewModel.selectedSymbolForTip {
+                SymbolBuffTipView(symbol: symbol)
+                    .id(symbol.id) // 使用符号ID作为视图ID，确保每次都是新的视图
+                    .transition(.scale.combined(with: .opacity))
+            }
+            
+            // 骰子动画
+            if viewModel.showDiceAnimation {
+                DiceAnimationView(diceResult: viewModel.diceResult)
+                    .transition(.scale.combined(with: .opacity))
+            }
         }
         .animation(.spring(), value: viewModel.showSymbolSelection)
         .animation(.spring(), value: viewModel.showGameOver)
         .animation(.spring(), value: viewModel.showEarningsTip)
+        .animation(.spring(), value: viewModel.showGoblinBuffTip)
+        .animation(.spring(), value: viewModel.showSymbolBuffTip)
+        .animation(.spring(), value: viewModel.showDiceAnimation)
     }
 }
 
@@ -84,34 +108,78 @@ struct TopInfoBar: View {
     @Binding var showDifficultySelection: Bool
     
     var body: some View {
-        VStack(spacing: 15) {
-            // 第一行：金币和回合
-            HStack {
+        VStack(spacing: 10) {
+            // 第一行：哥布林、金币、回合
+            HStack(spacing: 12) {
+                // 哥布林显示（可点击）
+                if let goblin = viewModel.selectedGoblin {
+                    Button(action: {
+                        viewModel.showGoblinBuffInfo()
+                    }) {
+                        HStack(spacing: 8) {
+                            ZStack {
+                                Circle()
+                                    .fill(
+                                        LinearGradient(
+                                            gradient: Gradient(colors: [
+                                                Color.white.opacity(0.3),
+                                                Color.white.opacity(0.1)
+                                            ]),
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .frame(width: 50, height: 50)
+                                
+                                Text(goblin.icon)
+                                    .font(.system(size: 30))
+                            }
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(goblin.name)
+                                    .font(.subheadline)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                                
+                                Text("点击查看")
+                                    .font(.caption2)
+                                    .foregroundColor(.white.opacity(0.6))
+                            }
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.white.opacity(0.15))
+                        )
+                    }
+                }
+                
+                Spacer()
+                
                 // 金币显示
-                HStack(spacing: 8) {
+                HStack(spacing: 6) {
                     Text("💰")
-                        .font(.title2)
+                        .font(.title3)
                     Text("\(viewModel.currentCoins)")
-                        .font(.title2)
+                        .font(.title3)
                         .fontWeight(.bold)
                         .foregroundColor(.yellow)
                 }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 10)
+                .padding(.horizontal, 15)
+                .padding(.vertical, 8)
                 .background(
-                    RoundedRectangle(cornerRadius: 15)
+                    RoundedRectangle(cornerRadius: 12)
                         .fill(Color.black.opacity(0.3))
                 )
-                
-                Spacer()
                 
                 // 回合显示
                 VStack(alignment: .trailing, spacing: 2) {
                     Text("回合 \(viewModel.currentRound)")
-                        .font(.headline)
+                        .font(.subheadline)
                         .fontWeight(.bold)
-                    Text("剩余 \(viewModel.spinsRemaining) 次")
-                        .font(.caption)
+                    Text("剩余 \(viewModel.spinsRemaining)")
+                        .font(.caption2)
                         .foregroundColor(.gray)
                 }
                 
@@ -120,7 +188,7 @@ struct TopInfoBar: View {
                     showDifficultySelection = true
                 }) {
                     Image(systemName: "gear")
-                        .font(.title2)
+                        .font(.title3)
                         .foregroundColor(.white)
                         .padding(8)
                         .background(
@@ -133,21 +201,21 @@ struct TopInfoBar: View {
             // 第二行：房租信息
             HStack {
                 Text("🏠 房租")
-                    .font(.subheadline)
+                    .font(.caption)
                     .fontWeight(.semibold)
                 
                 Spacer()
                 
                 Text("\(viewModel.rentAmount) 金币")
-                    .font(.title3)
+                    .font(.subheadline)
                     .fontWeight(.bold)
                     .foregroundColor(viewModel.currentCoins >= viewModel.rentAmount ? .green : .red)
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 12)
+            .padding(.horizontal, 15)
+            .padding(.vertical, 8)
             .background(
-                RoundedRectangle(cornerRadius: 15)
-                    .fill(Color.white.opacity(0.2))
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.white.opacity(0.15))
             )
         }
     }
@@ -164,7 +232,7 @@ struct SlotMachineView: View {
             // 老虎机格子
             LazyVGrid(columns: columns, spacing: 8) {
                 ForEach(viewModel.slotMachine) { cell in
-                    SlotCellView(cell: cell, isSpinning: viewModel.isSpinning)
+                    SlotCellView(cell: cell, isSpinning: viewModel.isSpinning, viewModel: viewModel)
                 }
             }
             .padding()
@@ -181,26 +249,42 @@ struct SlotMachineView: View {
 struct SlotCellView: View {
     let cell: SlotCell
     let isSpinning: Bool
+    @ObservedObject var viewModel: GameViewModel
     
     @State private var rotation: Double = 0
+    @State private var scale: CGFloat = 1.0
     
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 12)
                 .fill(
                     LinearGradient(
-                        gradient: Gradient(colors: [Color.white.opacity(0.3), Color.white.opacity(0.1)]),
+                        gradient: Gradient(colors: cell.isMined ? 
+                            [Color.white.opacity(0.3), Color.white.opacity(0.1)] :
+                            [Color.gray.opacity(0.6), Color.gray.opacity(0.4)]),
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
                 )
                 .frame(height: 60)
             
-            if let symbol = cell.symbol {
+            // 未挖开：显示矿石
+            if !cell.isMined {
+                VStack(spacing: 2) {
+                    Text("🪨")
+                        .font(.system(size: 28))
+                        .rotationEffect(.degrees(isSpinning ? rotation : 0))
+                    
+                    Text("矿石")
+                        .font(.caption2)
+                        .foregroundColor(.white.opacity(0.6))
+                }
+            }
+            // 已挖开：显示符号或空格子
+            else if let symbol = cell.symbol {
                 VStack(spacing: 2) {
                     Text(symbol.icon)
                         .font(.system(size: 28))
-                        .rotationEffect(.degrees(isSpinning ? rotation : 0))
                     
                     Text("\(symbol.baseValue)")
                         .font(.caption2)
@@ -220,6 +304,13 @@ struct SlotCellView: View {
                 }
             }
         }
+        .scaleEffect(scale)
+        .onTapGesture {
+            // 点击已挖开且有符号的格子，显示符号信息
+            if cell.isMined, let symbol = cell.symbol {
+                viewModel.showSymbolBuffInfo(for: symbol)
+            }
+        }
         .onChange(of: isSpinning) { spinning in
             if spinning {
                 withAnimation(.linear(duration: 0.5).repeatCount(2, autoreverses: false)) {
@@ -227,6 +318,19 @@ struct SlotCellView: View {
                 }
             } else {
                 rotation = 0
+            }
+        }
+        .onChange(of: cell.isMined) { mined in
+            if mined {
+                // 挖开动画
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                    scale = 1.2
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                        scale = 1.0
+                    }
+                }
             }
         }
     }
@@ -237,24 +341,70 @@ struct ControlPanel: View {
     @ObservedObject var viewModel: GameViewModel
     
     var body: some View {
-        VStack(spacing: 15) {
+        VStack(spacing: 10) {
+            // 掷骰子按钮
+            Button(action: {
+                print("🔘 [UI] 玩家点击掷骰子按钮")
+                viewModel.manualSpin()
+            }) {
+                HStack(spacing: 10) {
+                    Text("🎲")
+                        .font(.title2)
+                    
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text("掷骰子 (1-6)")
+                            .font(.body)
+                            .fontWeight(.bold)
+                        
+                        Text("剩余 \(viewModel.spinsRemaining) 次")
+                            .font(.caption2)
+                            .foregroundColor(.white.opacity(0.8))
+                    }
+                    
+                    Spacer()
+                    
+                    Image(systemName: "arrow.right.circle.fill")
+                        .font(.title3)
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .frame(maxWidth: .infinity)
+                .background(
+                    LinearGradient(
+                        gradient: Gradient(colors: [
+                            viewModel.spinsRemaining > 0 && !viewModel.isSpinning && viewModel.gamePhase == .result ? Color.orange : Color.gray,
+                            viewModel.spinsRemaining > 0 && !viewModel.isSpinning && viewModel.gamePhase == .result ? Color.red : Color.gray.opacity(0.5)
+                        ]),
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .cornerRadius(12)
+                .shadow(color: .black.opacity(0.3), radius: 5, x: 0, y: 3)
+                .opacity(viewModel.spinsRemaining > 0 && !viewModel.isSpinning && viewModel.gamePhase == .result ? 1.0 : 0.6)
+            }
+            .disabled(viewModel.spinsRemaining <= 0 || viewModel.isSpinning || viewModel.gamePhase != .result)
+            
             // 符号池展示
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 8) {
                 Text("我的符号池 (\(viewModel.symbolPool.count) 种)")
-                    .font(.headline)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
                     .foregroundColor(.white)
                 
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 10) {
+                    HStack(spacing: 8) {
                         ForEach(viewModel.symbolPool) { symbol in
-                            SymbolBadgeView(symbol: symbol)
+                            SymbolBadgeView(symbol: symbol, viewModel: viewModel)
                         }
                     }
                 }
             }
-            .padding()
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
             .background(
-                RoundedRectangle(cornerRadius: 15)
+                RoundedRectangle(cornerRadius: 12)
                     .fill(Color.white.opacity(0.15))
             )
         }
@@ -264,31 +414,37 @@ struct ControlPanel: View {
 // MARK: - 符号徽章视图
 struct SymbolBadgeView: View {
     let symbol: Symbol
+    @ObservedObject var viewModel: GameViewModel
     
     var body: some View {
-        VStack(spacing: 5) {
+        VStack(spacing: 3) {
             Text(symbol.icon)
-                .font(.title2)
+                .font(.title3)
             
             Text(symbol.name)
                 .font(.caption2)
                 .foregroundColor(.white)
+                .lineLimit(1)
             
             Text("\(symbol.baseValue)💰")
                 .font(.caption2)
                 .fontWeight(.bold)
                 .foregroundColor(.yellow)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
         .background(
-            RoundedRectangle(cornerRadius: 10)
+            RoundedRectangle(cornerRadius: 8)
                 .fill(symbol.rarity.color.opacity(0.3))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(symbol.rarity.color, lineWidth: 2)
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(symbol.rarity.color, lineWidth: 1.5)
                 )
         )
+        .onTapGesture {
+            // 点击符号徽章，显示符号信息
+            viewModel.showSymbolBuffInfo(for: symbol)
+        }
     }
 }
 
@@ -526,6 +682,293 @@ struct EarningsTipView: View {
     }
 }
 
+// MARK: - 骰子动画视图
+struct DiceAnimationView: View {
+    let diceResult: Int
+    @State private var rotation: Double = 0
+    @State private var scale: CGFloat = 0.5
+    @State private var opacity: Double = 0
+    @State private var showResult: Bool = false
+    
+    var body: some View {
+        VStack {
+            Spacer()
+            
+            ZStack {
+                // 旋转阶段：显示骰子图标
+                if !showResult {
+                    Text("🎲")
+                        .font(.system(size: 100))
+                        .rotationEffect(.degrees(rotation))
+                        .scaleEffect(scale)
+                        .opacity(opacity)
+                }
+                
+                // 结果阶段：显示数字
+                if showResult {
+                    VStack(spacing: 10) {
+                        Text("🎲")
+                            .font(.system(size: 80))
+                        
+                        Text("\(diceResult)")
+                            .font(.system(size: 80, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                    .padding(40)
+                    .background(
+                        RoundedRectangle(cornerRadius: 30)
+                            .fill(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [
+                                        Color.orange.opacity(0.95),
+                                        Color.red.opacity(0.9)
+                                    ]),
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .shadow(color: .black.opacity(0.5), radius: 20, x: 0, y: 10)
+                    )
+                    .scaleEffect(scale)
+                    .opacity(opacity)
+                }
+            }
+            
+            Spacer()
+        }
+        .onAppear {
+            // 第一阶段：旋转骰子（0.8秒）
+            withAnimation(.easeIn(duration: 0.2)) {
+                opacity = 1.0
+                scale = 1.2
+            }
+            
+            withAnimation(.linear(duration: 0.8).repeatCount(4, autoreverses: false)) {
+                rotation = 360 * 4
+            }
+            
+            // 第二阶段：显示结果（0.8秒后）
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                showResult = true
+                
+                // 弹出动画
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.6)) {
+                    scale = 1.0
+                }
+            }
+            
+            // 第三阶段：淡出（1.0秒后开始淡出）
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                withAnimation(.easeOut(duration: 0.3)) {
+                    opacity = 0
+                    scale = 0.8
+                }
+            }
+        }
+        .allowsHitTesting(false) // 不阻挡其他UI交互
+    }
+}
+
+// MARK: - 符号Buff气泡提示
+struct SymbolBuffTipView: View {
+    let symbol: Symbol
+    @State private var offset: CGFloat = 30
+    @State private var opacity: Double = 0
+    @State private var scale: CGFloat = 0.8
+    
+    var body: some View {
+        VStack {
+            VStack(spacing: 12) {
+                // 符号图标
+                Text(symbol.icon)
+                    .font(.system(size: 50))
+                
+                // 符号名称和金币值
+                HStack(spacing: 8) {
+                    Text(symbol.name)
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                    
+                    Text("\(symbol.baseValue)💰")
+                        .font(.title3)
+                        .fontWeight(.bold)
+                        .foregroundColor(.yellow)
+                }
+                
+                // 稀有度标签
+                Text(symbol.rarity.rawValue)
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 4)
+                    .background(
+                        Capsule()
+                            .fill(symbol.rarity.color.opacity(0.3))
+                    )
+                    .foregroundColor(symbol.rarity.color)
+                
+                // 类型标签
+                if !symbol.types.isEmpty {
+                    HStack(spacing: 6) {
+                        ForEach(symbol.types, id: \.self) { type in
+                            Text(type)
+                                .font(.caption2)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 3)
+                                .background(
+                                    Capsule()
+                                        .fill(Color.white.opacity(0.2))
+                                )
+                                .foregroundColor(.white.opacity(0.8))
+                        }
+                    }
+                }
+                
+                // 效果描述
+                if !symbol.description.isEmpty {
+                    Divider()
+                        .background(Color.white.opacity(0.3))
+                    
+                    HStack(spacing: 8) {
+                        Text("✨")
+                            .font(.body)
+                        
+                        Text(symbol.description)
+                            .font(.body)
+                            .foregroundColor(.white)
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .padding(.horizontal, 10)
+                }
+            }
+            .padding(25)
+            .background(
+                RoundedRectangle(cornerRadius: 25)
+                    .fill(
+                        LinearGradient(
+                            gradient: Gradient(colors: [
+                                symbol.rarity.color.opacity(0.9),
+                                symbol.rarity.color.opacity(0.7)
+                            ]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .shadow(color: .black.opacity(0.4), radius: 15, x: 0, y: 8)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 25)
+                            .stroke(Color.white.opacity(0.3), lineWidth: 2)
+                    )
+            )
+            .padding(.horizontal, 30)
+        }
+        .offset(y: offset)
+        .opacity(opacity)
+        .scaleEffect(scale)
+        .onAppear {
+            // 入场动画
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                offset = 0
+                opacity = 1
+                scale = 1.0
+            }
+            
+            // 1.5秒后开始淡出
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                withAnimation(.easeOut(duration: 0.5)) {
+                    offset = -20
+                    opacity = 0
+                    scale = 0.9
+                }
+            }
+        }
+        .allowsHitTesting(false) // 不阻挡其他UI交互
+    }
+}
+
+// MARK: - 哥布林Buff气泡提示
+struct GoblinBuffTipView: View {
+    let goblin: Goblin
+    @State private var offset: CGFloat = 30
+    @State private var opacity: Double = 0
+    @State private var scale: CGFloat = 0.8
+    
+    var body: some View {
+        VStack {
+            VStack(spacing: 12) {
+                // 哥布林图标
+                Text(goblin.icon)
+                    .font(.system(size: 50))
+                
+                // 哥布林名称
+                Text(goblin.name)
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                
+                // buff描述
+                HStack(spacing: 8) {
+                    Text("⭐")
+                        .font(.body)
+                    
+                    Text(goblin.buff)
+                        .font(.body)
+                        .foregroundColor(.yellow)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(.horizontal, 10)
+            }
+            .padding(25)
+            .background(
+                RoundedRectangle(cornerRadius: 25)
+                    .fill(
+                        LinearGradient(
+                            gradient: Gradient(colors: [
+                                Color.purple.opacity(0.95),
+                                Color.blue.opacity(0.9)
+                            ]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .shadow(color: .black.opacity(0.4), radius: 15, x: 0, y: 8)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 25)
+                            .stroke(Color.white.opacity(0.3), lineWidth: 2)
+                    )
+            )
+            .padding(.horizontal, 30)
+        }
+        .offset(y: offset)
+        .opacity(opacity)
+        .scaleEffect(scale)
+        .onAppear {
+            // 入场动画
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                offset = 0
+                opacity = 1
+                scale = 1.0
+            }
+            
+            // 1.5秒后开始淡出
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                withAnimation(.easeOut(duration: 0.5)) {
+                    offset = -20
+                    opacity = 0
+                    scale = 0.9
+                }
+            }
+        }
+        .allowsHitTesting(false) // 不阻挡其他UI交互
+    }
+}
+
 #Preview {
-    GameView()
+    let viewModel = GameViewModel()
+    viewModel.selectedGoblin = Goblin.allGoblins[0]
+    viewModel.goblinSelectionCompleted = true
+    return GameView(viewModel: viewModel)
 }

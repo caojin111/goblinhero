@@ -1,0 +1,65 @@
+{
+  "goblins": [
+    {
+      "id": 1,
+      "name": "勇者哥布林",
+      "icon": "⚔️",
+      "isFree": true,
+      "buff": "每有一个符号被消除，则+1金币",
+      "buffType": "on_symbol_eliminate",
+      "buffValue": 1,
+      "unlockPrice": 0,
+      "description": "勇猛的战士，每次消除符号都能额外获得金币奖励"
+    },
+    {
+      "id": 2,
+      "name": "工匠哥布林",
+      "icon": "🔨",
+      "isFree": true,
+      "buff": "每回合增加一次获得符号3选1的机会",
+      "buffType": "extra_symbol_choice",
+      "buffValue": 1,
+      "unlockPrice": 0,
+      "description": "技艺精湛的工匠，能在每回合提供额外的符号选择机会"
+    },
+    {
+      "id": 3,
+      "name": "赌徒哥布林",
+      "icon": "🎲",
+      "isFree": true,
+      "buff": "挖到骰子概率翻倍",
+      "buffType": "dice_probability_boost",
+      "buffValue": 2.0,
+      "unlockPrice": 0,
+      "description": "运气极佳的赌徒，能够提高挖到骰子的概率"
+    },
+    {
+      "id": 4,
+      "name": "国王哥布林",
+      "icon": "👑",
+      "isFree": false,
+      "buff": "每有一个士兵，额外获得10金币",
+      "buffType": "soldier_bonus",
+      "buffValue": 10,
+      "unlockPrice": 100,
+      "description": "尊贵的国王，麾下每个士兵都能为其创造财富"
+    },
+    {
+      "id": 5,
+      "name": "巫师哥布林",
+      "icon": "🧙",
+      "isFree": false,
+      "buff": "每回合挖矿之前随机填充1个魔法袋",
+      "buffType": "magic_bag_fill",
+      "buffValue": 1,
+      "unlockPrice": 150,
+      "description": "神秘的巫师，在挖矿前会施展魔法填充魔法袋"
+    }
+  ],
+  "config": {
+    "defaultUnlockedIds": [1, 2, 3],
+    "maxGoblins": 5,
+    "enableBuffEffects": true
+  }
+}
+

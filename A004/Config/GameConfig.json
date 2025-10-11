@@ -12,7 +12,7 @@
         "initialRent": 30,
         "incrementMultiplier": 1.2,
         "customRentSequence": [
-          30, 36, 43, 52, 62, 74, 89, 107, 128, 154,
+          10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
           185, 222, 266, 319, 383, 460, 552, 662, 794, 953
         ]
       },
@@ -43,8 +43,8 @@
     }
   },
   "gameSettings": {
-    "initialCoins": 10,
-    "spinsPerRound": 10,
+    "initialCoins": 0,
+    "spinsPerRound": 3,
     "slotCount": 20,
     "symbolChoiceCount": 3,
     "startingSymbolCount": 3
