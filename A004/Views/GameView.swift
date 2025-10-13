@@ -89,8 +89,14 @@ struct GameView: View {
             
             // 骰子动画
             if viewModel.showDiceAnimation {
-                DiceAnimationView(diceResult: viewModel.diceResult)
+                DiceAnimationView(diceResult: viewModel.diceResult, diceCount: viewModel.currentDiceCount)
                     .transition(.scale.combined(with: .opacity))
+            }
+            
+            // 调试面板
+            if viewModel.showDebugPanel {
+                DebugPanelView(viewModel: viewModel)
+                    .transition(.move(edge: .trailing))
             }
         }
         .animation(.spring(), value: viewModel.showSymbolSelection)
@@ -99,6 +105,7 @@ struct GameView: View {
         .animation(.spring(), value: viewModel.showGoblinBuffTip)
         .animation(.spring(), value: viewModel.showSymbolBuffTip)
         .animation(.spring(), value: viewModel.showDiceAnimation)
+        .animation(.spring(), value: viewModel.showDebugPanel)
     }
 }
 
@@ -183,18 +190,52 @@ struct TopInfoBar: View {
                         .foregroundColor(.gray)
                 }
                 
-                // 难度选择按钮
-                Button(action: {
-                    showDifficultySelection = true
-                }) {
-                    Image(systemName: "gear")
-                        .font(.title3)
-                        .foregroundColor(.white)
-                        .padding(8)
-                        .background(
-                            Circle()
-                                .fill(Color.white.opacity(0.2))
-                        )
+                // 右侧按钮组（垂直排列）
+                VStack(alignment: .trailing, spacing: 4) {
+                    // 难度选择按钮
+                    Button(action: {
+                        showDifficultySelection = true
+                    }) {
+                        Image(systemName: "gear")
+                            .font(.title3)
+                            .foregroundColor(.white)
+                            .padding(8)
+                            .background(
+                                Circle()
+                                    .fill(Color.white.opacity(0.2))
+                            )
+                    }
+                    
+                    // 调试按钮组（透明+日志）
+                    HStack(spacing: 6) {
+                        // 透明模式按钮
+                        Button(action: {
+                            viewModel.toggleTransparentMode()
+                        }) {
+                            Image(systemName: viewModel.transparentMode ? "eye.fill" : "eye.slash.fill")
+                                .font(.caption)
+                                .foregroundColor(.white)
+                                .padding(6)
+                                .background(
+                                    Circle()
+                                        .fill(viewModel.transparentMode ? Color.green.opacity(0.3) : Color.white.opacity(0.2))
+                                )
+                        }
+                        
+                        // 日志按钮
+                        Button(action: {
+                            viewModel.toggleDebugPanel()
+                        }) {
+                            Image(systemName: "doc.text.fill")
+                                .font(.caption)
+                                .foregroundColor(.white)
+                                .padding(6)
+                                .background(
+                                    Circle()
+                                        .fill(viewModel.showDebugPanel ? Color.blue.opacity(0.3) : Color.white.opacity(0.2))
+                                )
+                        }
+                    }
                 }
             }
             
@@ -231,8 +272,8 @@ struct SlotMachineView: View {
         VStack(spacing: 15) {
             // 老虎机格子
             LazyVGrid(columns: columns, spacing: 8) {
-                ForEach(viewModel.slotMachine) { cell in
-                    SlotCellView(cell: cell, isSpinning: viewModel.isSpinning, viewModel: viewModel)
+                ForEach(Array(viewModel.slotMachine.enumerated()), id: \.element.id) { index, cell in
+                    SlotCellView(cell: cell, cellIndex: index, isSpinning: viewModel.isSpinning, viewModel: viewModel)
                 }
             }
             .padding()
@@ -248,14 +289,37 @@ struct SlotMachineView: View {
 // MARK: - 老虎机格子视图
 struct SlotCellView: View {
     let cell: SlotCell
+    let cellIndex: Int
     let isSpinning: Bool
     @ObservedObject var viewModel: GameViewModel
     
     @State private var rotation: Double = 0
     @State private var scale: CGFloat = 1.0
+    @State private var settlingScale: CGFloat = 1.0
+    @State private var glowOpacity: Double = 0.0
+    
+    // 检测当前格子是否正在结算
+    private var isSettling: Bool {
+        viewModel.currentSettlingCellIndex == cellIndex
+    }
     
     var body: some View {
         ZStack {
+            // 发光边框（结算时显示）
+            if isSettling {
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(
+                        LinearGradient(
+                            gradient: Gradient(colors: [Color.yellow, Color.orange, Color.yellow]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 4
+                    )
+                    .frame(height: 60)
+                    .shadow(color: .yellow.opacity(glowOpacity), radius: 15, x: 0, y: 0)
+            }
+            
             RoundedRectangle(cornerRadius: 12)
                 .fill(
                     LinearGradient(
@@ -268,17 +332,34 @@ struct SlotCellView: View {
                 )
                 .frame(height: 60)
             
-            // 未挖开：显示矿石
+            // 未挖开：显示矿石（透明模式下可以看到下面的符号）
             if !cell.isMined {
                 VStack(spacing: 2) {
                     Text("🪨")
                         .font(.system(size: 28))
                         .rotationEffect(.degrees(isSpinning ? rotation : 0))
+                        .opacity(viewModel.transparentMode ? 0.3 : 1.0)
                     
                     Text("矿石")
                         .font(.caption2)
-                        .foregroundColor(.white.opacity(0.6))
+                        .foregroundColor(.white.opacity(viewModel.transparentMode ? 0.3 : 0.6))
                 }
+                .background(
+                    // 透明模式下显示下面的符号
+                    Group {
+                        if viewModel.transparentMode, let symbol = cell.symbol {
+                            VStack(spacing: 2) {
+                                Text(symbol.icon)
+                                    .font(.system(size: 20))
+                                    .opacity(0.5)
+                                
+                                Text("\(symbol.baseValue)")
+                                    .font(.caption2)
+                                    .foregroundColor(.yellow.opacity(0.5))
+                            }
+                        }
+                    }
+                )
             }
             // 已挖开：显示符号或空格子
             else if let symbol = cell.symbol {
@@ -303,8 +384,14 @@ struct SlotCellView: View {
                         .foregroundColor(.white.opacity(0.4))
                 }
             }
+            
+            // 金币数字飞出动画（结算时显示）
+            if isSettling {
+                CoinFloatView(earnings: viewModel.currentSettlingCellEarnings)
+            }
         }
-        .scaleEffect(scale)
+        .scaleEffect(scale * settlingScale)
+        .rotationEffect(.degrees(isSettling ? sin(rotation / 10) * 3 : 0)) // 结算时轻微摇摆
         .onTapGesture {
             // 点击已挖开且有符号的格子，显示符号信息
             if cell.isMined, let symbol = cell.symbol {
@@ -333,6 +420,31 @@ struct SlotCellView: View {
                 }
             }
         }
+        .onChange(of: isSettling) { settling in
+            if settling {
+                // 开始结算动画：放大+振动+发光
+                print("✨ [结算动画] 格子\(cellIndex)开始结算动画")
+                
+                // 发光脉冲
+                withAnimation(.easeInOut(duration: 0.25).repeatCount(2, autoreverses: true)) {
+                    glowOpacity = 0.8
+                }
+                
+                // 振动+放大
+                withAnimation(.spring(response: 0.2, dampingFraction: 0.3)) {
+                    settlingScale = 1.3
+                    rotation = 360
+                }
+                
+                // 恢复
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                        settlingScale = 1.0
+                        glowOpacity = 0.0
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -348,11 +460,22 @@ struct ControlPanel: View {
                 viewModel.manualSpin()
             }) {
                 HStack(spacing: 10) {
-                    Text("🎲")
-                        .font(.title2)
+                    // 骰子图标（显示数量）
+                    HStack(spacing: 2) {
+                        ForEach(0..<min(viewModel.currentDiceCount, 3), id: \.self) { _ in
+                            Text("🎲")
+                                .font(.title3)
+                        }
+                        if viewModel.currentDiceCount > 3 {
+                            Text("+\(viewModel.currentDiceCount - 3)")
+                                .font(.caption)
+                                .fontWeight(.bold)
+                                .foregroundColor(.yellow)
+                        }
+                    }
                     
                     VStack(alignment: .leading, spacing: 1) {
-                        Text("掷骰子 (1-6)")
+                        Text(viewModel.currentDiceCount == 1 ? "掷骰子 (1-6)" : "掷\(viewModel.currentDiceCount)个骰子")
                             .font(.body)
                             .fontWeight(.bold)
                         
@@ -685,10 +808,16 @@ struct EarningsTipView: View {
 // MARK: - 骰子动画视图
 struct DiceAnimationView: View {
     let diceResult: Int
+    let diceCount: Int
     @State private var rotation: Double = 0
     @State private var scale: CGFloat = 0.5
     @State private var opacity: Double = 0
     @State private var showResult: Bool = false
+    
+    init(diceResult: Int, diceCount: Int = 1) {
+        self.diceResult = diceResult
+        self.diceCount = diceCount
+    }
     
     var body: some View {
         VStack {
@@ -697,18 +826,36 @@ struct DiceAnimationView: View {
             ZStack {
                 // 旋转阶段：显示骰子图标
                 if !showResult {
-                    Text("🎲")
-                        .font(.system(size: 100))
-                        .rotationEffect(.degrees(rotation))
-                        .scaleEffect(scale)
-                        .opacity(opacity)
+                    HStack(spacing: 10) {
+                        ForEach(0..<min(diceCount, 3), id: \.self) { _ in
+                            Text("🎲")
+                                .font(.system(size: diceCount == 1 ? 100 : 70))
+                                .rotationEffect(.degrees(rotation))
+                        }
+                        if diceCount > 3 {
+                            Text("+\(diceCount - 3)")
+                                .font(.system(size: 40, weight: .bold))
+                                .foregroundColor(.yellow)
+                        }
+                    }
+                    .scaleEffect(scale)
+                    .opacity(opacity)
                 }
                 
                 // 结果阶段：显示数字
                 if showResult {
                     VStack(spacing: 10) {
-                        Text("🎲")
-                            .font(.system(size: 80))
+                        HStack(spacing: 8) {
+                            ForEach(0..<min(diceCount, 3), id: \.self) { _ in
+                                Text("🎲")
+                                    .font(.system(size: diceCount == 1 ? 60 : 40))
+                            }
+                            if diceCount > 3 {
+                                Text("+\(diceCount - 3)")
+                                    .font(.system(size: 30, weight: .bold))
+                                    .foregroundColor(.yellow)
+                            }
+                        }
                         
                         Text("\(diceResult)")
                             .font(.system(size: 80, weight: .bold))
@@ -963,6 +1110,181 @@ struct GoblinBuffTipView: View {
             }
         }
         .allowsHitTesting(false) // 不阻挡其他UI交互
+    }
+}
+
+// MARK: - 调试面板
+struct DebugPanelView: View {
+    @ObservedObject var viewModel: GameViewModel
+    @State private var selectedTab: Int = 0
+    
+    var body: some View {
+        HStack {
+            Spacer()
+            
+            VStack(spacing: 0) {
+                // 标题栏
+                HStack {
+                    Text("🔍 调试面板")
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                    
+                    Spacer()
+                    
+                    Button(action: {
+                        viewModel.toggleDebugPanel()
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title3)
+                            .foregroundColor(.white.opacity(0.6))
+                    }
+                }
+                .padding()
+                .background(Color.blue.opacity(0.8))
+                
+                // 标签切换
+                Picker("", selection: $selectedTab) {
+                    Text("结算日志").tag(0)
+                    Text("棋盘状态").tag(1)
+                }
+                .pickerStyle(SegmentedPickerStyle())
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+                .background(Color.white.opacity(0.1))
+                
+                // 内容区域
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 8) {
+                        if selectedTab == 0 {
+                            // 结算日志
+                            if viewModel.settlementLogs.isEmpty {
+                                Text("暂无结算日志\n掷骰子后会显示结算过程")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                                    .padding()
+                            } else {
+                                ForEach(Array(viewModel.settlementLogs.enumerated()), id: \.offset) { index, log in
+                                    Text(log)
+                                        .font(.system(.caption, design: .monospaced))
+                                        .foregroundColor(.white)
+                                }
+                            }
+                        } else {
+                            // 棋盘状态
+                            Text(viewModel.getBoardDebugInfo())
+                                .font(.system(.caption, design: .monospaced))
+                                .foregroundColor(.white)
+                        }
+                    }
+                    .padding()
+                }
+                .frame(maxHeight: .infinity)
+                
+                // 底部操作栏
+                HStack(spacing: 12) {
+                    Button(action: {
+                        viewModel.toggleTransparentMode()
+                    }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: viewModel.transparentMode ? "eye.fill" : "eye.slash.fill")
+                            Text(viewModel.transparentMode ? "隐藏" : "透视")
+                                .font(.caption)
+                        }
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(viewModel.transparentMode ? Color.green.opacity(0.5) : Color.gray.opacity(0.3))
+                        )
+                    }
+                    
+                    Spacer()
+                    
+                    // 复制日志按钮
+                    Button(action: {
+                        let logText = viewModel.settlementLogs.joined(separator: "\n")
+                        UIPasteboard.general.string = logText
+                    }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "doc.on.doc")
+                            Text("复制")
+                                .font(.caption)
+                        }
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.gray.opacity(0.3))
+                        )
+                    }
+                }
+                .padding()
+                .background(Color.white.opacity(0.1))
+            }
+            .frame(width: 320)
+            .background(Color.black.opacity(0.95))
+            .cornerRadius(20, corners: [.topLeft, .bottomLeft])
+            .shadow(color: .black.opacity(0.5), radius: 10, x: -5, y: 0)
+        }
+    }
+}
+
+// MARK: - 圆角扩展
+extension View {
+    func cornerRadius(_ radius: CGFloat, corners: UIRectCorner) -> some View {
+        clipShape(RoundedCorner(radius: radius, corners: corners))
+    }
+}
+
+struct RoundedCorner: Shape {
+    var radius: CGFloat = .infinity
+    var corners: UIRectCorner = .allCorners
+    
+    func path(in rect: CGRect) -> Path {
+        let path = UIBezierPath(
+            roundedRect: rect,
+            byRoundingCorners: corners,
+            cornerRadii: CGSize(width: radius, height: radius)
+        )
+        return Path(path.cgPath)
+    }
+}
+
+// MARK: - 金币飞出动画组件
+struct CoinFloatView: View {
+    let earnings: Int
+    
+    @State private var offset: CGFloat = 0
+    @State private var opacity: Double = 1.0
+    @State private var scale: CGFloat = 0.5
+    
+    var body: some View {
+        Text("+\(earnings)")
+            .font(.system(size: 32, weight: .bold))
+            .foregroundColor(.yellow)
+            .shadow(color: .orange, radius: 3, x: 0, y: 0)
+            .shadow(color: .black.opacity(0.6), radius: 5, x: 0, y: 2)
+            .scaleEffect(scale)
+            .opacity(opacity)
+            .offset(y: offset)
+            .onAppear {
+                // 第一阶段：快速放大到位（0.2秒）
+                withAnimation(.easeOut(duration: 0.2)) {
+                    scale = 1.8
+                    offset = -20
+                }
+                
+                // 第二阶段：停留并保持清晰（0.8秒后开始淡出）
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                    withAnimation(.easeOut(duration: 0.3)) {
+                        offset = -60
+                        opacity = 0
+                    }
+                }
+            }
     }
 }
 

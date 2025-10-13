@@ -11,6 +11,7 @@ import SwiftUI
 class GameViewModel: ObservableObject {
     // MARK: - 配置管理器
     private let configManager = GameConfigManager.shared
+    private let effectProcessor = SymbolEffectProcessor()
     
     // MARK: - 游戏状态
     @Published var currentCoins: Int = 10 // 初始金币
@@ -19,6 +20,7 @@ class GameViewModel: ObservableObject {
     @Published var spinsRemaining: Int = 10 // 剩余旋转次数
     @Published var rentAmount: Int = 50 // 当前房租
     @Published var gamePhase: GamePhase = .selectingSymbol
+    @Published var currentDiceCount: Int = 1 // 当前骰子数量
     
     // MARK: - 哥布林相关
     @Published var selectedGoblin: Goblin? = nil // 当前选择的哥布林
@@ -45,10 +47,22 @@ class GameViewModel: ObservableObject {
     @Published var showSymbolBuffTip: Bool = false // 显示符号buff气泡
     @Published var selectedSymbolForTip: Symbol? = nil // 当前选中查看的符号
     
+    // MARK: - 测试模式
+    @Published var showDebugPanel: Bool = false // 显示调试面板
+    @Published var transparentMode: Bool = false // 棋盘透明模式
+    @Published var settlementLogs: [String] = [] // 结算日志
+    
     // MARK: - 掷骰子挖矿状态
     @Published var diceResult: Int = 0 // 骰子结果
     @Published var currentRoundMinedCells: [Int] = [] // 本次挖到的格子索引
     @Published var showDiceAnimation: Bool = false // 是否显示骰子动画
+    
+    // MARK: - 结算动画状态
+    @Published var isPlayingSettlement: Bool = false // 是否正在播放结算动画
+    @Published var currentSettlingCellIndex: Int? = nil // 当前正在结算的格子索引
+    @Published var currentSettlingCellEarnings: Int = 0 // 当前格子的收益金额
+    @Published var settlementSequence: [(cellIndex: Int, symbol: Symbol?, earnings: Int)] = [] // 结算序列
+    private var settlementTimer: DispatchWorkItem? = nil // 结算动画定时器
     
     // MARK: - 气泡定时器
     private var goblinTipTimer: DispatchWorkItem?
@@ -134,16 +148,24 @@ class GameViewModel: ObservableObject {
     func rollDice() {
         guard !isSpinning else { return }
         
-        print("🎲 [掷骰子] 开始掷骰子 - 回合 \(currentRound), 剩余次数 \(spinsRemaining)")
+        let diceCount = effectProcessor.getDiceCount()
+        print("🎲 [掷骰子] 开始掷骰子 - 回合 \(currentRound), 剩余次数 \(spinsRemaining), 拥有\(diceCount)个骰子")
         
         isSpinning = true
         gamePhase = .spinning
         totalEarnings = 0
         currentRoundMinedCells = []
         
-        // 生成骰子结果（1-6）
-        diceResult = Int.random(in: 1...6)
-        print("🎲 [掷骰子] 骰子点数: \(diceResult)")
+        // 掷多个骰子并求和
+        var totalPoints = 0
+        for i in 1...diceCount {
+            let point = Int.random(in: 1...6)
+            totalPoints += point
+            print("🎲 [骰子\(i)] 点数: \(point)")
+        }
+        diceResult = totalPoints
+        currentDiceCount = diceCount // 更新UI显示
+        print("🎲 [掷骰子] 总点数: \(diceResult)")
         
         // 显示骰子动画
         showDiceAnimation = true
@@ -156,31 +178,24 @@ class GameViewModel: ObservableObject {
         
         // 1.5秒后执行挖矿
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            // 挖矿
+            // 挖矿（翻开所有格子）
             self.mineRandomCells(count: self.diceResult)
-            self.calculateEarnings()
-            self.isSpinning = false
-            self.gamePhase = .result
             
-            print("💰 [收益] 本次挖矿获得: \(self.totalEarnings) 金币")
-            
-            // 增加金币
-            self.currentCoins += self.totalEarnings
-            self.spinsRemaining -= 1
-            
-            // 显示收益气泡提示
+            // 显示浪费提示（如果有）
             let minedCount = self.currentRoundMinedCells.count
             let wastedCount = self.diceResult - minedCount
-            
             if wastedCount > 0 {
-                self.showEarningsTip(text: "💵 +\(self.totalEarnings) 金币\n⚠️ 浪费 \(wastedCount) 次挖矿")
-            } else {
-                self.showEarningsTip(text: "💵 +\(self.totalEarnings) 金币")
+                print("⚠️ [挖矿] 浪费了\(wastedCount)次挖矿机会")
             }
             
-            // 检查是否需要支付房租
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                self.checkRentPayment()
+            print("⏸️ [挖矿完成] 所有格子已翻开，等待1秒后开始结算动画")
+            
+            // 等待1秒，让玩家看清所有翻开的格子
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                // 开始结算流程（包含动画）
+                // 注意：金币更新、旋转次数减少、游戏流程控制都已移到 finishSettlement 中
+                print("🎬 [开始结算] 1秒等待完成，开始逐个结算")
+                self.calculateEarnings()
             }
         }
     }
@@ -229,6 +244,7 @@ class GameViewModel: ObservableObject {
     /// 生成老虎机结果（为本阶段生成符号）
     private func generateSlotResults() {
         print("🎰 [生成结果] 为新阶段生成符号")
+        print("🎰 [调试] 符号池内容: \(symbolPool.map { $0.icon + $0.name })")
         
         // 清空所有格子符号
         for index in 0..<slotCount {
@@ -240,27 +256,47 @@ class GameViewModel: ObservableObject {
             return
         }
         
-        // 计算应该显示的符号数量（基于符号池大小）
-        let targetSymbolCount = getTargetSymbolCount()
-        let uniqueSymbolCount = Set(symbolPool.map { $0.name }).count
-        print("🎰 [生成结果] 符号池总数量: \(symbolPool.count), 不同种类: \(uniqueSymbolCount), 目标显示: \(targetSymbolCount)/\(slotCount)")
+        // 获取符号池中所有不同的符号（去重）
+        var uniqueSymbols: [Symbol] = []
+        var seenNames = Set<String>()
         
-        // 随机选择要显示的符号
-        var symbolsToShow: [Symbol] = []
-        for _ in 0..<targetSymbolCount {
-            let randomSymbol = getWeightedRandomSymbol()
-            symbolsToShow.append(randomSymbol)
-        }
-        
-        // 随机分配到格子中
-        let availablePositions = Array(0..<slotCount).shuffled()
-        for (index, symbol) in symbolsToShow.enumerated() {
-            if index < availablePositions.count {
-                slotMachine[availablePositions[index]].symbol = symbol
+        for symbol in symbolPool {
+            if !seenNames.contains(symbol.name) {
+                uniqueSymbols.append(symbol)
+                seenNames.insert(symbol.name)
+                print("🎰 [调试] 添加唯一符号: \(symbol.icon)\(symbol.name)")
+            } else {
+                print("🎰 [调试] 跳过重复符号: \(symbol.icon)\(symbol.name)")
             }
         }
         
-        print("🎰 [生成结果] 实际生成符号: \(slotMachine.compactMap { $0.symbol }.count)/\(slotCount) 个符号")
+        let uniqueCount = uniqueSymbols.count
+        
+        print("🎰 [生成结果] 符号池总数量: \(symbolPool.count), 不同种类: \(uniqueCount)")
+        print("🎰 [生成结果] 唯一符号列表: \(uniqueSymbols.map { $0.icon + $0.name })")
+        print("🎰 [生成策略] 每种符号恰好出现1次，共\(uniqueCount)个符号，其余\(slotCount - uniqueCount)个为空格子")
+        
+        // 每种符号恰好出现一次
+        let symbolsToShow = uniqueSymbols
+        
+        // 随机分配到格子中
+        let availablePositions = Array(0..<slotCount).shuffled()
+        print("🎰 [调试] 随机位置: \(availablePositions.prefix(uniqueCount))")
+        
+        for (index, symbol) in symbolsToShow.enumerated() {
+            if index < availablePositions.count {
+                let position = availablePositions[index]
+                slotMachine[position].symbol = symbol
+                print("🎰 [调试] 放置符号: 位置\(position) <- \(symbol.icon)\(symbol.name)")
+            }
+        }
+        
+        // 打印符号分布统计
+        print("🎰 [生成结果] 棋盘符号分布:")
+        for (index, symbol) in symbolsToShow.enumerated() {
+            print("   \(index + 1). \(symbol.icon) \(symbol.name) (基础:\(symbol.baseValue)金币)")
+        }
+        print("🎰 [生成结果] 总计: \(symbolsToShow.count)个符号 + \(slotCount - symbolsToShow.count)个空格子 = \(slotCount)个格子")
     }
     
     /// 获取目标符号数量（基于符号池中不同符号的种类数量）
@@ -298,19 +334,28 @@ class GameViewModel: ObservableObject {
     
     /// 计算收益（只计算本次挖到的格子）
     private func calculateEarnings() {
-        totalEarnings = 0
-        var emptyCount = 0
-        var symbolEarnings = 0
-        var eliminatedSymbolCount = 0 // 记录消除的符号数量（用于勇者哥布林buff）
+        print("💰 [结算] 开始构建结算序列")
         
-        // 只计算本次挖到的格子
+        // 清空结算日志
+        settlementLogs.removeAll()
+        settlementLogs.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        settlementLogs.append("🎯 开始结算 - 回合\(currentRound)")
+        settlementLogs.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+        
+        totalEarnings = 0
+        settlementSequence.removeAll()
+        
+        // 收集本次挖出的所有符号（按队列顺序）
+        var minedSymbols: [Symbol] = []
+        
+        // 构建结算序列：计算每个格子的收益
         for index in currentRoundMinedCells {
             guard index < slotMachine.count else { continue }
             
             let cell = slotMachine[index]
             
             if let symbol = cell.symbol {
-                eliminatedSymbolCount += 1 // 符号被挖到就算消除
+                minedSymbols.append(symbol) // 添加到队列
                 
                 // 获取相邻已挖开的符号
                 var adjacentSymbols: [Symbol] = []
@@ -352,64 +397,190 @@ class GameViewModel: ObservableObject {
                 }
                 
                 let value = symbol.calculateValue(adjacentSymbols: adjacentSymbols)
-                symbolEarnings += value
-                print("💰 [计算收益] 格子\(index): \(symbol.icon) = \(value)分 (基础:\(symbol.baseValue), 相邻:\(adjacentSymbols.count))")
+                
+                // 添加到结算序列
+                settlementSequence.append((cellIndex: index, symbol: symbol, earnings: value))
+                
+                let logMsg = "格子\(index): \(symbol.icon)\(symbol.name) = \(value)金币 (基础:\(symbol.baseValue), 相邻:\(adjacentSymbols.count))"
+                print("💰 [基础收益] \(logMsg)")
+                settlementLogs.append("💰 \(logMsg)")
             } else {
                 // 空格子 +1分
-                emptyCount += 1
-                totalEarnings += 1
-                print("💰 [计算收益] 格子\(index): 空格子 = 1分")
+                settlementSequence.append((cellIndex: index, symbol: nil, earnings: 1))
+                
+                let logMsg = "格子\(index): 空格子 = 1金币"
+                print("💰 [基础收益] \(logMsg)")
+                settlementLogs.append("💰 \(logMsg)")
             }
         }
         
-        totalEarnings += symbolEarnings
+        print("💰 [结算] 结算序列构建完成，共\(settlementSequence.count)个格子")
         
-        // 应用道具倍率
-        for item in items {
-            totalEarnings = Int(Double(totalEarnings) * item.multiplier)
+        // 开始播放结算动画序列
+        playSettlementAnimation(minedSymbols: minedSymbols)
+    }
+    
+    /// 播放结算动画序列
+    private func playSettlementAnimation(minedSymbols: [Symbol]) {
+        guard !settlementSequence.isEmpty else {
+            // 没有格子需要结算，直接完成
+            finishSettlement(minedSymbols: minedSymbols, basicEarnings: 0)
+            return
         }
         
-        // 应用哥布林buff效果
-        applyGoblinBuff(eliminatedSymbolCount: eliminatedSymbolCount)
+        print("🎬 [结算动画] 开始播放结算动画，共\(settlementSequence.count)个格子")
+        isPlayingSettlement = true
+        currentSettlingCellIndex = nil
         
-        print("💰 [计算收益] 本次挖矿: 空格\(emptyCount)个(+\(emptyCount)分), 符号(+\(symbolEarnings)分), 总收益: \(totalEarnings) 金币")
+        // 播放序列中的每一个格子动画
+        playNextSettlementStep(currentStep: 0, minedSymbols: minedSymbols)
+    }
+    
+    /// 播放下一个结算步骤
+    private func playNextSettlementStep(currentStep: Int, minedSymbols: [Symbol]) {
+        guard currentStep < settlementSequence.count else {
+            // 所有格子结算完成
+            print("🎬 [结算动画] 所有格子结算完成")
+            finishBasicSettlement(minedSymbols: minedSymbols)
+            return
+        }
+        
+        let item = settlementSequence[currentStep]
+        
+        print("🎬 [结算动画] 步骤\(currentStep + 1)/\(settlementSequence.count): 格子\(item.cellIndex), 收益\(item.earnings)金币")
+        
+        // 设置当前正在结算的格子
+        currentSettlingCellIndex = item.cellIndex
+        currentSettlingCellEarnings = item.earnings
+        
+        // 累加金币
+        withAnimation(.easeOut(duration: 0.3)) {
+            totalEarnings += item.earnings
+        }
+        
+        // 每个格子动画持续0.5秒，然后播放下一个
+        let nextWork = DispatchWorkItem { [weak self] in
+            self?.playNextSettlementStep(currentStep: currentStep + 1, minedSymbols: minedSymbols)
+        }
+        
+        settlementTimer?.cancel()
+        settlementTimer = nextWork
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: nextWork)
+    }
+    
+    /// 完成基础结算，开始处理符号效果和哥布林buff
+    private func finishBasicSettlement(minedSymbols: [Symbol]) {
+        print("✅ [结算动画] 基础结算完成，总收益: \(totalEarnings)金币")
+        
+        // 清除当前结算格子标记
+        currentSettlingCellIndex = nil
+        
+        // 记录基础收益
+        let basicEarnings = totalEarnings
+        
+        // 添加一个短暂延迟，让玩家看清最后一个格子的动画
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+            guard let self = self else { return }
+            self.finishSettlement(minedSymbols: minedSymbols, basicEarnings: basicEarnings)
+        }
+    }
+    
+    /// 完成所有结算（符号效果 + 哥布林buff）
+    private func finishSettlement(minedSymbols: [Symbol], basicEarnings: Int) {
+        print("💰 [结算] 开始处理符号效果和哥布林buff")
+        
+        // 处理符号效果（会修改符号池）
+        let effectBonus = effectProcessor.processMinedSymbols(
+            minedSymbols: minedSymbols,
+            symbolPool: &symbolPool,
+            enableEffects: SymbolConfigManager.shared.isEffectsEnabled(),
+            logCallback: { [weak self] log in
+                self?.settlementLogs.append(log)
+            }
+        )
+        totalEarnings += effectBonus
+        
+        // 应用哥布林buff效果（使用效果处理器的消除计数）
+        if let goblin = selectedGoblin {
+            settlementLogs.append("\n🎭 开始处理哥布林buff...")
+        }
+        let actualEliminatedCount = effectProcessor.getEliminatedSymbolCount()
+        let goblinBonus = applyGoblinBuff(eliminatedSymbolCount: actualEliminatedCount)
+        totalEarnings += goblinBonus
+        if goblinBonus > 0 {
+            settlementLogs.append("⚔️ 哥布林buff奖励: +\(goblinBonus) 金币 (消除了\(actualEliminatedCount)个符号)\n")
+        }
+        
+        let finalSummary = "💰 最终收益: \(totalEarnings) 金币 (基础\(basicEarnings) + 效果\(effectBonus) + 哥布林\(goblinBonus))"
+        print(finalSummary)
+        settlementLogs.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        settlementLogs.append(finalSummary)
+        settlementLogs.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        
+        // 结算动画完全结束
+        isPlayingSettlement = false
+        
+        // 显示收益气泡
+        showEarningsTip(text: "+\(totalEarnings)金币")
+        
+        // 更新金币
+        currentCoins += totalEarnings
+        spinsRemaining -= 1
+        
+        print("💰 [结算完成] 当前金币: \(currentCoins), 剩余旋转: \(spinsRemaining)")
+        
+        // 检查是否还有旋转次数
+        if spinsRemaining > 0 {
+            // 继续游戏，重置状态
+            isSpinning = false
+            gamePhase = .result
+        } else {
+            // 本轮结束，检查是否能支付房租
+            checkRentPayment()
+        }
     }
     
     /// 应用哥布林buff效果（基于配置文件）
-    private func applyGoblinBuff(eliminatedSymbolCount: Int) {
-        guard let goblin = selectedGoblin else { return }
+    private func applyGoblinBuff(eliminatedSymbolCount: Int) -> Int {
+        guard let goblin = selectedGoblin else { return 0 }
         
         // 检查是否启用buff效果
         guard GoblinConfigManager.shared.isBuffEffectsEnabled() else {
             print("⚠️ [哥布林Buff] buff效果已在配置中禁用")
-            return
+            return 0
         }
+        
+        var bonusCoins = 0
         
         // 根据buffType处理不同的buff
         switch goblin.buffType {
         case "on_symbol_eliminate": // 勇者哥布林：每有一个符号被消除，则+N金币
-            let bonusCoins = Int(goblin.buffValue) * eliminatedSymbolCount
-            totalEarnings += bonusCoins
+            bonusCoins = Int(goblin.buffValue) * eliminatedSymbolCount
             if bonusCoins > 0 {
-                print("\(goblin.icon) [\(goblin.name)] 消除\(eliminatedSymbolCount)个符号，额外获得\(bonusCoins)金币 (单次+\(Int(goblin.buffValue)))")
+                print("\(goblin.icon) [\(goblin.name)] 消除\(eliminatedSymbolCount)个符号，额外获得\(bonusCoins)金币")
             }
             
         case "extra_symbol_choice": // 工匠哥布林：每回合增加N次获得符号3选1的机会
-            print("\(goblin.icon) [\(goblin.name)] buff将在回合结束时生效（额外\(Int(goblin.buffValue))次选择）")
+            print("\(goblin.icon) [\(goblin.name)] buff将在回合结束时生效")
             
         case "dice_probability_boost": // 赌徒哥布林：挖到骰子概率翻N倍
             print("\(goblin.icon) [\(goblin.name)] 骰子概率提升\(goblin.buffValue)倍效果已激活")
             
         case "soldier_bonus": // 国王哥布林：每有一个士兵，额外获得N金币
-            // TODO: 当游戏中有士兵符号时实现
-            print("\(goblin.icon) [\(goblin.name)] 士兵buff待实现（每个士兵+\(Int(goblin.buffValue))金币）")
+            let soldierCount = symbolPool.filter { $0.name == "士兵" }.count
+            bonusCoins = soldierCount * Int(goblin.buffValue)
+            if soldierCount > 0 {
+                print("\(goblin.icon) [\(goblin.name)] 符号池有\(soldierCount)个士兵，额外获得\(bonusCoins)金币")
+            }
             
         case "magic_bag_fill": // 巫师哥布林：每回合挖矿之前随机填充N个魔法袋
-            print("\(goblin.icon) [\(goblin.name)] 魔法袋buff将在挖矿前生效（填充\(Int(goblin.buffValue))个）")
+            print("\(goblin.icon) [\(goblin.name)] 魔法袋buff将在挖矿前生效")
             
         default:
             print("⚠️ [哥布林Buff] 未知的buff类型: \(goblin.buffType)")
         }
+        
+        return bonusCoins
     }
     
     /// 重置矿石状态（新阶段开始时调用）
@@ -419,7 +590,11 @@ class GameViewModel: ObservableObject {
         }
         currentRoundMinedCells = []
         diceResult = 0
-        print("🔄 [重置] 所有格子重新被矿石覆盖")
+        
+        // 重置效果处理器的回合状态
+        effectProcessor.resetRoundState()
+        
+        print("🔄 [重置] 所有格子重新被矿石覆盖，效果状态已重置")
     }
     
     /// 检查房租支付
@@ -529,14 +704,55 @@ class GameViewModel: ObservableObject {
         showGameOver = true
     }
     
-    /// 重新开始游戏
+    /// 重新开始游戏（更换难度时调用，保留哥布林选择）
     func restartGame() {
-        print("🔄 [重新开始] 重置游戏")
+        print("🔄 [重新开始] 重置游戏（保留哥布林）")
+        // 不重置哥布林选择，不显示符号选择，直接开始游戏
+        craftsmanBuffUsed = false
+        
+        // 重置效果处理器
+        effectProcessor.resetRoundState()
+        effectProcessor.resetDiceCount()
+        
+        // 重置游戏状态（顺序很重要！）
+        totalEarnings = 0
+        currentRound = 1  // 先设置回合数
+        isSpinning = false  // 确保没有在掷骰子
+        showGameOver = false  // 隐藏失败界面
+        
+        // 重新加载游戏设置（会使用currentRound来计算房租）
+        loadGameSettings()
+        
+        // 保持原有的符号池（不重新生成）
+        // 如果符号池为空，则使用起始符号
+        if symbolPool.isEmpty {
+            symbolPool = SymbolLibrary.startingSymbols
+            print("🎮 [重新开始] 随机初始符号池: \(symbolPool.map { $0.name })")
+        } else {
+            print("🎮 [重新开始] 保留现有符号池: \(symbolPool.map { $0.name })")
+        }
+        
+        // 重新初始化老虎机
+        slotMachine = (0..<slotCount).map { _ in SlotCell(symbol: nil, isMined: false) }
+        generateSlotResults()
+        
+        // 直接进入可以掷骰子的状态，不显示符号选择
+        gamePhase = .result
+        print("🎮 [重新开始] 游戏已重置，等待玩家掷骰子")
+    }
+    
+    /// 完全重置游戏（包括哥布林选择）
+    func completelyRestartGame() {
+        print("🔄 [完全重新开始] 重置游戏和哥布林")
         // 重新选择哥布林
         goblinSelectionCompleted = false
         selectedGoblin = nil
         showGoblinSelection = false
         craftsmanBuffUsed = false
+        
+        // 重置效果处理器
+        effectProcessor.resetRoundState()
+        effectProcessor.resetDiceCount()
     }
     
     /// 显示收益气泡提示
@@ -597,5 +813,57 @@ class GameViewModel: ObservableObject {
         }
         symbolTipTimer = workItem
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0, execute: workItem)
+    }
+    
+    // MARK: - 测试功能
+    
+    /// 切换棋盘透明模式
+    func toggleTransparentMode() {
+        transparentMode.toggle()
+        print("🔍 [测试模式] 棋盘透明模式: \(transparentMode ? "开启" : "关闭")")
+    }
+    
+    /// 显示调试面板
+    func toggleDebugPanel() {
+        showDebugPanel.toggle()
+        print("🔍 [测试模式] 调试面板: \(showDebugPanel ? "显示" : "隐藏")")
+    }
+    
+    /// 获取当前棋盘状态（用于调试）
+    func getBoardDebugInfo() -> String {
+        var info = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+        info += "🎲 当前棋盘状态 (5x5)\n"
+        info += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+        
+        for row in 0..<5 {
+            for col in 0..<5 {
+                let index = row * 5 + col
+                let cell = slotMachine[index]
+                
+                if let symbol = cell.symbol {
+                    info += "\(symbol.icon)"
+                } else {
+                    info += "⚪"
+                }
+                info += " "
+            }
+            info += "\n"
+        }
+        
+        info += "\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+        info += "📊 符号统计\n"
+        info += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+        
+        let symbols = slotMachine.compactMap { $0.symbol }
+        let groupedSymbols = Dictionary(grouping: symbols) { $0.name }
+        
+        for (name, symbols) in groupedSymbols.sorted(by: { $0.key < $1.key }) {
+            info += "\(symbols.first!.icon) \(name): \(symbols.count)个\n"
+        }
+        
+        let emptyCount = slotMachine.filter { $0.symbol == nil }.count
+        info += "⚪ 空格子: \(emptyCount)个\n"
+        
+        return info
     }
 }
