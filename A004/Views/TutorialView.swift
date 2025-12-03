@@ -1,0 +1,312 @@
+//
+//  TutorialView.swift
+//  A004
+//
+//  新手教程视图
+//
+
+import SwiftUI
+
+struct TutorialView: View {
+    @ObservedObject var localizationManager = LocalizationManager.shared
+    @Binding var isPresented: Bool
+    @State private var currentStep: Int = 0
+    
+    // 教程步骤数据
+    let steps: [TutorialStep]
+    
+    var body: some View {
+        ZStack {
+            // 高亮区域（通过遮罩挖洞实现）- 包含遮罩层
+            if !steps.isEmpty && currentStep < steps.count {
+                let step = steps[currentStep]
+                TutorialHighlightView(
+                    highlightFrame: step.highlightFrame,
+                    highlightCornerRadius: step.highlightCornerRadius
+                )
+            } else if steps.isEmpty {
+                // 如果没有步骤，显示完整遮罩
+                Color.black.opacity(0.7)
+                    .ignoresSafeArea()
+            }
+            
+            // 阻止点击穿透到底层（除了按钮区域）
+            Color.clear
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    // 点击遮罩区域不关闭教程，阻止事件穿透
+                }
+            
+            // 提示内容区域
+            VStack {
+                Spacer()
+                
+                if !steps.isEmpty && currentStep < steps.count {
+                    let step = steps[currentStep]
+                    
+                    // 箭头（如果指定了位置）
+                    if let arrowPosition = step.arrowPosition {
+                        TutorialArrowView(
+                            position: arrowPosition,
+                            direction: step.arrowDirection
+                        )
+                        .offset(y: step.arrowOffset)
+                    }
+                    
+                    // 提示卡片
+                    TutorialTipCard(
+                        title: step.title,
+                        description: step.description,
+                        localizationManager: localizationManager
+                    )
+                    .padding(.horizontal, 30)
+                    .padding(.bottom, 100)
+                }
+            }
+            
+            // 顶部 Skip 按钮
+            VStack {
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        skipTutorial()
+                    }) {
+                        Text(localizationManager.localized("tutorial.skip"))
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.white.opacity(0.8))
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 10)
+                            .background(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .fill(Color.black.opacity(0.5))
+                            )
+                    }
+                    .padding(.top, 20)
+                    .padding(.trailing, 20)
+                }
+                Spacer()
+            }
+            
+            // 底部按钮区域
+            VStack {
+                Spacer()
+                HStack(spacing: 20) {
+                    // 上一步按钮（第一步不显示）
+                    if currentStep > 0 {
+                        Button(action: {
+                            withAnimation {
+                                currentStep -= 1
+                            }
+                        }) {
+                            HStack(spacing: 8) {
+                                Image(systemName: "chevron.left")
+                                Text(localizationManager.localized("tutorial.previous"))
+                            }
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 12)
+                            .background(
+                                RoundedRectangle(cornerRadius: 25)
+                                    .fill(Color.white.opacity(0.2))
+                            )
+                        }
+                    } else {
+                        Spacer()
+                            .frame(width: 100)
+                    }
+                    
+                    Spacer()
+                    
+                    // 下一步/完成按钮
+                    Button(action: {
+                        if !steps.isEmpty && currentStep < steps.count - 1 {
+                            withAnimation {
+                                currentStep += 1
+                            }
+                        } else {
+                            // 最后一步，完成教程
+                            completeTutorial()
+                        }
+                    }) {
+                        HStack(spacing: 8) {
+                            Text((!steps.isEmpty && currentStep < steps.count - 1) ?
+                                 localizationManager.localized("tutorial.next") :
+                                 localizationManager.localized("tutorial.complete"))
+                            if !steps.isEmpty && currentStep < steps.count - 1 {
+                                Image(systemName: "chevron.right")
+                            }
+                        }
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 12)
+                        .background(
+                            LinearGradient(
+                                gradient: Gradient(colors: [Color.blue, Color.purple]),
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .cornerRadius(25)
+                        .shadow(color: .black.opacity(0.3), radius: 5, x: 0, y: 3)
+                    }
+                }
+                .padding(.horizontal, 30)
+                .padding(.bottom, 40)
+            }
+        }
+    }
+    
+    /// 跳过教程
+    private func skipTutorial() {
+        print("📚 [新手教程] 用户跳过教程")
+        markTutorialCompleted()
+        isPresented = false
+    }
+    
+    /// 完成教程
+    private func completeTutorial() {
+        print("📚 [新手教程] 用户完成教程")
+        markTutorialCompleted()
+        isPresented = false
+    }
+    
+    /// 标记教程已完成
+    private func markTutorialCompleted() {
+        UserDefaults.standard.set(true, forKey: "hasCompletedTutorial")
+    }
+}
+
+// MARK: - 教程步骤数据模型
+struct TutorialStep {
+    let title: String // 本地化键
+    let description: String // 本地化键
+    let highlightFrame: CGRect // 高亮区域的位置和大小
+    let highlightCornerRadius: CGFloat // 高亮区域的圆角
+    let arrowPosition: CGPoint? // 箭头位置（相对于屏幕中心）
+    let arrowDirection: ArrowDirection // 箭头方向
+    let arrowOffset: CGFloat // 箭头垂直偏移
+    
+    enum ArrowDirection {
+        case up
+        case down
+        case left
+        case right
+    }
+}
+
+// MARK: - 高亮区域视图（遮罩挖洞）
+struct TutorialHighlightView: View {
+    let highlightFrame: CGRect
+    let highlightCornerRadius: CGFloat
+    
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack {
+                // 半透明黑色遮罩（全屏）
+                Color.black.opacity(0.7)
+                    .ignoresSafeArea()
+                
+                // 挖洞（高亮区域）- 使用 blendMode 实现挖洞效果
+                RoundedRectangle(cornerRadius: highlightCornerRadius)
+                    .fill(Color.white)
+                    .frame(
+                        width: max(0, min(highlightFrame.width, geometry.size.width)),
+                        height: max(0, min(highlightFrame.height, geometry.size.height))
+                    )
+                    .position(
+                        x: max(highlightFrame.width/2, min(highlightFrame.midX, geometry.size.width - highlightFrame.width/2)),
+                        y: max(highlightFrame.height/2, min(highlightFrame.midY, geometry.size.height - highlightFrame.height/2))
+                    )
+                    .blendMode(.destinationOut)
+            }
+            .compositingGroup()
+        }
+    }
+}
+
+// MARK: - 箭头视图
+struct TutorialArrowView: View {
+    let position: CGPoint
+    let direction: TutorialStep.ArrowDirection
+    
+    var body: some View {
+        Image(systemName: arrowIconName)
+            .font(.system(size: 40, weight: .bold))
+            .foregroundColor(.yellow)
+            .shadow(color: .black.opacity(0.5), radius: 3, x: 0, y: 2)
+            .rotationEffect(.degrees(rotationAngle))
+            .offset(x: position.x, y: position.y)
+    }
+    
+    private var arrowIconName: String {
+        switch direction {
+        case .up: return "arrow.down"
+        case .down: return "arrow.up"
+        case .left: return "arrow.right"
+        case .right: return "arrow.left"
+        }
+    }
+    
+    private var rotationAngle: Double {
+        switch direction {
+        case .up: return 0
+        case .down: return 180
+        case .left: return 90
+        case .right: return -90
+        }
+    }
+}
+
+// MARK: - 提示卡片视图
+struct TutorialTipCard: View {
+    let title: String
+    let description: String
+    @ObservedObject var localizationManager: LocalizationManager
+    
+    var body: some View {
+        VStack(spacing: 15) {
+            // 标题
+            Text(localizationManager.localized(title))
+                .font(.system(size: 24, weight: .bold))
+                .foregroundColor(.white)
+                .multilineTextAlignment(.center)
+            
+            // 描述
+            Text(localizationManager.localized(description))
+                .font(.system(size: 16, weight: .regular))
+                .foregroundColor(.white.opacity(0.9))
+                .multilineTextAlignment(.center)
+                .lineSpacing(6)
+        }
+        .padding(25)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color.black.opacity(0.8))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(Color.white.opacity(0.3), lineWidth: 2)
+                )
+        )
+        .shadow(color: .black.opacity(0.5), radius: 10, x: 0, y: 5)
+    }
+}
+
+#Preview {
+    TutorialView(
+        isPresented: .constant(true),
+        steps: [
+            TutorialStep(
+                title: "tutorial.step1.title",
+                description: "tutorial.step1.description",
+                highlightFrame: CGRect(x: 100, y: 100, width: 200, height: 100),
+                highlightCornerRadius: 15,
+                arrowPosition: CGPoint(x: 0, y: -50),
+                arrowDirection: .down,
+                arrowOffset: 0
+            )
+        ]
+    )
+}
+

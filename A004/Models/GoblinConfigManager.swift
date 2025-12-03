@@ -15,14 +15,15 @@ struct GoblinConfigFile: Codable {
 
 struct GoblinConfig: Codable {
     let id: Int
-    let name: String
+    let nameKey: String
     let icon: String
     let isFree: Bool
-    let buff: String
+    let buffKey: String
     let buffType: String
     let buffValue: Double
     let unlockPrice: Int
-    let description: String
+    let descriptionKey: String
+    let unlockCurrency: String? // "coins" 或 "diamonds"，默认为 "coins"
 }
 
 struct GoblinSystemConfig: Codable {
@@ -68,14 +69,15 @@ class GoblinConfigManager {
         return configFile.goblins.map { config in
             Goblin(
                 id: config.id,
-                name: config.name,
+                nameKey: config.nameKey,
                 icon: config.icon,
                 isFree: config.isFree,
-                buff: config.buff,
+                buffKey: config.buffKey,
                 buffType: config.buffType,
                 buffValue: config.buffValue,
                 unlockPrice: config.unlockPrice,
-                description: config.description
+                descriptionKey: config.descriptionKey,
+                unlockCurrency: config.unlockCurrency ?? "coins"
             )
         }
     }

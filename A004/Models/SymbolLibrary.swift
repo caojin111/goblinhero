@@ -67,7 +67,11 @@ struct SymbolLibrary {
         let epic = symbols.filter { $0.rarity == .epic }.count
         let legendary = symbols.filter { $0.rarity == .legendary }.count
         
-        print("📊 [符号库] 稀有度分布: 普通\(normal) | 稀有\(rare) | 史诗\(epic) | 传说\(legendary)")
+        let commonName = LocalizationManager.shared.localized("rarity.common")
+        let rareName = LocalizationManager.shared.localized("rarity.rare")
+        let epicName = LocalizationManager.shared.localized("rarity.epic")
+        let legendaryName = LocalizationManager.shared.localized("rarity.legendary")
+        print("📊 [符号库] 稀有度分布: \(commonName)\(normal) | \(rareName)\(rare) | \(epicName)\(epic) | \(legendaryName)\(legendary)")
         
         let typeGroups = Dictionary(grouping: symbols) { $0.types.first ?? "unknown" }
         print("🏷️ [符号库] 类型分布:")

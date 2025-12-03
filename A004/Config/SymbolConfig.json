@@ -2,397 +2,1497 @@
   "symbols": [
     {
       "id": 1,
-      "name": "儿童",
+      "nameKey": "child",
       "icon": "👶",
       "rarity": "normal",
-      "types": ["human"],
+      "types": [
+        "human",
+        "childish"
+      ],
       "baseValue": 2,
       "weight": 1000,
-      "effect": "如果已拥有玩具鸭，则金币+2",
-      "effectType": "conditional_bonus",
+      "effect": "如果已拥有符号池里每有一个除'儿童'之外的#childish，则额外获得金币+2",
+      "effectType": "count_bonus",
       "effectParams": {
-        "requireSymbol": "玩具鸭",
-        "bonus": 2
-      }
+        "countType": "childish",
+        "bonusPerCount": 2,
+        "excludeSelf": true
+      },
+      "descriptionKey": "child"
     },
     {
       "id": 2,
-      "name": "商人",
+      "nameKey": "merchant",
       "icon": "🧑‍💼",
       "rarity": "normal",
-      "types": ["human"],
+      "types": [
+        "human",
+        "trading"
+      ],
       "baseValue": 2,
       "weight": 1000,
-      "effect": "每拥有一个人类，金币+1",
-      "effectType": "count_bonus",
+      "effect": "全局永久buff：勾玉和硬币的baseValue+20（只针对当前局游戏）",
+      "effectType": "global_buff",
       "effectParams": {
-        "countType": "human",
-        "bonusPerCount": 1
-      }
+        "buffType": "trading_buff",
+        "targetSymbols": [
+          "勾玉",
+          "硬币"
+        ],
+        "baseValueBonus": 20,
+        "isPersistent": true
+      },
+      "descriptionKey": "merchant"
     },
     {
       "id": 3,
-      "name": "野蛮人",
+      "nameKey": "barbarian",
       "icon": "🧔",
       "rarity": "rare",
-      "types": ["human"],
+      "types": [
+        "human",
+        "worship"
+      ],
       "baseValue": 3,
       "weight": 800,
-      "effect": "每拥有一个外星人，金币-1，每拥有一个怪物，金币+2",
+      "effect": "符号池里每拥有一个#alien，金币-1，每拥有一个#monster，金币+1",
       "effectType": "mixed_count_bonus",
       "effectParams": {
         "bonuses": [
-          {"countType": "alien", "bonusPerCount": -1},
-          {"countType": "monster", "bonusPerCount": 2}
+          {
+            "countType": "alien",
+            "bonusPerCount": -1
+          },
+          {
+            "countType": "monster",
+            "bonusPerCount": 1
+          }
         ]
-      }
+      },
+      "descriptionKey": "barbarian"
     },
     {
       "id": 4,
-      "name": "农民",
+      "nameKey": "farmer",
       "icon": "👨‍🌾",
       "rarity": "rare",
-      "types": ["human"],
+      "types": [
+        "human",
+        "classic tale"
+      ],
       "baseValue": 3,
       "weight": 800,
-      "effect": "每拥有一个工具，金币+2",
+      "effect": "每拥有一个type含#tool 的符号，金币+2",
       "effectType": "count_bonus",
       "effectParams": {
         "countType": "tool",
         "bonusPerCount": 2
-      }
+      },
+      "descriptionKey": "farmer"
     },
     {
       "id": 5,
-      "name": "士兵",
+      "nameKey": "soldier",
       "icon": "💂",
       "rarity": "epic",
-      "types": ["human"],
+      "types": [
+        "human",
+        "classic tale"
+      ],
       "baseValue": 5,
-      "weight": 500,
-      "effect": "如果和怪物一起被挖起，消除怪物，获得50金币",
+      "weight": 300,
+      "effect": "如果'圣骑士'即将被其他符号消除，自动消除自身取消一次对'圣骑士'符号的消除",
+      "effectType": "protect_symbol",
+      "effectParams": {
+        "protectSymbol": "圣骑士"
+      },
+      "descriptionKey": "soldier"
+    },
+    {
+      "id": 6,
+      "nameKey": "village_chief",
+      "icon": "👴",
+      "rarity": "normal",
+      "types": [
+        "human",
+        "worship"
+      ],
+      "baseValue": 2,
+      "weight": 1000,
+      "effect": "符号池里每有一个#human，金币+1",
+      "effectType": "count_bonus",
+      "effectParams": {
+        "countType": "human",
+        "bonusPerCount": 1
+      },
+      "descriptionKey": "village_chief"
+    },
+    {
+      "id": 7,
+      "nameKey": "forest_fairy",
+      "icon": "🧚‍♀️",
+      "rarity": "rare",
+      "types": [
+        "elf",
+        "forest"
+      ],
+      "baseValue": 3,
+      "weight": 800,
+      "effect": "消除符号池里所有'暗月妖精'，获得100金币",
+      "effectType": "eliminate_multiple",
+      "effectParams": {
+        "targetSymbols": [
+          "暗月妖精"
+        ],
+        "bonus": 100
+      },
+      "descriptionKey": "forest_fairy"
+    },
+    {
+      "id": 8,
+      "nameKey": "dark_moon_fairy",
+      "icon": "🧚‍♂️",
+      "rarity": "rare",
+      "types": [
+        "elf",
+        "forest"
+      ],
+      "baseValue": 3,
+      "weight": 800,
+      "effect": "消除符号池里所有'星光妖精'，获得100金币",
+      "effectType": "eliminate_multiple",
+      "effectParams": {
+        "targetSymbols": [
+          "星光妖精"
+        ],
+        "bonus": 100
+      },
+      "descriptionKey": "dark_moon_fairy"
+    },
+    {
+      "id": 9,
+      "nameKey": "starlight_fairy",
+      "icon": "🧚",
+      "rarity": "rare",
+      "types": [
+        "elf",
+        "forest"
+      ],
+      "baseValue": 3,
+      "weight": 800,
+      "effect": "消除符号池里所有'森林妖精'，获得100金币",
+      "effectType": "eliminate_multiple",
+      "effectParams": {
+        "targetSymbols": [
+          "森林妖精"
+        ],
+        "bonus": 100
+      },
+      "descriptionKey": "starlight_fairy"
+    },
+    {
+      "id": 10,
+      "nameKey": "healer",
+      "icon": "👩‍⚕️",
+      "rarity": "normal",
+      "types": [
+        "human",
+        "live or dead"
+      ],
+      "baseValue": 2,
+      "weight": 1000,
+      "effect": "抵消符号池里一个type1或type2包含'monster'的符号的每回合扣金币负面效果",
+      "effectType": "cure_negative_effect",
+      "effectParams": {
+        "targetType": "monster"
+      },
+      "descriptionKey": "healer"
+    },
+    {
+      "id": 11,
+      "nameKey": "paladin",
+      "icon": "⚔️",
+      "rarity": "rare",
+      "types": [
+        "human",
+        "live or dead"
+      ],
+      "baseValue": 3,
+      "weight": 800,
+      "effect": "如果和type含 #monster的符号一起被挖起，消除一个type 含#monster 类型的符号，获得50金币",
       "effectType": "eliminate_bonus",
       "effectParams": {
         "eliminateType": "monster",
         "bonus": 50
-      }
+      },
+      "descriptionKey": "paladin"
     },
     {
-      "id": 6,
-      "name": "玩具鸭",
-      "icon": "🦆",
+      "id": 12,
+      "nameKey": "nun",
+      "icon": "👩‍🦰",
       "rarity": "normal",
-      "types": ["material"],
+      "types": [
+        "human",
+        "vampire note"
+      ],
       "baseValue": 2,
       "weight": 1000,
-      "effect": "",
-      "effectType": "none",
-      "effectParams": {}
+      "effect": "如果本次挖出中有type1或type2包含'monster'的符号，且该怪物没有被其他效果消除，额外获得5金币",
+      "effectType": "conditional_bonus",
+      "effectParams": {
+        "condition": "monster_not_eliminated",
+        "bonus": 5
+      },
+      "descriptionKey": "nun"
     },
     {
-      "id": 7,
-      "name": "酒瓶",
-      "icon": "🍾",
-      "rarity": "normal",
-      "types": ["material"],
-      "baseValue": 2,
-      "weight": 1000,
-      "effect": "",
-      "effectType": "none",
-      "effectParams": {}
-    },
-    {
-      "id": 8,
-      "name": "手提箱",
-      "icon": "💼",
+      "id": 13,
+      "nameKey": "ancient_tree_elder",
+      "icon": "🌳",
       "rarity": "rare",
-      "types": ["material"],
+      "types": [
+        "monster",
+        "forest"
+      ],
       "baseValue": 3,
       "weight": 800,
-      "effect": "遇到商人会被清除，获得20金币",
-      "effectType": "conditional_eliminate",
+      "effect": "生成一个'土元素'到符号池",
+      "effectType": "spawn_specific",
+      "effectParams": {
+        "symbol": "土元素"
+      },
+      "descriptionKey": "ancient_tree_elder"
+    },
+    {
+      "id": 14,
+      "nameKey": "thief",
+      "icon": "🦹",
+      "rarity": "normal",
+      "types": [
+        "human",
+        "classic tale"
+      ],
+      "baseValue": 2,
+      "weight": 1000,
+      "effect": "如果本次挖出中有'商人'，自身baseValue翻倍",
+      "effectType": "conditional_multiplier",
+      "effectParams": {
+        "triggerSymbol": "商人",
+        "multiplier": 2
+      },
+      "descriptionKey": "thief"
+    },
+    {
+      "id": 15,
+      "nameKey": "princess",
+      "icon": "👸",
+      "rarity": "rare",
+      "types": [
+        "human",
+        "classic tale"
+      ],
+      "baseValue": 3,
+      "weight": 800,
+      "effect": "本次挖出中所有type1或type2包含'human'的符号的baseValue翻倍",
+      "effectType": "group_multiplier",
+      "effectParams": {
+        "targetType": "human",
+        "multiplier": 2
+      },
+      "descriptionKey": "princess"
+    },
+    {
+      "id": 16,
+      "nameKey": "vampire",
+      "icon": "🧛",
+      "rarity": "epic",
+      "types": [
+        "monster",
+        "vampire note"
+      ],
+      "baseValue": 5,
+      "weight": 300,
+      "effect": "如果存在于符号池，每回合开始时减少50金币（回合开始时触发）",
+      "effectType": "round_start_penalty",
+      "effectParams": {
+        "penalty": 50
+      },
+      "descriptionKey": "vampire"
+    },
+    {
+      "id": 17,
+      "nameKey": "hunter",
+      "icon": "🏹",
+      "rarity": "normal",
+      "types": [
+        "human",
+        "vampire note"
+      ],
+      "baseValue": 2,
+      "weight": 1000,
+      "effect": "如果本次挖出中有'吸血鬼'，从符号池消除'吸血鬼'和自身，获得100金币",
+      "effectType": "eliminate_pair_bonus",
+      "effectParams": {
+        "targetSymbol": "吸血鬼",
+        "bonus": 100
+      },
+      "descriptionKey": "hunter"
+    },
+    {
+      "id": 18,
+      "nameKey": "female_ninja",
+      "icon": "🥷",
+      "rarity": "normal",
+      "types": [
+        "human",
+        "ninja"
+      ],
+      "baseValue": 2,
+      "weight": 1000,
+      "effect": "不会出现在矿洞里（weight=0）。如果符号池里同时存在'男忍者'，则清除符号池里所有'丧尸'",
+      "effectType": "round_start_eliminate",
+      "effectParams": {
+        "requireSymbol": "男忍者",
+        "targetSymbols": [
+          "丧尸"
+        ]
+      },
+      "descriptionKey": "female_ninja"
+    },
+    {
+      "id": 19,
+      "nameKey": "male_ninja",
+      "icon": "🥷‍♂️",
+      "rarity": "normal",
+      "types": [
+        "human",
+        "ninja"
+      ],
+      "baseValue": 2,
+      "weight": 1000,
+      "effect": "不会出现在矿洞里（weight=0）。如果符号池里同时存在'女忍者'，则在每回合开始时清除符号池里所有'丧尸'（回合开始时触发）",
+      "effectType": "round_start_eliminate",
+      "effectParams": {
+        "requireSymbol": "女忍者",
+        "targetSymbols": [
+          "丧尸"
+        ]
+      },
+      "descriptionKey": "male_ninja"
+    },
+    {
+      "id": 20,
+      "nameKey": "god_of_strength",
+      "icon": "💪",
+      "rarity": "rare",
+      "types": [
+        "god",
+        "worship"
+      ],
+      "baseValue": 3,
+      "weight": 800,
+      "effect": "下次金币收益+300。被挖出后从符号池移除（消除自身）",
+      "effectType": "next_round_bonus",
+      "effectParams": {
+        "bonus": 300,
+        "eliminateSelf": true
+      },
+      "descriptionKey": "god_of_strength"
+    },
+    {
+      "id": 21,
+      "nameKey": "god_of_speed",
+      "icon": "🏃‍♂️",
+      "rarity": "rare",
+      "types": [
+        "god",
+        "worship"
+      ],
+      "baseValue": 3,
+      "weight": 800,
+      "effect": "本次其他被挖出的符号数量翻倍（骰子点数翻倍）。被挖出后从符号池移除（消除自身）",
+      "effectType": "double_dig_count",
+      "effectParams": {
+        "eliminateSelf": true
+      },
+      "descriptionKey": "god_of_speed"
+    },
+    {
+      "id": 22,
+      "nameKey": "god_of_harvest",
+      "icon": "🌾",
+      "rarity": "epic",
+      "types": [
+        "god",
+        "worship"
+      ],
+      "baseValue": 5,
+      "weight": 300,
+      "effect": "下次金币收益结算2次（收益翻倍）。被挖出后从符号池移除（消除自身）",
+      "effectType": "double_next_reward",
+      "effectParams": {
+        "eliminateSelf": true
+      },
+      "descriptionKey": "god_of_harvest"
+    },
+    {
+      "id": 23,
+      "nameKey": "god_of_luck",
+      "icon": "🍀",
+      "rarity": "epic",
+      "types": [
+        "god",
+        "worship"
+      ],
+      "baseValue": 5,
+      "weight": 300,
+      "effect": "下一次挖矿多一个骰子可用（临时+1骰子）。被挖出后从符号池移除（消除自身）",
+      "effectType": "temp_dice_bonus",
+      "effectParams": {
+        "diceBonus": 1,
+        "eliminateSelf": true
+      },
+      "descriptionKey": "god_of_luck"
+    },
+    {
+      "id": 24,
+      "nameKey": "death",
+      "icon": "💀",
+      "rarity": "epic",
+      "types": [
+        "god",
+        "live or dead"
+      ],
+      "baseValue": 5,
+      "weight": 300,
+      "effect": "接下来5个回合每回合开始时获得1000金币，5个回合后游戏强制结束（回合开始时触发）",
+      "effectType": "round_start_buff",
+      "effectParams": {
+        "rounds": 5,
+        "bonusPerRound": 1000,
+        "gameOverAfter": true
+      },
+      "descriptionKey": "death"
+    },
+    {
+      "id": 25,
+      "nameKey": "water_element",
+      "icon": "💧",
+      "rarity": "normal",
+      "types": [
+        "element",
+        "made a wish"
+      ],
+      "baseValue": 2,
+      "weight": 1000,
+      "effect": "生成一个除'水元素'之外的随机元素到符号池。如果符号池拥有全部五种元素（水、火、雷、冰、土），则每回合开始时获得500金币（回合开始时触发）",
+      "effectType": "spawn_random_element",
+      "effectParams": {
+        "excludeSelf": true,
+        "elementBonus": 500
+      },
+      "descriptionKey": "water_element"
+    },
+    {
+      "id": 26,
+      "nameKey": "fire_element",
+      "icon": "🔥",
+      "rarity": "normal",
+      "types": [
+        "element",
+        "made a wish"
+      ],
+      "baseValue": 2,
+      "weight": 1000,
+      "effect": "生成一个除'火元素'之外的随机元素到符号池。如果符号池拥有全部五种元素（水、火、雷、冰、土），则每回合开始时获得500金币（回合开始时触发）",
+      "effectType": "spawn_random_element",
+      "effectParams": {
+        "excludeSelf": true,
+        "elementBonus": 500
+      },
+      "descriptionKey": "fire_element"
+    },
+    {
+      "id": 27,
+      "nameKey": "thunder_element",
+      "icon": "⚡",
+      "rarity": "normal",
+      "types": [
+        "element",
+        "made a wish"
+      ],
+      "baseValue": 2,
+      "weight": 1000,
+      "effect": "生成一个除'雷元素'之外的随机元素到符号池。如果符号池拥有全部五种元素（水、火、雷、冰、土），则每回合开始时获得500金币（回合开始时触发）",
+      "effectType": "spawn_random_element",
+      "effectParams": {
+        "excludeSelf": true,
+        "elementBonus": 500
+      },
+      "descriptionKey": "thunder_element"
+    },
+    {
+      "id": 28,
+      "nameKey": "ice_element",
+      "icon": "❄️",
+      "rarity": "normal",
+      "types": [
+        "element",
+        "made a wish"
+      ],
+      "baseValue": 2,
+      "weight": 1000,
+      "effect": "生成一个除'冰元素'之外的随机元素到符号池。如果符号池拥有全部五种元素（水、火、雷、冰、土），则每回合开始时获得500金币（回合开始时触发）",
+      "effectType": "spawn_random_element",
+      "effectParams": {
+        "excludeSelf": true,
+        "elementBonus": 500
+      },
+      "descriptionKey": "ice_element"
+    },
+    {
+      "id": 29,
+      "nameKey": "earth_element",
+      "icon": "🌍",
+      "rarity": "normal",
+      "types": [
+        "element",
+        "made a wish"
+      ],
+      "baseValue": 2,
+      "weight": 1000,
+      "effect": "生成一个除'土元素'之外的随机元素到符号池。如果符号池拥有全部五种元素（水、火、雷、冰、土），则每回合开始时获得500金币（回合开始时触发）",
+      "effectType": "spawn_random_element",
+      "effectParams": {
+        "excludeSelf": true,
+        "elementBonus": 500
+      },
+      "descriptionKey": "earth_element"
+    },
+    {
+      "id": 30,
+      "nameKey": "rock",
+      "icon": "🪨",
+      "rarity": "normal",
+      "types": [
+        "material",
+        "forest"
+      ],
+      "baseValue": 2,
+      "weight": 1000,
+      "effect": "如果符号池里有type1或type2包含'tool'的符号，从符号池移除自身，获得20金币",
+      "effectType": "conditional_self_eliminate",
+      "effectParams": {
+        "conditionType": "has_tool",
+        "bonus": 20
+      },
+      "descriptionKey": "rock"
+    },
+    {
+      "id": 31,
+      "nameKey": "cross",
+      "icon": "✝️",
+      "rarity": "normal",
+      "types": [
+        "tool",
+        "vampire note"
+      ],
+      "baseValue": 2,
+      "weight": 1000,
+      "effect": "如果在符号池内，'猎人'的权重翻倍（全局永久buff，只针对当前局游戏）",
+      "effectType": "global_buff",
+      "effectParams": {
+        "buffType": "weight_multiplier",
+        "targetSymbol": "猎人",
+        "multiplier": 2,
+        "isPersistent": true
+      },
+      "descriptionKey": "cross"
+    },
+    {
+      "id": 32,
+      "nameKey": "book_of_the_dead",
+      "icon": "📖",
+      "rarity": "rare",
+      "types": [
+        "tool",
+        "live or dead"
+      ],
+      "baseValue": 3,
+      "weight": 800,
+      "effect": "从符号池移除自身，生成一个'死神'到符号池",
+      "effectType": "spawn_specific",
+      "effectParams": {
+        "symbol": "死神",
+        "eliminateSelf": true
+      },
+      "descriptionKey": "book_of_the_dead"
+    },
+    {
+      "id": 33,
+      "nameKey": "hypnosis_pendulum",
+      "icon": "⏰",
+      "rarity": "rare",
+      "types": [
+        "equipment",
+        "fantacy"
+      ],
+      "baseValue": 3,
+      "weight": 800,
+      "effect": "从符号池移除自身，随机生成'公主'或'女忍者'或'修女'中的一个到符号池",
+      "effectType": "spawn_random_from_list",
+      "effectParams": {
+        "symbols": [
+          "公主",
+          "女忍者",
+          "修女"
+        ],
+        "eliminateSelf": true
+      },
+      "descriptionKey": "hypnosis_pendulum"
+    },
+    {
+      "id": 34,
+      "nameKey": "dragon_fire_gun",
+      "icon": "🔫",
+      "rarity": "normal",
+      "types": [
+        "equipment",
+        "weapon"
+      ],
+      "baseValue": 2,
+      "weight": 1000,
+      "effect": "如果本次挖出中有'士兵'，额外获得5金币",
+      "effectType": "conditional_bonus",
+      "effectParams": {
+        "triggerSymbol": "士兵",
+        "bonus": 5
+      },
+      "descriptionKey": "dragon_fire_gun"
+    },
+    {
+      "id": 35,
+      "nameKey": "rune_armor",
+      "icon": "🛡️",
+      "rarity": "normal",
+      "types": [
+        "equipment",
+        "classic tale"
+      ],
+      "baseValue": 2,
+      "weight": 1000,
+      "effect": "如果本次挖出中有'圣骑士'，额外获得10金币",
+      "effectType": "conditional_bonus",
+      "effectParams": {
+        "triggerSymbol": "圣骑士",
+        "bonus": 10
+      },
+      "descriptionKey": "rune_armor"
+    },
+    {
+      "id": 36,
+      "nameKey": "dawn_messenger_staff",
+      "icon": "🪄",
+      "rarity": "normal",
+      "types": [
+        "equipment",
+        "weapon"
+      ],
+      "baseValue": 2,
+      "weight": 1000,
+      "effect": "如果本次挖出中有'公主'，额外获得20金币",
+      "effectType": "conditional_bonus",
+      "effectParams": {
+        "triggerSymbol": "公主",
+        "bonus": 20
+      },
+      "descriptionKey": "dawn_messenger_staff"
+    },
+    {
+      "id": 37,
+      "nameKey": "holy_bottle",
+      "icon": "🧪",
+      "rarity": "normal",
+      "types": [
+        "tool",
+        "first aid"
+      ],
+      "baseValue": 2,
+      "weight": 1000,
+      "effect": "如果本次挖出中有'修女'，从符号池移除自身，生成一个'水元素'到符号池",
+      "effectType": "conditional_spawn",
+      "effectParams": {
+        "triggerSymbol": "修女",
+        "spawnSymbol": "水元素",
+        "eliminateSelf": true
+      },
+      "descriptionKey": "holy_bottle"
+    },
+    {
+      "id": 38,
+      "nameKey": "contract_scroll",
+      "icon": "📜",
+      "rarity": "normal",
+      "types": [
+        "tool",
+        "fantacy"
+      ],
+      "baseValue": 2,
+      "weight": 1000,
+      "effect": "从符号池移除自身，随机生成'森林妖精'或'暗月妖精'或'星光妖精'中的一个到符号池",
+      "effectType": "spawn_random_from_list",
+      "effectParams": {
+        "symbols": [
+          "森林妖精",
+          "暗月妖精",
+          "星光妖精"
+        ],
+        "eliminateSelf": true
+      },
+      "descriptionKey": "contract_scroll"
+    },
+    {
+      "id": 39,
+      "nameKey": "shuriken",
+      "icon": "🥷",
+      "rarity": "normal",
+      "types": [
+        "equipment",
+        "weapon"
+      ],
+      "baseValue": 2,
+      "weight": 1000,
+      "effect": "如果符号池里有'女忍者'或'男忍者'，额外获得10金币",
+      "effectType": "conditional_bonus",
+      "effectParams": {
+        "condition": "has_ninja",
+        "bonus": 10
+      },
+      "descriptionKey": "shuriken"
+    },
+    {
+      "id": 40,
+      "nameKey": "diary",
+      "icon": "📓",
+      "rarity": "normal",
+      "types": [
+        "material",
+        "cozy life"
+      ],
+      "baseValue": 2,
+      "weight": 1000,
+      "effect": "如果本次挖出中有'吸血鬼'，从符号池移除自身，生成一个'吸血鬼'到符号池",
+      "effectType": "conditional_spawn",
+      "effectParams": {
+        "triggerSymbol": "吸血鬼",
+        "spawnSymbol": "吸血鬼",
+        "eliminateSelf": true
+      },
+      "descriptionKey": "diary"
+    },
+    {
+      "id": 41,
+      "nameKey": "ring",
+      "icon": "💍",
+      "rarity": "normal",
+      "types": [
+        "equipment",
+        "cozy life"
+      ],
+      "baseValue": 2,
+      "weight": 1000,
+      "effect": "如果本次挖出中有'手机'，生成一个'雷元素'到符号池",
+      "effectType": "conditional_spawn",
+      "effectParams": {
+        "triggerSymbol": "手机",
+        "spawnSymbol": "雷元素"
+      },
+      "descriptionKey": "ring"
+    },
+    {
+      "id": 42,
+      "nameKey": "mobile_phone",
+      "icon": "📱",
+      "rarity": "normal",
+      "types": [
+        "material",
+        "cozy life"
+      ],
+      "baseValue": 2,
+      "weight": 1000,
+      "effect": "如果本次挖出中有'戒指'，生成一个'雷元素'到符号池",
+      "effectType": "conditional_spawn",
+      "effectParams": {
+        "triggerSymbol": "戒指",
+        "spawnSymbol": "雷元素"
+      },
+      "descriptionKey": "mobile_phone"
+    },
+    {
+      "id": 43,
+      "nameKey": "glasses",
+      "icon": "👓",
+      "rarity": "normal",
+      "types": [
+        "material",
+        "cozy life"
+      ],
+      "baseValue": 2,
+      "weight": 1000,
+      "effect": "如果本次挖出中有'领结'，生成一个'火元素'到符号池",
+      "effectType": "conditional_spawn",
+      "effectParams": {
+        "triggerSymbol": "领结",
+        "spawnSymbol": "火元素"
+      },
+      "descriptionKey": "glasses"
+    },
+    {
+      "id": 44,
+      "nameKey": "tie",
+      "icon": "👔",
+      "rarity": "normal",
+      "types": [
+        "material",
+        "cozy life"
+      ],
+      "baseValue": 2,
+      "weight": 1000,
+      "effect": "如果本次挖出中有'眼镜'，生成一个'火元素'到符号池",
+      "effectType": "conditional_spawn",
+      "effectParams": {
+        "triggerSymbol": "眼镜",
+        "spawnSymbol": "火元素"
+      },
+      "descriptionKey": "tie"
+    },
+    {
+      "id": 45,
+      "nameKey": "magatama",
+      "icon": "💎",
+      "rarity": "rare",
+      "types": [
+        "material",
+        "trading"
+      ],
+      "baseValue": 5,
+      "weight": 800,
+      "effect": "无效果（基础金币值受商人buff影响）",
+      "effectType": "none",
+      "effectParams": {},
+      "descriptionKey": "magatama"
+    },
+    {
+      "id": 46,
+      "nameKey": "battery",
+      "icon": "🔋",
+      "rarity": "normal",
+      "types": [
+        "material",
+        "first aid"
+      ],
+      "baseValue": 2,
+      "weight": 1000,
+      "effect": "从符号池移除自身，生成一个'宇宙飞船'到符号池",
+      "effectType": "spawn_specific",
+      "effectParams": {
+        "symbol": "宇宙飞船",
+        "eliminateSelf": true
+      },
+      "descriptionKey": "battery"
+    },
+    {
+      "id": 47,
+      "nameKey": "medical_kit",
+      "icon": "🚑",
+      "rarity": "normal",
+      "types": [
+        "material",
+        "first aid"
+      ],
+      "baseValue": 2,
+      "weight": 1000,
+      "effect": "如果本次挖出中有'治疗师'，生成一个'风元素'到符号池（注：如果风元素不存在，可生成其他元素或忽略）",
+      "effectType": "conditional_spawn",
+      "effectParams": {
+        "triggerSymbol": "治疗师",
+        "spawnSymbol": "风元素",
+        "allowFallback": true
+      },
+      "descriptionKey": "medical_kit"
+    },
+    {
+      "id": 48,
+      "nameKey": "coin",
+      "icon": "🪙",
+      "rarity": "normal",
+      "types": [
+        "material",
+        "trading"
+      ],
+      "baseValue": 3,
+      "weight": 1000,
+      "effect": "无效果（基础金币值受商人buff影响）",
+      "effectType": "none",
+      "effectParams": {},
+      "descriptionKey": "coin"
+    },
+    {
+      "id": 49,
+      "nameKey": "pillow",
+      "icon": "🛏️",
+      "rarity": "normal",
+      "types": [
+        "material",
+        "cozy life"
+      ],
+      "baseValue": 2,
+      "weight": 1000,
+      "effect": "如果本次挖出中有'儿童'，从符号池移除自身，获得20金币",
+      "effectType": "conditional_bonus_eliminate",
+      "effectParams": {
+        "triggerSymbol": "儿童",
+        "bonus": 20
+      },
+      "descriptionKey": "pillow"
+    },
+    {
+      "id": 50,
+      "nameKey": "eye_mask",
+      "icon": "👁️‍🗨️",
+      "rarity": "normal",
+      "types": [
+        "material",
+        "cozy life"
+      ],
+      "baseValue": 2,
+      "weight": 1000,
+      "effect": "如果本次挖出中有'儿童'，从符号池移除自身，获得10金币",
+      "effectType": "conditional_bonus_eliminate",
+      "effectParams": {
+        "triggerSymbol": "儿童",
+        "bonus": 10
+      },
+      "descriptionKey": "eye_mask"
+    },
+    {
+      "id": 51,
+      "nameKey": "talisman_paper",
+      "icon": "📄",
+      "rarity": "normal",
+      "types": [
+        "material",
+        "vampire note"
+      ],
+      "baseValue": 2,
+      "weight": 1000,
+      "effect": "如果本次挖出中有'狼人'，从符号池消除'狼人'和自身，获得100金币",
+      "effectType": "eliminate_pair_bonus",
+      "effectParams": {
+        "targetSymbol": "狼人",
+        "bonus": 100
+      },
+      "descriptionKey": "talisman_paper"
+    },
+    {
+      "id": 52,
+      "nameKey": "pumpkin_head",
+      "icon": "🎃",
+      "rarity": "normal",
+      "types": [
+        "toy",
+        "festival"
+      ],
+      "baseValue": 2,
+      "weight": 1000,
+      "effect": "无效果",
+      "effectType": "none",
+      "effectParams": {},
+      "descriptionKey": "pumpkin_head"
+    },
+    {
+      "id": 53,
+      "nameKey": "snowflake",
+      "icon": "❄️",
+      "rarity": "normal",
+      "types": [
+        "material",
+        "festival"
+      ],
+      "baseValue": 2,
+      "weight": 1000,
+      "effect": "符号池里每有一个'农民'，额外获得5金币",
+      "effectType": "count_bonus",
+      "effectParams": {
+        "countType": "human",
+        "bonusPerCount": 5,
+        "nameFilter": "农民"
+      },
+      "descriptionKey": "snowflake"
+    },
+    {
+      "id": 54,
+      "nameKey": "firecracker",
+      "icon": "🧨",
+      "rarity": "normal",
+      "types": [
+        "material",
+        "festival"
+      ],
+      "baseValue": 2,
+      "weight": 1000,
+      "effect": "符号池里每有一个'农民'，额外获得10金币",
+      "effectType": "count_bonus",
+      "effectParams": {
+        "countType": "human",
+        "bonusPerCount": 10,
+        "nameFilter": "农民"
+      },
+      "descriptionKey": "firecracker"
+    },
+    {
+      "id": 55,
+      "nameKey": "lantern",
+      "icon": "🏮",
+      "rarity": "normal",
+      "types": [
+        "material",
+        "childish"
+      ],
+      "baseValue": 1,
+      "weight": 1000,
+      "effect": "无效果",
+      "effectType": "none",
+      "effectParams": {},
+      "descriptionKey": "lantern"
+    },
+    {
+      "id": 56,
+      "nameKey": "toy_duck",
+      "icon": "🦆",
+      "rarity": "normal",
+      "types": [
+        "toy",
+        "childish"
+      ],
+      "baseValue": 2,
+      "weight": 1000,
+      "effect": "无效果",
+      "effectType": "none",
+      "effectParams": {},
+      "descriptionKey": "toy_duck"
+    },
+    {
+      "id": 57,
+      "nameKey": "wine_bottle",
+      "icon": "🍾",
+      "rarity": "normal",
+      "types": [
+        "material",
+        "cozy life"
+      ],
+      "baseValue": 2,
+      "weight": 1000,
+      "effect": "如果本次挖出中有'野蛮人'，额外获得20金币",
+      "effectType": "conditional_bonus",
+      "effectParams": {
+        "triggerSymbol": "野蛮人",
+        "bonus": 20
+      },
+      "descriptionKey": "wine_bottle"
+    },
+    {
+      "id": 58,
+      "nameKey": "briefcase",
+      "icon": "💼",
+      "rarity": "rare",
+      "types": [
+        "material",
+        "cozy life"
+      ],
+      "baseValue": 3,
+      "weight": 800,
+      "effect": "如果本次挖出中有'商人'，从符号池移除自身，获得20金币",
+      "effectType": "conditional_bonus_eliminate",
       "effectParams": {
         "triggerSymbol": "商人",
         "bonus": 20
-      }
+      },
+      "descriptionKey": "briefcase"
     },
     {
-      "id": 9,
-      "name": "锄头",
+      "id": 59,
+      "nameKey": "hoe",
       "icon": "🪓",
       "rarity": "rare",
-      "types": ["material", "tool"],
+      "types": [
+        "material",
+        "tool"
+      ],
       "baseValue": 3,
       "weight": 800,
-      "effect": "有50%的概率获得一个花精，50%的概率获得一个丧尸",
+      "effect": "50%概率生成'花精'到符号池，50%概率生成'丧尸'到符号池",
       "effectType": "random_spawn",
       "effectParams": {
         "options": [
-          {"symbol": "花精", "probability": 0.5},
-          {"symbol": "丧尸", "probability": 0.5}
+          {
+            "symbol": "花精",
+            "probability": 0.5
+          },
+          {
+            "symbol": "丧尸",
+            "probability": 0.5
+          }
         ]
-      }
+      },
+      "descriptionKey": "hoe"
     },
     {
-      "id": 10,
-      "name": "号角",
+      "id": 60,
+      "nameKey": "horn",
       "icon": "📯",
       "rarity": "epic",
-      "types": ["material", "tool"],
+      "types": [
+        "material",
+        "tool"
+      ],
       "baseValue": 5,
-      "weight": 500,
-      "effect": "奖励5个士兵",
+      "weight": 300,
+      "effect": "生成5个'士兵'到符号池",
       "effectType": "spawn_multiple",
       "effectParams": {
         "symbol": "士兵",
         "count": 5
-      }
+      },
+      "descriptionKey": "horn"
     },
     {
-      "id": 11,
-      "name": "铁箱子",
+      "id": 61,
+      "nameKey": "iron_box",
       "icon": "📦",
       "rarity": "normal",
-      "types": ["box", "box"],
+      "types": [
+        "box",
+        "box"
+      ],
       "baseValue": 2,
       "weight": 1000,
-      "effect": "",
+      "effect": "无效果",
       "effectType": "none",
-      "effectParams": {}
+      "effectParams": {},
+      "descriptionKey": "iron_box"
     },
     {
-      "id": 12,
-      "name": "银箱子",
+      "id": 62,
+      "nameKey": "silver_box",
       "icon": "🎁",
       "rarity": "rare",
-      "types": ["box", "box"],
+      "types": [
+        "box",
+        "box"
+      ],
       "baseValue": 3,
       "weight": 800,
-      "effect": "",
+      "effect": "无效果",
       "effectType": "none",
-      "effectParams": {}
+      "effectParams": {},
+      "descriptionKey": "silver_box"
     },
     {
-      "id": 13,
-      "name": "铁钥匙",
+      "id": 63,
+      "nameKey": "iron_key",
       "icon": "🔑",
       "rarity": "normal",
-      "types": ["box", "tool"],
+      "types": [
+        "box",
+        "tool"
+      ],
       "baseValue": 2,
       "weight": 1000,
-      "effect": "消除一个铁箱子，获得10金币",
+      "effect": "从符号池消除一个'铁箱子'，获得10金币",
       "effectType": "unlock_bonus",
       "effectParams": {
         "unlockSymbol": "铁箱子",
         "bonus": 10
-      }
+      },
+      "descriptionKey": "iron_key"
     },
     {
-      "id": 14,
-      "name": "银钥匙",
+      "id": 64,
+      "nameKey": "silver_key",
       "icon": "🗝️",
       "rarity": "rare",
-      "types": ["box", "tool"],
+      "types": [
+        "box",
+        "tool"
+      ],
       "baseValue": 3,
       "weight": 800,
-      "effect": "消除一个银箱子，获得20金币",
+      "effect": "从符号池消除一个'银箱子'，获得20金币",
       "effectType": "unlock_bonus",
       "effectParams": {
         "unlockSymbol": "银箱子",
         "bonus": 20
-      }
+      },
+      "descriptionKey": "silver_key"
     },
     {
-      "id": 15,
-      "name": "万能钥匙",
+      "id": 65,
+      "nameKey": "master_key",
       "icon": "🔐",
       "rarity": "epic",
-      "types": ["box", "tool"],
+      "types": [
+        "box",
+        "tool"
+      ],
       "baseValue": 5,
-      "weight": 500,
-      "effect": "消除一个较高等级的箱子，并获得箱子对应金币",
+      "weight": 300,
+      "effect": "从符号池消除一个较高等级的箱子（优先银箱子），获得箱子baseValue×2的金币",
       "effectType": "universal_unlock",
       "effectParams": {
-        "unlockTypes": ["box"],
-        "bonusMultiplier": 1
-      }
+        "unlockTypes": [
+          "box"
+        ],
+        "bonusMultiplier": 2
+      },
+      "descriptionKey": "master_key"
     },
     {
-      "id": 16,
-      "name": "花精",
+      "id": 66,
+      "nameKey": "flower_fairy",
       "icon": "🧚",
       "rarity": "normal",
-      "types": ["monster"],
+      "types": [
+        "monster",
+        "forest"
+      ],
       "baseValue": 2,
       "weight": 1000,
-      "effect": "",
+      "effect": "无效果（每回合开始时检查：符号池里每存在3个'花精'，自动合成1个'森林妖精'，移除3个'花精'）",
       "effectType": "none",
-      "effectParams": {}
+      "effectParams": {},
+      "descriptionKey": "flower_fairy"
     },
     {
-      "id": 17,
-      "name": "狼人",
+      "id": 67,
+      "nameKey": "werewolf",
       "icon": "🐺",
       "rarity": "normal",
-      "types": ["monster"],
+      "types": [
+        "monster",
+        "vampire note"
+      ],
       "baseValue": 2,
       "weight": 1000,
-      "effect": "",
-      "effectType": "none",
-      "effectParams": {}
+      "effect": "如果存在于符号池，每回合开始时减少20金币（回合开始时触发）",
+      "effectType": "round_start_penalty",
+      "effectParams": {
+        "penalty": 20
+      },
+      "descriptionKey": "werewolf"
     },
     {
-      "id": 18,
-      "name": "丧尸",
+      "id": 68,
+      "nameKey": "zombie",
       "icon": "🧟",
       "rarity": "rare",
-      "types": ["monster"],
+      "types": [
+        "monster",
+        "vampire note"
+      ],
       "baseValue": 3,
       "weight": 800,
-      "effect": "感染一个人类变成丧尸。每有一个丧尸，金币增加5",
+      "effect": "感染符号池里一个type1或type2包含'human'的符号变成'丧尸'。符号池里每有一个'丧尸'，金币+5",
       "effectType": "infect_and_bonus",
       "effectParams": {
         "infectType": "human",
         "countType": "丧尸",
         "bonusPerCount": 5
-      }
+      },
+      "descriptionKey": "zombie"
     },
     {
-      "id": 19,
-      "name": "独眼怪物",
+      "id": 69,
+      "nameKey": "one_eyed_monster",
       "icon": "👁️",
       "rarity": "rare",
-      "types": ["monster"],
+      "types": [
+        "monster",
+        "classic tale"
+      ],
       "baseValue": 6,
       "weight": 800,
-      "effect": "第一次被挖出6金币，第二次5金币，一直递减到0",
+      "effect": "第一次被挖出6金币，第二次5金币，一直递减到0（每回合重置计数器）",
       "effectType": "diminishing_value",
       "effectParams": {
         "initialValue": 6,
         "decrement": 1,
         "minValue": 0
-      }
+      },
+      "descriptionKey": "one_eyed_monster"
     },
     {
-      "id": 20,
-      "name": "哥莫拉",
+      "id": 70,
+      "nameKey": "gomorrah",
       "icon": "👹",
       "rarity": "epic",
-      "types": ["monster"],
+      "types": [
+        "monster",
+        "Extinction"
+      ],
       "baseValue": 5,
-      "weight": 500,
-      "effect": "随机消除一个除自身以外的符号，获得30金币",
+      "weight": 300,
+      "effect": "从符号池随机消除一个除自身以外的符号，获得30金币",
       "effectType": "random_eliminate_bonus",
       "effectParams": {
         "excludeSelf": true,
         "bonus": 30
-      }
+      },
+      "descriptionKey": "gomorrah"
     },
     {
-      "id": 21,
-      "name": "光线枪",
+      "id": 71,
+      "nameKey": "ray_gun",
       "icon": "🔫",
       "rarity": "normal",
-      "types": ["alien", "tool"],
+      "types": [
+        "alien",
+        "weapon"
+      ],
       "baseValue": 2,
       "weight": 1000,
-      "effect": "如果和外星头盔、宇宙飞船同时挖出，则获得40金币（三种物品只计算一次）",
+      "effect": "如果本次挖出中同时有'外星头盔'和'宇宙飞船'，获得40金币（三种物品只计算一次）",
       "effectType": "combo_bonus",
       "effectParams": {
-        "comboSymbols": ["外星头盔", "宇宙飞船"],
+        "comboSymbols": [
+          "外星头盔",
+          "宇宙飞船"
+        ],
         "bonus": 40,
         "onceOnly": true
-      }
+      },
+      "descriptionKey": "ray_gun"
     },
     {
-      "id": 22,
-      "name": "外星头盔",
+      "id": 72,
+      "nameKey": "alien_helmet",
       "icon": "🪖",
       "rarity": "normal",
-      "types": ["alien"],
+      "types": [
+        "alien",
+        "Extinction"
+      ],
       "baseValue": 2,
       "weight": 1000,
-      "effect": "如果和光线枪、宇宙飞船同时挖出，则获得40金币（三种物品只计算一次）",
+      "effect": "如果本次挖出中同时有'光线枪'和'宇宙飞船'，获得40金币（三种物品只计算一次）",
       "effectType": "combo_bonus",
       "effectParams": {
-        "comboSymbols": ["光线枪", "宇宙飞船"],
+        "comboSymbols": [
+          "光线枪",
+          "宇宙飞船"
+        ],
         "bonus": 40,
         "onceOnly": true
-      }
+      },
+      "descriptionKey": "alien_helmet"
     },
     {
-      "id": 23,
-      "name": "宇宙飞船",
+      "id": 73,
+      "nameKey": "spaceship",
       "icon": "🛸",
       "rarity": "rare",
-      "types": ["alien"],
+      "types": [
+        "alien",
+        "Extinction"
+      ],
       "baseValue": 3,
       "weight": 800,
-      "effect": "如果和外星头盔、光线枪同时挖出，则获得40金币（三种物品只计算一次）",
+      "effect": "如果本次挖出中同时有'外星头盔'和'光线枪'，获得40金币（三种物品只计算一次）",
       "effectType": "combo_bonus",
       "effectParams": {
-        "comboSymbols": ["外星头盔", "光线枪"],
+        "comboSymbols": [
+          "外星头盔",
+          "光线枪"
+        ],
         "bonus": 40,
         "onceOnly": true
-      }
+      },
+      "descriptionKey": "spaceship"
     },
     {
-      "id": 24,
-      "name": "精神控制器",
+      "id": 74,
+      "nameKey": "mind_controller",
       "icon": "🎛️",
       "rarity": "rare",
-      "types": ["alien", "tool"],
+      "types": [
+        "alien",
+        "tool"
+      ],
       "baseValue": 3,
       "weight": 800,
-      "effect": "获得3个随机符号",
-      "effectType": "spawn_random",
+      "effect": "随机转化符号池的一个符号为type1='material'的符号（保持原名称和icon，只改变types）",
+      "effectType": "convert_symbol_type",
       "effectParams": {
-        "count": 3
-      }
+        "targetType": "material"
+      },
+      "descriptionKey": "mind_controller"
     },
     {
-      "id": 25,
-      "name": "陨石",
+      "id": 75,
+      "nameKey": "meteorite",
       "icon": "☄️",
       "rarity": "epic",
-      "types": ["alien"],
+      "types": [
+        "alien",
+        "Extinction"
+      ],
       "baseValue": 5,
-      "weight": 500,
-      "effect": "如果已经拥有哥莫拉，则消除哥莫拉，获得30金币",
+      "weight": 300,
+      "effect": "如果符号池里有'哥莫拉'，从符号池消除'哥莫拉'，获得30金币",
       "effectType": "conditional_target_eliminate",
       "effectParams": {
         "targetSymbol": "哥莫拉",
         "bonus": 30
-      }
+      },
+      "descriptionKey": "meteorite"
     },
     {
-      "id": 26,
-      "name": "骰子一枚",
+      "id": 76,
+      "nameKey": "dice",
       "icon": "🎲",
       "rarity": "epic",
-      "types": ["dice", "tool"],
+      "types": [
+        "dice",
+        "tool"
+      ],
       "baseValue": 5,
-      "weight": 500,
-      "effect": "骰子+1",
+      "weight": 300,
+      "effect": "永久增加1个骰子（骰子数量+1）。被挖出后从符号池移除（消除自身）",
       "effectType": "dice_bonus",
       "effectParams": {
         "diceBonus": 1
-      }
+      },
+      "descriptionKey": "dice"
     },
     {
-      "id": 27,
-      "name": "魔法袋",
+      "id": 77,
+      "nameKey": "magic_bag",
       "icon": "🎒",
       "rarity": "epic",
-      "types": ["material"],
+      "types": [
+        "material",
+        "fantacy"
+      ],
       "baseValue": 5,
       "weight": 0,
-      "effect": "随机获得一些符号",
+      "effect": "随机生成3~5个随机符号到符号池",
       "effectType": "spawn_random_multiple",
       "effectParams": {
-        "minCount": 2,
+        "minCount": 3,
         "maxCount": 5
-      }
+      },
+      "descriptionKey": "magic_bag"
     }
   ],
   "config": {

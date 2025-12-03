@@ -9,7 +9,8 @@ import SwiftUI
 
 struct GameView: View {
     @ObservedObject var viewModel: GameViewModel
-    @State private var showDifficultySelection = false
+    @ObservedObject var localizationManager = LocalizationManager.shared
+    @State private var showSettings = false
     
     var body: some View {
         ZStack {
@@ -23,7 +24,7 @@ struct GameView: View {
             
             VStack(spacing: 12) {
                 // 顶部信息栏（包含哥布林）
-                TopInfoBar(viewModel: viewModel, showDifficultySelection: $showDifficultySelection)
+                TopInfoBar(viewModel: viewModel, showSettings: $showSettings)
                     .padding(.horizontal)
                     .padding(.top, 10)
                 
@@ -37,7 +38,9 @@ struct GameView: View {
                     .padding(.horizontal)
                     .padding(.bottom, 8)
                 
-                Spacer(minLength: 0)
+            // 使用固定布局，避免结算结束时界面跳动
+            Color.clear
+                .frame(height: 0)
             }
             
             // 符号选择弹窗
@@ -61,28 +64,38 @@ struct GameView: View {
                     .transition(.scale)
             }
             
-            // 难度选择弹窗
-            if showDifficultySelection {
-                DifficultySelectionView(isPresented: $showDifficultySelection) { difficulty in
-                    viewModel.restartGame()
-                }
+            // 设置弹窗
+            if showSettings {
+                GameSettingsView(
+                    viewModel: viewModel,
+                    isPresented: $showSettings
+                )
             }
             
-            // 收益气泡提示
+            // 收益气泡提示（使用overlay避免影响主布局）
             if viewModel.showEarningsTip {
-                EarningsTipView(text: viewModel.earningsTipText)
-                    .transition(.scale.combined(with: .opacity))
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        EarningsTipView(text: viewModel.earningsTipText, isDismissing: viewModel.isTipDismissing)
+                            .transition(.scale.combined(with: .opacity))
+                        Spacer()
+                    }
+                    Spacer()
+                }
+                .allowsHitTesting(false) // 不拦截点击事件
             }
             
             // 哥布林buff气泡提示
             if viewModel.showGoblinBuffTip, let goblin = viewModel.selectedGoblin {
-                GoblinBuffTipView(goblin: goblin)
+                GoblinBuffTipView(goblin: goblin, isDismissing: viewModel.isTipDismissing)
                     .transition(.scale.combined(with: .opacity))
             }
             
             // 符号buff气泡提示
             if viewModel.showSymbolBuffTip, let symbol = viewModel.selectedSymbolForTip {
-                SymbolBuffTipView(symbol: symbol)
+                SymbolBuffTipView(symbol: symbol, isDismissing: viewModel.isTipDismissing)
                     .id(symbol.id) // 使用符号ID作为视图ID，确保每次都是新的视图
                     .transition(.scale.combined(with: .opacity))
             }
@@ -101,7 +114,8 @@ struct GameView: View {
         }
         .animation(.spring(), value: viewModel.showSymbolSelection)
         .animation(.spring(), value: viewModel.showGameOver)
-        .animation(.spring(), value: viewModel.showEarningsTip)
+        // 移除收益气泡的全局动画，避免影响主布局
+        // .animation(.spring(), value: viewModel.showEarningsTip)
         .animation(.spring(), value: viewModel.showGoblinBuffTip)
         .animation(.spring(), value: viewModel.showSymbolBuffTip)
         .animation(.spring(), value: viewModel.showDiceAnimation)
@@ -112,7 +126,8 @@ struct GameView: View {
 // MARK: - 顶部信息栏
 struct TopInfoBar: View {
     @ObservedObject var viewModel: GameViewModel
-    @Binding var showDifficultySelection: Bool
+    @ObservedObject var localizationManager = LocalizationManager.shared
+    @Binding var showSettings: Bool
     
     var body: some View {
         VStack(spacing: 10) {
@@ -123,35 +138,22 @@ struct TopInfoBar: View {
                     Button(action: {
                         viewModel.showGoblinBuffInfo()
                     }) {
-                        HStack(spacing: 8) {
-                            ZStack {
-                                Circle()
-                                    .fill(
-                                        LinearGradient(
-                                            gradient: Gradient(colors: [
-                                                Color.white.opacity(0.3),
-                                                Color.white.opacity(0.1)
-                                            ]),
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        )
+                        ZStack {
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [
+                                            Color.white.opacity(0.3),
+                                            Color.white.opacity(0.1)
+                                        ]),
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
                                     )
-                                    .frame(width: 50, height: 50)
-                                
-                                Text(goblin.icon)
-                                    .font(.system(size: 30))
-                            }
+                                )
+                                .frame(width: 50, height: 50)
                             
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(goblin.name)
-                                    .font(.subheadline)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
-                                
-                                Text("点击查看")
-                                    .font(.caption2)
-                                    .foregroundColor(.white.opacity(0.6))
-                            }
+                            Text(goblin.icon)
+                                .font(.system(size: 30))
                         }
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
@@ -182,19 +184,20 @@ struct TopInfoBar: View {
                 
                 // 回合显示
                 VStack(alignment: .trailing, spacing: 2) {
-                    Text("回合 \(viewModel.currentRound)")
+                    Text("\(localizationManager.localized("game.round")) \(viewModel.currentRound)")
                         .font(.subheadline)
                         .fontWeight(.bold)
-                    Text("剩余 \(viewModel.spinsRemaining)")
+                        .foregroundColor(.white)
+                    Text("\(localizationManager.localized("game.remaining")) \(viewModel.spinsRemaining)")
                         .font(.caption2)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.white.opacity(0.7))
                 }
                 
                 // 右侧按钮组（垂直排列）
                 VStack(alignment: .trailing, spacing: 4) {
-                    // 难度选择按钮
+                    // 设置按钮
                     Button(action: {
-                        showDifficultySelection = true
+                        showSettings = true
                     }) {
                         Image(systemName: "gear")
                             .font(.title3)
@@ -241,13 +244,13 @@ struct TopInfoBar: View {
             
             // 第二行：房租信息
             HStack {
-                Text("🏠 房租")
+                Text(localizationManager.localized("game.rent"))
                     .font(.caption)
                     .fontWeight(.semibold)
                 
                 Spacer()
                 
-                Text("\(viewModel.rentAmount) 金币")
+                Text("\(viewModel.rentAmount) \(localizationManager.localized("game.coins"))")
                     .font(.subheadline)
                     .fontWeight(.bold)
                     .foregroundColor(viewModel.currentCoins >= viewModel.rentAmount ? .green : .red)
@@ -292,6 +295,7 @@ struct SlotCellView: View {
     let cellIndex: Int
     let isSpinning: Bool
     @ObservedObject var viewModel: GameViewModel
+    @ObservedObject var localizationManager = LocalizationManager.shared
     
     @State private var rotation: Double = 0
     @State private var scale: CGFloat = 1.0
@@ -340,7 +344,7 @@ struct SlotCellView: View {
                         .rotationEffect(.degrees(isSpinning ? rotation : 0))
                         .opacity(viewModel.transparentMode ? 0.3 : 1.0)
                     
-                    Text("矿石")
+                    Text(localizationManager.localized("game.ore"))
                         .font(.caption2)
                         .foregroundColor(.white.opacity(viewModel.transparentMode ? 0.3 : 0.6))
                 }
@@ -379,7 +383,7 @@ struct SlotCellView: View {
                         .font(.system(size: 20))
                         .foregroundColor(.white.opacity(0.3))
                     
-                    Text("空")
+                    Text(localizationManager.localized("game.empty"))
                         .font(.caption2)
                         .foregroundColor(.white.opacity(0.4))
                 }
@@ -451,6 +455,7 @@ struct SlotCellView: View {
 // MARK: - 控制面板
 struct ControlPanel: View {
     @ObservedObject var viewModel: GameViewModel
+    @ObservedObject var localizationManager = LocalizationManager.shared
     
     var body: some View {
         VStack(spacing: 10) {
@@ -475,11 +480,13 @@ struct ControlPanel: View {
                     }
                     
                     VStack(alignment: .leading, spacing: 1) {
-                        Text(viewModel.currentDiceCount == 1 ? "掷骰子 (1-6)" : "掷\(viewModel.currentDiceCount)个骰子")
+                        Text(viewModel.currentDiceCount == 1 ?
+                             localizationManager.localized("game.roll_single_dice") :
+                             localizationManager.localized("game.roll_multiple_dice").replacingOccurrences(of: "{count}", with: "\(viewModel.currentDiceCount)"))
                             .font(.body)
                             .fontWeight(.bold)
                         
-                        Text("剩余 \(viewModel.spinsRemaining) 次")
+                        Text("\(localizationManager.localized("game.remaining")) \(viewModel.spinsRemaining) \(localizationManager.localized("game.times"))")
                             .font(.caption2)
                             .foregroundColor(.white.opacity(0.8))
                     }
@@ -511,7 +518,7 @@ struct ControlPanel: View {
             
             // 符号池展示
             VStack(alignment: .leading, spacing: 8) {
-                Text("我的符号池 (\(viewModel.symbolPool.count) 种)")
+                Text(localizationManager.localized("game.my_symbol_pool").replacingOccurrences(of: "{count}", with: "\(viewModel.symbolPool.count)"))
                     .font(.subheadline)
                     .fontWeight(.semibold)
                     .foregroundColor(.white)
@@ -574,15 +581,20 @@ struct SymbolBadgeView: View {
 // MARK: - 符号选择视图
 struct SymbolSelectionView: View {
     @ObservedObject var viewModel: GameViewModel
+    @ObservedObject var localizationManager = LocalizationManager.shared
     
     var body: some View {
         VStack(spacing: 25) {
-            Text(viewModel.currentRound == 1 && viewModel.symbolPool.count == 3 ? "🎯 选择你的第一个符号" : "🎯 选择一个符号加入符号池")
+            Text(viewModel.currentRound == 1 && viewModel.symbolPool.count == 3 ?
+                 localizationManager.localized("game.select_first_symbol") :
+                 localizationManager.localized("game.select_symbol"))
                 .font(.title2)
                 .fontWeight(.bold)
                 .foregroundColor(.white)
             
-            Text(viewModel.currentRound == 1 && viewModel.symbolPool.count == 3 ? "选择符号开始你的第一回合" : "选择符号将增加它在老虎机中出现的概率")
+            Text(viewModel.currentRound == 1 && viewModel.symbolPool.count == 3 ?
+                 localizationManager.localized("game.first_round_hint") :
+                 localizationManager.localized("game.symbol_hint"))
                 .font(.subheadline)
                 .foregroundColor(.white.opacity(0.8))
             
@@ -613,7 +625,7 @@ struct SymbolSelectionView: View {
                                     .font(.caption)
                                     .foregroundColor(.gray)
                                 
-                                Text("💰 \(symbol.baseValue) 金币")
+                                Text(localizationManager.localized("game.symbol_value").replacingOccurrences(of: "{value}", with: "\(symbol.baseValue)"))
                                     .font(.subheadline)
                                     .fontWeight(.semibold)
                                     .foregroundColor(.yellow)
@@ -650,13 +662,14 @@ struct SymbolSelectionView: View {
 // MARK: - 游戏结束视图
 struct GameOverView: View {
     @ObservedObject var viewModel: GameViewModel
+    @ObservedObject var localizationManager = LocalizationManager.shared
     
     var body: some View {
         VStack(spacing: 25) {
             Text("😢")
                 .font(.system(size: 60))
             
-            Text("游戏结束")
+            Text(localizationManager.localized("game_over.title"))
                 .font(.title)
                 .fontWeight(.bold)
                 .foregroundColor(.white)
@@ -668,7 +681,7 @@ struct GameOverView: View {
             
             VStack(spacing: 10) {
                 HStack {
-                    Text("存活回合:")
+                    Text(localizationManager.localized("game_over.survival_rounds"))
                         .foregroundColor(.white.opacity(0.8))
                     Spacer()
                     Text("\(viewModel.currentRound)")
@@ -677,12 +690,21 @@ struct GameOverView: View {
                 }
                 
                 HStack {
-                    Text("最终金币:")
+                    Text(localizationManager.localized("game_over.final_coins"))
                         .foregroundColor(.white.opacity(0.8))
                     Spacer()
                     Text("\(viewModel.currentCoins)")
                         .fontWeight(.bold)
                         .foregroundColor(.yellow)
+                }
+                
+                HStack {
+                    Text(localizationManager.localized("game_over.total_coins"))
+                        .foregroundColor(.white.opacity(0.8))
+                    Spacer()
+                    Text("\(viewModel.accumulatedCoins)")
+                        .fontWeight(.bold)
+                        .foregroundColor(.green)
                 }
             }
             .padding()
@@ -694,7 +716,7 @@ struct GameOverView: View {
             Button(action: {
                 viewModel.restartGame()
             }) {
-                Text("再来一次！")
+                Text(localizationManager.localized("game_over.play_again"))
                     .font(.title3)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
@@ -722,86 +744,82 @@ struct GameOverView: View {
 // MARK: - 收益气泡提示
 struct EarningsTipView: View {
     let text: String
+    let isDismissing: Bool
     @State private var offset: CGFloat = 30
     @State private var opacity: Double = 0
     @State private var scale: CGFloat = 0.8
     @State private var glowIntensity: Double = 0
     
     var body: some View {
-        VStack {
-            Spacer()
+        ZStack {
+            // 发光效果
+            Text(text)
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundColor(.clear)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 14)
+                .background(
+                    RoundedRectangle(cornerRadius: 25)
+                        .fill(Color.yellow.opacity(glowIntensity * 0.3))
+                        .blur(radius: 8)
+                )
             
-            ZStack {
-                // 发光效果
-                Text(text)
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundColor(.clear)
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 14)
-                    .background(
-                        RoundedRectangle(cornerRadius: 25)
-                            .fill(Color.yellow.opacity(glowIntensity * 0.3))
-                            .blur(radius: 8)
-                    )
-                
-                // 主文本
-                Text(text)
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 14)
-                    .background(
-                        RoundedRectangle(cornerRadius: 25)
-                            .fill(
-                                LinearGradient(
-                                    gradient: Gradient(colors: [
-                                        Color.green.opacity(0.95),
-                                        Color.green.opacity(0.8),
-                                        Color.green.opacity(0.7)
-                                    ]),
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
+            // 主文本
+            Text(text)
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 14)
+                .background(
+                    RoundedRectangle(cornerRadius: 25)
+                        .fill(
+                            LinearGradient(
+                                gradient: Gradient(colors: [
+                                    Color.green.opacity(0.95),
+                                    Color.green.opacity(0.8),
+                                    Color.green.opacity(0.7)
+                                ]),
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
                             )
-                            .shadow(color: .black.opacity(0.4), radius: 12, x: 0, y: 6)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 25)
-                                    .stroke(Color.white.opacity(0.3), lineWidth: 1)
-                            )
-                    )
-            }
-            .offset(y: offset)
-            .opacity(opacity)
-            .scaleEffect(scale)
-            .onAppear {
-                // 发光动画
-                withAnimation(.easeInOut(duration: 0.3).repeatCount(3, autoreverses: true)) {
-                    glowIntensity = 1.0
-                }
-                
-                // 主动画
-                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-                    offset = 0
-                    opacity = 1
-                    scale = 1.0
-                }
-                
-                // 1.5秒后开始淡出
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                    withAnimation(.easeOut(duration: 0.5)) {
-                        offset = -20
-                        opacity = 0
-                        scale = 0.9
-                        glowIntensity = 0
-                    }
-                }
-            }
-            
-            Spacer()
+                        )
+                        .shadow(color: .black.opacity(0.4), radius: 12, x: 0, y: 6)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 25)
+                                .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                        )
+                )
         }
+        .offset(y: offset)
+        .opacity(opacity)
+        .scaleEffect(scale)
         .allowsHitTesting(false) // 不阻挡其他UI交互
+        .onAppear {
+            // 发光动画
+            withAnimation(.easeInOut(duration: 0.3).repeatCount(3, autoreverses: true)) {
+                glowIntensity = 1.0
+            }
+            
+            // 主动画
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                offset = 0
+                opacity = 1
+                scale = 1.0
+            }
+        }
+        .onChange(of: isDismissing) { dismissing in
+            if dismissing {
+                // 强制消失动画
+                withAnimation(.easeOut(duration: 0.3)) {
+                    offset = -20
+                    opacity = 0
+                    scale = 0.9
+                    glowIntensity = 0
+                }
+            }
+        }
     }
 }
 
@@ -919,6 +937,7 @@ struct DiceAnimationView: View {
 // MARK: - 符号Buff气泡提示
 struct SymbolBuffTipView: View {
     let symbol: Symbol
+    let isDismissing: Bool
     @State private var offset: CGFloat = 30
     @State private var opacity: Double = 0
     @State private var scale: CGFloat = 0.8
@@ -944,7 +963,7 @@ struct SymbolBuffTipView: View {
                 }
                 
                 // 稀有度标签
-                Text(symbol.rarity.rawValue)
+                Text(symbol.rarity.displayName)
                     .font(.caption)
                     .fontWeight(.semibold)
                     .padding(.horizontal, 12)
@@ -1038,6 +1057,7 @@ struct SymbolBuffTipView: View {
 // MARK: - 哥布林Buff气泡提示
 struct GoblinBuffTipView: View {
     let goblin: Goblin
+    let isDismissing: Bool
     @State private var offset: CGFloat = 30
     @State private var opacity: Double = 0
     @State private var scale: CGFloat = 0.8
@@ -1099,10 +1119,11 @@ struct GoblinBuffTipView: View {
                 opacity = 1
                 scale = 1.0
             }
-            
-            // 1.5秒后开始淡出
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                withAnimation(.easeOut(duration: 0.5)) {
+        }
+        .onChange(of: isDismissing) { dismissing in
+            if dismissing {
+                // 强制消失动画
+                withAnimation(.easeOut(duration: 0.3)) {
                     offset = -20
                     opacity = 0
                     scale = 0.9
@@ -1116,6 +1137,7 @@ struct GoblinBuffTipView: View {
 // MARK: - 调试面板
 struct DebugPanelView: View {
     @ObservedObject var viewModel: GameViewModel
+    @ObservedObject var localizationManager = LocalizationManager.shared
     @State private var selectedTab: Int = 0
     
     var body: some View {
@@ -1125,7 +1147,7 @@ struct DebugPanelView: View {
             VStack(spacing: 0) {
                 // 标题栏
                 HStack {
-                    Text("🔍 调试面板")
+                    Text(localizationManager.localized("game.debug_panel"))
                         .font(.headline)
                         .fontWeight(.bold)
                         .foregroundColor(.white)
@@ -1145,8 +1167,8 @@ struct DebugPanelView: View {
                 
                 // 标签切换
                 Picker("", selection: $selectedTab) {
-                    Text("结算日志").tag(0)
-                    Text("棋盘状态").tag(1)
+                    Text(localizationManager.localized("game.settlement_logs")).tag(0)
+                    Text(localizationManager.localized("game.board_status")).tag(1)
                 }
                 .pickerStyle(SegmentedPickerStyle())
                 .padding(.horizontal)
@@ -1159,7 +1181,7 @@ struct DebugPanelView: View {
                         if selectedTab == 0 {
                             // 结算日志
                             if viewModel.settlementLogs.isEmpty {
-                                Text("暂无结算日志\n掷骰子后会显示结算过程")
+                                Text(localizationManager.localized("game.no_logs"))
                                     .font(.caption)
                                     .foregroundColor(.gray)
                                     .padding()
@@ -1188,7 +1210,9 @@ struct DebugPanelView: View {
                     }) {
                         HStack(spacing: 6) {
                             Image(systemName: viewModel.transparentMode ? "eye.fill" : "eye.slash.fill")
-                            Text(viewModel.transparentMode ? "隐藏" : "透视")
+                            Text(viewModel.transparentMode ?
+                                 localizationManager.localized("game.hide") :
+                                 localizationManager.localized("game.show"))
                                 .font(.caption)
                         }
                         .foregroundColor(.white)
@@ -1209,7 +1233,7 @@ struct DebugPanelView: View {
                     }) {
                         HStack(spacing: 6) {
                             Image(systemName: "doc.on.doc")
-                            Text("复制")
+                            Text(localizationManager.localized("game.copy"))
                                 .font(.caption)
                         }
                         .foregroundColor(.white)

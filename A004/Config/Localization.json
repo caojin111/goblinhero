@@ -1,0 +1,1141 @@
+{
+  "languages": {
+    "en": "English",
+    "zh": "中文"
+  },
+  "defaultLanguage": "en",
+  "translations": {
+    "en": {
+      "app": {
+        "name": "Goblin Hero",
+        "subtitle": "Mine Cave Adventure"
+      },
+      "home": {
+        "personal_records": "🏆 Personal Records",
+        "best_round": "Best Round",
+        "total_coins": "Total Coins",
+        "start_game": "Start Game",
+        "stamina_insufficient": "Insufficient Stamina"
+      },
+      "stores": {
+        "paid_store": "Paid Store",
+        "diamond_store": "Diamond Store",
+        "daily_sign_in": "Daily Sign In"
+      },
+      "store": {
+        "tabs": {
+          "goblins": "Goblins",
+          "stamina": "Stamina",
+          "diamonds": "Diamonds"
+        },
+        "goblins": {
+          "all_unlocked": "All goblins are unlocked!",
+          "unlock_title": "Unlock Goblin",
+          "unlock_message": "Spend {price} 💎 to unlock {name}?",
+          "insufficient_diamonds": "Insufficient diamonds! Need {price} 💎, currently have {current} 💎."
+        },
+        "stamina": {
+          "current": "Current Stamina",
+          "purchase_title": "Purchase Stamina",
+          "purchase_message": "Spend {diamonds} 💎 to purchase {stamina} stamina?",
+          "insufficient_diamonds": "Insufficient diamonds! Need {diamonds} 💎, currently have {current} 💎.",
+          "buy": "Buy"
+        },
+        "diamonds": {
+          "current": "Current Diamonds",
+          "coming_soon": "Coming Soon",
+          "description": "Diamond purchase feature will be available soon!",
+          "free": "FREE",
+          "claim": "Claim",
+          "claimed": "Claimed Today",
+          "buy": "Buy",
+          "purchase": "Purchase",
+          "purchase_title": "Purchase Diamonds",
+          "purchase_message": "Purchase {diamonds} 💎 for ${price}?",
+          "free_daily_message": "Claim {diamonds} 💎 for free today?"
+        }
+      },
+      "settings": {
+        "title": "⚙️ Settings",
+        "difficulty_settings": "Difficulty Settings",
+        "current": "Current",
+        "language": "Language",
+        "exit_game": "Exit Game",
+        "back_to_home": "Back to Home",
+        "close": "Close",
+        "music": "Music",
+        "music_description": "Enable background music",
+        "sound_effects": "Sound Effects",
+        "sound_effects_description": "Enable game sound effects",
+        "privacy_policy": "Privacy Policy",
+        "privacy_policy_description": "View our privacy policy",
+        "privacy_policy_content": "Privacy Policy\n\nLast Updated: [Date]\n\n1. Information We Collect\nWe collect information you provide directly to us, such as when you create an account, make a purchase, or contact us for support.\n\n2. How We Use Your Information\nWe use the information we collect to provide, maintain, and improve our services, process transactions, and communicate with you.\n\n3. Information Sharing\nWe do not sell, trade, or otherwise transfer your personal information to third parties without your consent.\n\n4. Data Security\nWe implement appropriate security measures to protect your personal information.\n\n5. Your Rights\nYou have the right to access, update, or delete your personal information at any time.\n\n6. Contact Us\nIf you have any questions about this Privacy Policy, please contact us at support@example.com.",
+        "contact_us": "Contact Us",
+        "contact_us_description": "Get in touch with us",
+        "contact_us_content": "We'd love to hear from you!\n\nIf you have any questions, feedback, or need support, please reach out to us via email."
+      },
+      "difficulty": {
+        "select_title": "🎮 Select Difficulty",
+        "select_hint": "Choose a challenge difficulty that suits you",
+        "initial_rent": "Initial Rent",
+        "increase": "Increase",
+        "easy": "Easy",
+        "normal": "Normal",
+        "hard": "Hard",
+        "extreme": "Extreme"
+      },
+      "rarity": {
+        "common": "Common",
+        "rare": "Rare",
+        "epic": "Epic",
+        "legendary": "Legendary"
+      },
+      "symbol_type": {
+        "fruit": "Fruit",
+        "coin": "Coin",
+        "animal": "Animal",
+        "special": "Special",
+        "gem": "Gem",
+        "magic": "Magic"
+      },
+      "game": {
+        "start": "Start",
+        "spin": "Spin",
+        "round": "Round",
+        "remaining": "Remaining",
+        "times": "Times",
+        "coins": "Coins",
+        "stamina": "Stamina",
+        "rent": "🏠 Rent",
+        "ore": "🪨 Ore",
+        "empty": "Empty",
+        "roll_dice": "Roll Dice",
+        "roll_single_dice": "Roll Dice (1-6)",
+        "roll_multiple_dice": "Roll {count} Dice",
+        "my_symbol_pool": "My Symbol Pool ({count} types)",
+        "select_first_symbol": "🎯 Select Your First Symbol",
+        "select_symbol": "🎯 Select a Symbol",
+        "first_round_hint": "Select symbol to start your first round",
+        "symbol_hint": "Select symbol to increase its appearance probability",
+        "symbol_value": "💰 {value} Coins",
+        "debug_panel": "🔍 Debug Panel",
+        "settlement_logs": "Settlement Logs",
+        "board_status": "Board Status",
+        "no_logs": "No settlement logs yet\nLogs will appear after rolling dice",
+        "hide": "Hide",
+        "show": "Show",
+        "copy": "Copy",
+        "difficulty": {
+          "easy": "Easy",
+          "normal": "Normal",
+          "hard": "Hard",
+          "extreme": "Extreme"
+        }
+      },
+      "goblin": {
+        "select_title": "🎭 Select Your Goblin",
+        "swipe_hint": "Swipe left/right to view different goblins",
+        "select": "Select",
+        "unlock": "Unlock",
+        "unlock_price": "Unlock Price",
+        "free": "Free",
+        "price_suffix": "Coins",
+        "special_ability": "Special Ability",
+        "unlock_confirm": "Spend",
+        "insufficient_coins": "Insufficient coins",
+        "need": "Need",
+        "current": "Current",
+        "unlock_goblin": "Unlock Goblin",
+        "confirm_unlock": "Confirm Unlock"
+      },
+      "game_over": {
+        "title": "😢 Game Over",
+        "survival_rounds": "Survival Rounds",
+        "final_coins": "Final Coins",
+        "total_coins": "Total Coins",
+        "play_again": "Play Again!"
+      },
+      "confirmations": {
+        "exit_game": "Exit Game",
+        "exit_message": "Are you sure you want to exit the current game and return to the home screen?",
+        "cancel": "Cancel",
+        "confirm": "Confirm",
+        "confirm_exit": "Confirm Exit"
+      },
+      "status": {
+        "coming_soon": "Coming Soon...",
+        "recovering": "Recovering..."
+      },
+      "earnings": {
+        "coins": "Coins",
+        "round_start": "Round Start",
+        "next_round_bonus": "Next Round Bonus"
+      },
+      "launch": {
+        "loading": "Loading..."
+      },
+      "story": {
+        "skip": "Skip",
+        "next": "Next",
+        "previous": "Previous",
+        "start": "Start",
+        "page1": {
+          "title": "Welcome to the Goblin World",
+          "content": "In a mysterious underground cave, brave goblins mine for treasures. You are their leader, guiding them through endless adventures!"
+        },
+        "page2": {
+          "title": "Mine and Collect",
+          "content": "Use dice to mine ore, collect symbols, and earn coins. Each symbol has unique value. Strategically choose your symbols to maximize your earnings!"
+        },
+        "page3": {
+          "title": "Survive and Thrive",
+          "content": "Pay rent each round to continue your adventure. The deeper you go, the greater the challenges and rewards. Can you reach the ultimate depths?"
+        }
+      },
+      "tutorial": {
+        "skip": "Skip",
+        "next": "Next",
+        "previous": "Previous",
+        "complete": "Got it!",
+        "step1": {
+          "title": "Start Your Adventure",
+          "description": "Tap the Start Game button to begin your mining adventure. Make sure you have enough stamina!"
+        },
+        "step2": {
+          "title": "Manage Your Resources",
+          "description": "Keep an eye on your diamonds and stamina at the top right. Tap the + button to purchase more resources."
+        },
+        "step3": {
+          "title": "Visit the Store",
+          "description": "Check out the store to unlock new goblins, purchase stamina, and claim daily rewards!"
+        }
+      },
+      "sign_in": {
+        "title": "7-Day Sign In",
+        "subtitle": "Sign in daily to claim amazing rewards!",
+        "day": "Day",
+        "button": {
+          "sign_in": "Sign In",
+          "signed": "Already Signed In"
+        },
+        "hint": {
+          "can_sign": "Tap to claim today's reward",
+          "signed": "Come back tomorrow for more rewards!"
+        },
+        "status": {
+          "claimed": "Claimed",
+          "today": "Today"
+        },
+        "reward_type": {
+          "diamonds": "Diamonds",
+          "coins": "Coins",
+          "stamina": "Stamina"
+        },
+        "reward_detail": "Reward Details"
+      },
+      "goblins": {
+        "warrior_goblin": {
+          "name": "Warrior Goblin",
+          "buff": "+1 coin for each symbol eliminated",
+          "description": "A brave warrior who earns extra coins for each symbol eliminated"
+        },
+        "craftsman_goblin": {
+          "name": "Craftsman Goblin",
+          "buff": "Extra symbol choice opportunity each round",
+          "description": "A skilled craftsman who provides extra symbol choice opportunities each round"
+        },
+        "gambler_goblin": {
+          "name": "Gambler Goblin",
+          "buff": "Double dice probability",
+          "description": "A lucky gambler who doubles the probability of finding dice"
+        },
+        "king_goblin": {
+          "name": "King Goblin",
+          "buff": "+10 coins for each soldier",
+          "description": "A noble king whose soldiers create wealth for him"
+        },
+        "wizard_goblin": {
+          "name": "Wizard Goblin",
+          "buff": "Randomly fill 1 magic bag before mining each round",
+          "description": "A mysterious wizard who fills magic bags before mining each round"
+        }
+      },
+      "symbols": {
+        "child": {
+          "name": "Child",
+          "description": "child"
+        },
+        "merchant": {
+          "name": "Merchant",
+          "description": "merchant"
+        },
+        "barbarian": {
+          "name": "Barbarian",
+          "description": "barbarian"
+        },
+        "farmer": {
+          "name": "Farmer",
+          "description": "farmer"
+        },
+        "soldier": {
+          "name": "Soldier",
+          "description": "soldier"
+        },
+        "village_chief": {
+          "name": "Village Chief",
+          "description": "village_chief"
+        },
+        "forest_fairy": {
+          "name": "Forest Fairy",
+          "description": "forest_fairy"
+        },
+        "dark_moon_fairy": {
+          "name": "Dark Moon Fairy",
+          "description": "dark_moon_fairy"
+        },
+        "starlight_fairy": {
+          "name": "Starlight Fairy",
+          "description": "starlight_fairy"
+        },
+        "healer": {
+          "name": "Healer",
+          "description": "healer"
+        },
+        "paladin": {
+          "name": "Paladin",
+          "description": "paladin"
+        },
+        "nun": {
+          "name": "Nun",
+          "description": "nun"
+        },
+        "ancient_tree_elder": {
+          "name": "Ancient Tree Elder",
+          "description": "ancient_tree_elder"
+        },
+        "thief": {
+          "name": "Thief",
+          "description": "thief"
+        },
+        "princess": {
+          "name": "Princess",
+          "description": "princess"
+        },
+        "vampire": {
+          "name": "Vampire",
+          "description": "vampire"
+        },
+        "hunter": {
+          "name": "Hunter",
+          "description": "hunter"
+        },
+        "female_ninja": {
+          "name": "Female Ninja",
+          "description": "female_ninja"
+        },
+        "male_ninja": {
+          "name": "Male Ninja",
+          "description": "male_ninja"
+        },
+        "god_of_strength": {
+          "name": "God of Strength",
+          "description": "god_of_strength"
+        },
+        "god_of_speed": {
+          "name": "God of Speed",
+          "description": "god_of_speed"
+        },
+        "god_of_harvest": {
+          "name": "God of Harvest",
+          "description": "god_of_harvest"
+        },
+        "god_of_luck": {
+          "name": "God of Luck",
+          "description": "god_of_luck"
+        },
+        "death": {
+          "name": "Death",
+          "description": "death"
+        },
+        "water_element": {
+          "name": "Water Element",
+          "description": "Spawn a random element other than 'Water Element' to symbol pool. If symbol pool has all five elements (Water, Fire, Thunder, Ice, Earth), gain 500 coins at round start (triggers at round start)"
+        },
+        "fire_element": {
+          "name": "Fire Element",
+          "description": "Spawn a random element other than 'Fire Element' to symbol pool. If symbol pool has all five elements (Water, Fire, Thunder, Ice, Earth), gain 500 coins at round start (triggers at round start)"
+        },
+        "thunder_element": {
+          "name": "Thunder Element",
+          "description": "Spawn a random element other than 'Thunder Element' to symbol pool. If symbol pool has all five elements (Water, Fire, Thunder, Ice, Earth), gain 500 coins at round start (triggers at round start)"
+        },
+        "ice_element": {
+          "name": "Ice Element",
+          "description": "Spawn a random element other than 'Ice Element' to symbol pool. If symbol pool has all five elements (Water, Fire, Thunder, Ice, Earth), gain 500 coins at round start (triggers at round start)"
+        },
+        "earth_element": {
+          "name": "Earth Element",
+          "description": "Spawn a random element other than 'Earth Element' to symbol pool. If symbol pool has all five elements (Water, Fire, Thunder, Ice, Earth), gain 500 coins at round start (triggers at round start)"
+        },
+        "rock": {
+          "name": "Rock",
+          "description": "If there is a symbol with 'tool' type in the symbol pool, remove itself and gain 20 coins"
+        },
+        "cross": {
+          "name": "Cross",
+          "description": "If in symbol pool, doubles the weight of 'Hunter' (global permanent buff, only for current game)"
+        },
+        "book_of_the_dead": {
+          "name": "Book of the Dead",
+          "description": "Remove itself from symbol pool, spawn a 'Death' to symbol pool"
+        },
+        "hypnosis_pendulum": {
+          "name": "Hypnosis Pendulum",
+          "description": "Remove itself from symbol pool, randomly spawn one of 'Princess', 'Female Ninja', or 'Nun' to symbol pool"
+        },
+        "dragon_fire_gun": {
+          "name": "Dragon Fire Gun",
+          "description": "If 'Soldier' is mined this time, gain 5 extra coins"
+        },
+        "rune_armor": {
+          "name": "Rune Armor",
+          "description": "If 'Paladin' is mined this time, gain 10 extra coins"
+        },
+        "dawn_messenger_staff": {
+          "name": "Dawn Messenger Staff",
+          "description": "If 'Princess' is mined this time, gain 20 extra coins"
+        },
+        "holy_bottle": {
+          "name": "Holy Bottle",
+          "description": "If 'Nun' is mined this time, remove itself and spawn a 'Water Element' to symbol pool"
+        },
+        "contract_scroll": {
+          "name": "Contract Scroll",
+          "description": "Remove itself from symbol pool, randomly spawn one of 'Forest Fairy', 'Dark Moon Fairy', or 'Starlight Fairy' to symbol pool"
+        },
+        "shuriken": {
+          "name": "Shuriken",
+          "description": "If there is 'Female Ninja' or 'Male Ninja' in symbol pool, gain 10 extra coins"
+        },
+        "diary": {
+          "name": "Diary",
+          "description": "If 'Vampire' is mined this time, remove itself and spawn a 'Vampire' to symbol pool"
+        },
+        "ring": {
+          "name": "Ring",
+          "description": "If 'Mobile Phone' is mined this time, spawn a 'Thunder Element' to symbol pool"
+        },
+        "mobile_phone": {
+          "name": "Mobile Phone",
+          "description": "If 'Ring' is mined this time, spawn a 'Thunder Element' to symbol pool"
+        },
+        "glasses": {
+          "name": "Glasses",
+          "description": "If 'Tie' is mined this time, spawn a 'Fire Element' to symbol pool"
+        },
+        "tie": {
+          "name": "Tie",
+          "description": "If 'Glasses' is mined this time, spawn a 'Fire Element' to symbol pool"
+        },
+        "magatama": {
+          "name": "Magatama",
+          "description": "No effect (base coin value affected by Merchant buff)"
+        },
+        "battery": {
+          "name": "Battery",
+          "description": "Remove itself from symbol pool, spawn a 'Spaceship' to symbol pool"
+        },
+        "medical_kit": {
+          "name": "Medical Kit",
+          "description": "If 'Healer' is mined this time, spawn a 'Wind Element' to symbol pool (Note: if Wind Element doesn't exist, spawn other element or ignore)"
+        },
+        "coin": {
+          "name": "Coin",
+          "description": "No effect (base coin value affected by Merchant buff)"
+        },
+        "pillow": {
+          "name": "Pillow",
+          "description": "If 'Child' is mined this time, remove itself and gain 20 coins"
+        },
+        "eye_mask": {
+          "name": "Eye Mask",
+          "description": "If 'Child' is mined this time, remove itself and gain 10 coins"
+        },
+        "talisman_paper": {
+          "name": "Talisman Paper",
+          "description": "If 'Werewolf' is mined this time, eliminate 'Werewolf' and itself from symbol pool, gain 100 coins"
+        },
+        "pumpkin_head": {
+          "name": "Pumpkin Head",
+          "description": "No effect"
+        },
+        "snowflake": {
+          "name": "Snowflake",
+          "description": "For each 'Farmer' in symbol pool, gain 5 extra coins"
+        },
+        "firecracker": {
+          "name": "Firecracker",
+          "description": "For each 'Farmer' in symbol pool, gain 10 extra coins"
+        },
+        "lantern": {
+          "name": "Lantern",
+          "description": "No effect"
+        },
+        "toy_duck": {
+          "name": "Toy Duck",
+          "description": "No effect"
+        },
+        "wine_bottle": {
+          "name": "Wine Bottle",
+          "description": "If 'Barbarian' is mined this time, gain 20 extra coins"
+        },
+        "briefcase": {
+          "name": "Briefcase",
+          "description": "If 'Merchant' is mined this time, remove itself and gain 20 coins"
+        },
+        "hoe": {
+          "name": "Hoe",
+          "description": "50% chance to spawn 'Flower Fairy' to symbol pool, 50% chance to spawn 'Zombie' to symbol pool"
+        },
+        "horn": {
+          "name": "Horn",
+          "description": "Spawn 5 'Soldiers' to symbol pool"
+        },
+        "iron_box": {
+          "name": "Iron Box",
+          "description": "No effect"
+        },
+        "silver_box": {
+          "name": "Silver Box",
+          "description": "No effect"
+        },
+        "iron_key": {
+          "name": "Iron Key",
+          "description": "Eliminate an 'Iron Box' from symbol pool, gain 10 coins"
+        },
+        "silver_key": {
+          "name": "Silver Key",
+          "description": "Eliminate a 'Silver Box' from symbol pool, gain 20 coins"
+        },
+        "master_key": {
+          "name": "Master Key",
+          "description": "Eliminate a higher level box (prefer Silver Box) from symbol pool, gain box baseValue × 2 coins"
+        },
+        "flower_fairy": {
+          "name": "Flower Fairy",
+          "description": "No effect (At round start: every 3 'Flower Fairies' in symbol pool automatically combine into 1 'Forest Fairy', remove 3 'Flower Fairies')"
+        },
+        "werewolf": {
+          "name": "Werewolf",
+          "description": "If exists in symbol pool, reduce 20 coins at round start (triggers at round start)"
+        },
+        "zombie": {
+          "name": "Zombie",
+          "description": "Infect a symbol with type1 or type2 containing 'human' in symbol pool to become 'Zombie'. For each 'Zombie' in symbol pool, coins +5"
+        },
+        "one_eyed_monster": {
+          "name": "One-Eyed Monster",
+          "description": "First time mined: 6 coins, second time: 5 coins, decreasing to 0 (counter resets each round)"
+        },
+        "gomorrah": {
+          "name": "Gomorrah",
+          "description": "Randomly eliminate a symbol other than itself from symbol pool, gain 30 coins"
+        },
+        "ray_gun": {
+          "name": "Ray Gun",
+          "description": "If 'Alien Helmet' and 'Spaceship' are both mined this time, gain 40 coins (three items counted only once)"
+        },
+        "alien_helmet": {
+          "name": "Alien Helmet",
+          "description": "If 'Ray Gun' and 'Spaceship' are both mined this time, gain 40 coins (three items counted only once)"
+        },
+        "spaceship": {
+          "name": "Spaceship",
+          "description": "If 'Alien Helmet' and 'Ray Gun' are both mined this time, gain 40 coins (three items counted only once)"
+        },
+        "mind_controller": {
+          "name": "Mind Controller",
+          "description": "Randomly convert a symbol in symbol pool to type1='material' (keep original name and icon, only change types)"
+        },
+        "meteorite": {
+          "name": "Meteorite",
+          "description": "If there is 'Gomorrah' in symbol pool, eliminate 'Gomorrah' from symbol pool, gain 30 coins"
+        },
+        "dice": {
+          "name": "Dice",
+          "description": "Permanently increase dice count by 1. Remove itself from symbol pool after being mined"
+        },
+        "magic_bag": {
+          "name": "Magic Bag",
+          "description": "Randomly spawn 3~5 random symbols to symbol pool"
+        }
+      }
+    },
+    "zh": {
+      "app": {
+        "name": "Goblin Hero",
+        "subtitle": "矿洞探险游戏"
+      },
+      "home": {
+        "personal_records": "🏆 个人记录",
+        "best_round": "最佳进度",
+        "total_coins": "历史最多金币",
+        "start_game": "开始游戏",
+        "stamina_insufficient": "体力不足"
+      },
+      "stores": {
+        "paid_store": "付费商城",
+        "diamond_store": "钻石商城",
+        "daily_sign_in": "七日签到"
+      },
+      "store": {
+        "tabs": {
+          "goblins": "哥布林",
+          "stamina": "体力",
+          "diamonds": "钻石"
+        },
+        "goblins": {
+          "all_unlocked": "所有哥布林已解锁！",
+          "unlock_title": "解锁哥布林",
+          "unlock_message": "是否花费 {price} 💎 解锁 {name}？",
+          "insufficient_diamonds": "钻石不足！需要 {price} 💎，当前只有 {current} 💎。"
+        },
+        "stamina": {
+          "current": "当前体力",
+          "purchase_title": "购买体力",
+          "purchase_message": "是否花费 {diamonds} 💎 购买 {stamina} 体力？",
+          "insufficient_diamonds": "钻石不足！需要 {diamonds} 💎，当前只有 {current} 💎。",
+          "buy": "购买"
+        },
+        "diamonds": {
+          "current": "当前钻石",
+          "coming_soon": "功能开发中",
+          "description": "钻石购买功能即将上线！",
+          "free": "免费",
+          "claim": "领取",
+          "claimed": "今日已领取",
+          "buy": "购买",
+          "purchase": "购买",
+          "purchase_title": "购买钻石",
+          "purchase_message": "是否花费 ${price} 购买 {diamonds} 💎？",
+          "free_daily_message": "是否领取今日免费 {diamonds} 💎？"
+        }
+      },
+      "settings": {
+        "title": "⚙️ 设置",
+        "difficulty_settings": "难度设置",
+        "current": "当前",
+        "language": "语言",
+        "exit_game": "退出游戏",
+        "back_to_home": "返回首页",
+        "close": "关闭",
+        "music": "音乐",
+        "music_description": "开启背景音乐",
+        "sound_effects": "音效",
+        "sound_effects_description": "开启游戏音效",
+        "privacy_policy": "隐私政策",
+        "privacy_policy_description": "查看我们的隐私政策",
+        "privacy_policy_content": "隐私政策\n\n最后更新：[日期]\n\n1. 我们收集的信息\n我们收集您直接提供给我们的信息，例如当您创建账户、进行购买或联系我们寻求支持时。\n\n2. 我们如何使用您的信息\n我们使用收集的信息来提供、维护和改进我们的服务，处理交易，并与您沟通。\n\n3. 信息共享\n未经您同意，我们不会向第三方出售、交易或以其他方式转让您的个人信息。\n\n4. 数据安全\n我们实施适当的安全措施来保护您的个人信息。\n\n5. 您的权利\n您有权随时访问、更新或删除您的个人信息。\n\n6. 联系我们\n如果您对此隐私政策有任何疑问，请通过 support@example.com 联系我们。",
+        "contact_us": "联系我们",
+        "contact_us_description": "与我们取得联系",
+        "contact_us_content": "我们很乐意听到您的声音！\n\n如果您有任何问题、反馈或需要支持，请通过电子邮件与我们联系。"
+      },
+      "difficulty": {
+        "select_title": "🎮 选择难度",
+        "select_hint": "选择适合你的挑战难度",
+        "initial_rent": "初始房租",
+        "increase": "递增",
+        "easy": "简单",
+        "normal": "普通",
+        "hard": "困难",
+        "extreme": "极限"
+      },
+      "rarity": {
+        "common": "普通",
+        "rare": "稀有",
+        "epic": "史诗",
+        "legendary": "传说"
+      },
+      "symbol_type": {
+        "fruit": "水果",
+        "coin": "金币",
+        "animal": "动物",
+        "special": "特殊",
+        "gem": "宝石",
+        "magic": "魔法"
+      },
+      "game": {
+        "start": "开始",
+        "spin": "旋转",
+        "round": "回合",
+        "remaining": "剩余",
+        "times": "次",
+        "coins": "金币",
+        "stamina": "体力",
+        "rent": "🏠 房租",
+        "ore": "🪨 矿石",
+        "empty": "空",
+        "roll_dice": "掷骰子",
+        "roll_single_dice": "掷骰子 (1-6)",
+        "roll_multiple_dice": "掷{count}个骰子",
+        "my_symbol_pool": "我的符号池 ({count} 种)",
+        "select_first_symbol": "🎯 选择你的第一个符号",
+        "select_symbol": "🎯 选择一个符号",
+        "first_round_hint": "选择符号开始你的第一回合",
+        "symbol_hint": "选择符号将增加它在老虎机中出现的概率",
+        "symbol_value": "💰 {value} 金币",
+        "debug_panel": "🔍 调试面板",
+        "settlement_logs": "结算日志",
+        "board_status": "棋盘状态",
+        "no_logs": "暂无结算日志\n掷骰子后会显示结算过程",
+        "hide": "隐藏",
+        "show": "透视",
+        "copy": "复制",
+        "difficulty": {
+          "easy": "简单",
+          "normal": "普通",
+          "hard": "困难",
+          "extreme": "极限"
+        }
+      },
+      "goblin": {
+        "select_title": "🎭 选择你的哥布林",
+        "swipe_hint": "左右滑动查看不同哥布林",
+        "select": "选择",
+        "unlock": "解锁",
+        "unlock_price": "解锁价格",
+        "free": "免费",
+        "price_suffix": "金币",
+        "special_ability": "特殊能力",
+        "unlock_confirm": "是否花费",
+        "insufficient_coins": "金币不足",
+        "need": "需要",
+        "current": "当前只有",
+        "unlock_goblin": "解锁哥布林",
+        "confirm_unlock": "确认解锁"
+      },
+      "goblins": {
+        "warrior_goblin": {
+          "name": "勇者哥布林",
+          "buff": "每有一个符号被消除，则+1金币",
+          "description": "勇猛的战士，每次消除符号都能额外获得金币奖励"
+        },
+        "craftsman_goblin": {
+          "name": "工匠哥布林",
+          "buff": "每回合增加一次获得符号3选1的机会",
+          "description": "技艺精湛的工匠，能在每回合提供额外的符号选择机会"
+        },
+        "gambler_goblin": {
+          "name": "赌徒哥布林",
+          "buff": "挖到骰子概率翻倍",
+          "description": "运气极佳的赌徒，能够提高挖到骰子的概率"
+        },
+        "king_goblin": {
+          "name": "国王哥布林",
+          "buff": "每有一个士兵，额外获得10金币",
+          "description": "尊贵的国王，麾下每个士兵都能为其创造财富"
+        },
+        "wizard_goblin": {
+          "name": "巫师哥布林",
+          "buff": "每回合挖矿之前随机填充1个魔法袋",
+          "description": "神秘的巫师，在挖矿前会施展魔法填充魔法袋"
+        }
+      },
+      "game_over": {
+        "title": "😢 游戏结束",
+        "survival_rounds": "存活回合",
+        "final_coins": "最终金币",
+        "total_coins": "累计金币",
+        "play_again": "再来一次！"
+      },
+      "confirmations": {
+        "exit_game": "退出游戏",
+        "exit_message": "确定要退出当前游戏并返回首页吗？",
+        "cancel": "取消",
+        "confirm": "确定",
+        "confirm_exit": "确定退出"
+      },
+      "status": {
+        "coming_soon": "功能开发中...",
+        "recovering": "恢复中..."
+      },
+      "earnings": {
+        "coins": "金币",
+        "round_start": "回合开始",
+        "next_round_bonus": "下回合奖励"
+      },
+      "launch": {
+        "loading": "正在加载..."
+      },
+      "story": {
+        "skip": "跳过",
+        "next": "下一步",
+        "previous": "上一步",
+        "start": "开始游戏",
+        "page1": {
+          "title": "欢迎来到哥布林世界",
+          "content": "在一个神秘的地下洞穴中，勇敢的哥布林们挖掘着宝藏。你是他们的领袖，带领他们经历无尽的冒险！"
+        },
+        "page2": {
+          "title": "挖掘与收集",
+          "content": "使用骰子挖掘矿石，收集符号，赚取金币。每个符号都有独特的价值。策略性地选择你的符号，最大化你的收益！"
+        },
+        "page3": {
+          "title": "生存与繁荣",
+          "content": "每回合支付房租以继续你的冒险。越深入，挑战和奖励就越大。你能到达最终的深度吗？"
+        }
+      },
+      "tutorial": {
+        "skip": "跳过",
+        "next": "下一步",
+        "previous": "上一步",
+        "complete": "知道了！",
+        "step1": {
+          "title": "开始你的冒险",
+          "description": "点击开始游戏按钮，开始你的挖掘冒险。确保你有足够的体力！"
+        },
+        "step2": {
+          "title": "管理你的资源",
+          "description": "注意右上角的钻石和体力。点击 + 号按钮可以购买更多资源。"
+        },
+        "step3": {
+          "title": "访问商城",
+          "description": "访问商城可以解锁新的哥布林、购买体力，以及领取每日奖励！"
+        }
+      },
+      "sign_in": {
+        "title": "七日签到",
+        "subtitle": "每日签到领取丰厚奖励！",
+        "day": "第",
+        "button": {
+          "sign_in": "立即签到",
+          "signed": "今日已签到"
+        },
+        "hint": {
+          "can_sign": "点击领取今日奖励",
+          "signed": "明天再来领取更多奖励！"
+        },
+        "status": {
+          "claimed": "已领取",
+          "today": "今日"
+        },
+        "reward_type": {
+          "diamonds": "钻石",
+          "coins": "金币",
+          "stamina": "体力"
+        },
+        "reward_detail": "奖励详情"
+      },
+      "symbols": {
+        "child": {
+          "name": "儿童",
+          "description": "符号池里每有一个玩具，则额外获得金币+2"
+        },
+        "merchant": {
+          "name": "商人",
+          "description": "之后回合的勾玉以及硬币的基础价值永久增加20金币"
+        },
+        "barbarian": {
+          "name": "野蛮人",
+          "description": "符号池里每拥有一个外星人，金币-1，每拥有一个怪物，金币+1"
+        },
+        "farmer": {
+          "name": "农民",
+          "description": "符号池里每拥有一个工具，金币+2"
+        },
+        "soldier": {
+          "name": "士兵",
+          "description": "符号池里每拥有一个人类，金币+1"
+        },
+        "village_chief": {
+          "name": "村长",
+          "description": "每当支付房租时，金币-5，每当选择符号时，金币+10"
+        },
+        "forest_fairy": {
+          "name": "森林妖精",
+          "description": "可以合成森林妖精（需要3个花精）"
+        },
+        "dark_moon_fairy": {
+          "name": "暗月妖精",
+          "description": "每当有妖精被挖出时，金币+3"
+        },
+        "starlight_fairy": {
+          "name": "星光妖精",
+          "description": "每当有妖精被挖出时，金币+3"
+        },
+        "healer": {
+          "name": "治疗师",
+          "description": "每当有亡灵被挖出时，金币+3"
+        },
+        "paladin": {
+          "name": "圣骑士",
+          "description": "每当有亡灵被挖出时，金币+3"
+        },
+        "nun": {
+          "name": "修女",
+          "description": "每当有亡灵被挖出时，金币+3"
+        },
+        "ancient_tree_elder": {
+          "name": "古树长老",
+          "description": "每当有精灵被挖出时，金币+5"
+        },
+        "thief": {
+          "name": "盗贼",
+          "description": "每当支付房租时，金币+5"
+        },
+        "princess": {
+          "name": "公主",
+          "description": "每当有王子或骑士被挖出时，金币+10"
+        },
+        "vampire": {
+          "name": "吸血鬼",
+          "description": "每回合开始时，金币-3，持续3回合后游戏结束"
+        },
+        "hunter": {
+          "name": "猎人",
+          "description": "每当有动物被挖出时，金币+2"
+        },
+        "female_ninja": {
+          "name": "女忍者",
+          "description": "每回合开始时清除所有丧尸"
+        },
+        "male_ninja": {
+          "name": "男忍者",
+          "description": "每回合开始时清除所有丧尸"
+        },
+        "god_of_strength": {
+          "name": "力之神",
+          "description": "增加1个骰子"
+        },
+        "god_of_speed": {
+          "name": "速之神",
+          "description": "挖矿数量翻倍"
+        },
+        "god_of_harvest": {
+          "name": "丰收之神",
+          "description": "本轮收益翻倍"
+        },
+        "god_of_luck": {
+          "name": "幸运之神",
+          "description": "本轮必定挖到至少1个魔法袋"
+        },
+        "death": {
+          "name": "死神",
+          "description": "回合开始时获得金币，但3回合后游戏结束"
+        },
+        "water_element": {
+          "name": "水元素",
+          "description": "收集5种元素可获得500金币"
+        },
+        "fire_element": {
+          "name": "火元素",
+          "description": "收集5种元素可获得500金币"
+        },
+        "thunder_element": {
+          "name": "雷元素",
+          "description": "收集5种元素可获得500金币"
+        },
+        "ice_element": {
+          "name": "冰元素",
+          "description": "收集5种元素可获得500金币"
+        },
+        "earth_element": {
+          "name": "土元素",
+          "description": "收集5种元素可获得500金币"
+        },
+        "rock": {
+          "name": "石头",
+          "description": "如果符号池里有type1或type2包含'tool'的符号，从符号池移除自身，获得20金币"
+        },
+        "cross": {
+          "name": "十字架",
+          "description": "如果在符号池内，'猎人'的权重翻倍（全局永久buff，只针对当前局游戏）"
+        },
+        "book_of_the_dead": {
+          "name": "死亡之书",
+          "description": "从符号池移除自身，生成一个'死神'到符号池"
+        },
+        "hypnosis_pendulum": {
+          "name": "催眠摆",
+          "description": "从符号池移除自身，随机生成'公主'或'女忍者'或'修女'中的一个到符号池"
+        },
+        "dragon_fire_gun": {
+          "name": "龙火枪",
+          "description": "如果本次挖出中有'士兵'，额外获得5金币"
+        },
+        "rune_armor": {
+          "name": "符文护甲",
+          "description": "如果本次挖出中有'圣骑士'，额外获得10金币"
+        },
+        "dawn_messenger_staff": {
+          "name": "黎明信使法杖",
+          "description": "如果本次挖出中有'公主'，额外获得20金币"
+        },
+        "holy_bottle": {
+          "name": "圣水瓶",
+          "description": "如果本次挖出中有'修女'，从符号池移除自身，生成一个'水元素'到符号池"
+        },
+        "contract_scroll": {
+          "name": "契约卷轴",
+          "description": "从符号池移除自身，随机生成'森林妖精'或'暗月妖精'或'星光妖精'中的一个到符号池"
+        },
+        "shuriken": {
+          "name": "手里剑",
+          "description": "如果符号池里有'女忍者'或'男忍者'，额外获得10金币"
+        },
+        "diary": {
+          "name": "日记",
+          "description": "如果本次挖出中有'吸血鬼'，从符号池移除自身，生成一个'吸血鬼'到符号池"
+        },
+        "ring": {
+          "name": "戒指",
+          "description": "如果本次挖出中有'手机'，生成一个'雷元素'到符号池"
+        },
+        "mobile_phone": {
+          "name": "手机",
+          "description": "如果本次挖出中有'戒指'，生成一个'雷元素'到符号池"
+        },
+        "glasses": {
+          "name": "眼镜",
+          "description": "如果本次挖出中有'领结'，生成一个'火元素'到符号池"
+        },
+        "tie": {
+          "name": "领结",
+          "description": "如果本次挖出中有'眼镜'，生成一个'火元素'到符号池"
+        },
+        "magatama": {
+          "name": "勾玉",
+          "description": "无效果（基础金币值受商人buff影响）"
+        },
+        "battery": {
+          "name": "电池",
+          "description": "从符号池移除自身，生成一个'宇宙飞船'到符号池"
+        },
+        "medical_kit": {
+          "name": "医疗包",
+          "description": "如果本次挖出中有'治疗师'，生成一个'风元素'到符号池（注：如果风元素不存在，可生成其他元素或忽略）"
+        },
+        "coin": {
+          "name": "硬币",
+          "description": "无效果（基础金币值受商人buff影响）"
+        },
+        "pillow": {
+          "name": "枕头",
+          "description": "如果本次挖出中有'儿童'，从符号池移除自身，获得20金币"
+        },
+        "eye_mask": {
+          "name": "眼罩",
+          "description": "如果本次挖出中有'儿童'，从符号池移除自身，获得10金币"
+        },
+        "talisman_paper": {
+          "name": "符纸",
+          "description": "如果本次挖出中有'狼人'，从符号池消除'狼人'和自身，获得100金币"
+        },
+        "pumpkin_head": {
+          "name": "南瓜头",
+          "description": "无效果"
+        },
+        "snowflake": {
+          "name": "雪花",
+          "description": "符号池里每有一个'农民'，额外获得5金币"
+        },
+        "firecracker": {
+          "name": "鞭炮",
+          "description": "符号池里每有一个'农民'，额外获得10金币"
+        },
+        "lantern": {
+          "name": "灯笼",
+          "description": "无效果"
+        },
+        "toy_duck": {
+          "name": "玩具鸭",
+          "description": "无效果"
+        },
+        "wine_bottle": {
+          "name": "酒瓶",
+          "description": "如果本次挖出中有'野蛮人'，额外获得20金币"
+        },
+        "briefcase": {
+          "name": "公文包",
+          "description": "如果本次挖出中有'商人'，从符号池移除自身，获得20金币"
+        },
+        "hoe": {
+          "name": "斧头",
+          "description": "50%概率生成'花精'到符号池，50%概率生成'丧尸'到符号池"
+        },
+        "horn": {
+          "name": "号角",
+          "description": "生成5个'士兵'到符号池"
+        },
+        "iron_box": {
+          "name": "铁箱子",
+          "description": "无效果"
+        },
+        "silver_box": {
+          "name": "银箱子",
+          "description": "无效果"
+        },
+        "iron_key": {
+          "name": "铁钥匙",
+          "description": "从符号池消除一个'铁箱子'，获得10金币"
+        },
+        "silver_key": {
+          "name": "银钥匙",
+          "description": "从符号池消除一个'银箱子'，获得20金币"
+        },
+        "master_key": {
+          "name": "万能钥匙",
+          "description": "从符号池消除一个较高等级的箱子（优先银箱子），获得箱子baseValue×2的金币"
+        },
+        "flower_fairy": {
+          "name": "花精",
+          "description": "无效果（每回合开始时检查：符号池里每存在3个'花精'，自动合成1个'森林妖精'，移除3个'花精'）"
+        },
+        "werewolf": {
+          "name": "狼人",
+          "description": "如果存在于符号池，每回合开始时减少20金币（回合开始时触发）"
+        },
+        "zombie": {
+          "name": "丧尸",
+          "description": "感染符号池里一个type1或type2包含'human'的符号变成'丧尸'。符号池里每有一个'丧尸'，金币+5"
+        },
+        "one_eyed_monster": {
+          "name": "独眼怪",
+          "description": "第一次被挖出6金币，第二次5金币，一直递减到0（每回合重置计数器）"
+        },
+        "gomorrah": {
+          "name": "哥莫拉",
+          "description": "从符号池随机消除一个除自身以外的符号，获得30金币"
+        },
+        "ray_gun": {
+          "name": "光线枪",
+          "description": "如果本次挖出中同时有'外星头盔'和'宇宙飞船'，获得40金币（三种物品只计算一次）"
+        },
+        "alien_helmet": {
+          "name": "外星头盔",
+          "description": "如果本次挖出中同时有'光线枪'和'宇宙飞船'，获得40金币（三种物品只计算一次）"
+        },
+        "spaceship": {
+          "name": "宇宙飞船",
+          "description": "如果本次挖出中同时有'外星头盔'和'光线枪'，获得40金币（三种物品只计算一次）"
+        },
+        "mind_controller": {
+          "name": "精神控制器",
+          "description": "随机转化符号池的一个符号为type1='material'的符号（保持原名称和icon，只改变types）"
+        },
+        "meteorite": {
+          "name": "陨石",
+          "description": "如果符号池里有'哥莫拉'，从符号池消除'哥莫拉'，获得30金币"
+        },
+        "dice": {
+          "name": "骰子",
+          "description": "永久增加1个骰子（骰子数量+1）。被挖出后从符号池移除（消除自身）"
+        },
+        "magic_bag": {
+          "name": "魔法袋",
+          "description": "随机生成3~5个随机符号到符号池"
+        }
+      }
+    }
+  }
+}

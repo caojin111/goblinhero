@@ -53,7 +53,7 @@ class GameConfigManager: ObservableObject {
     static let shared = GameConfigManager()
     
     @Published var currentConfig: GameConfig
-    @Published var currentDifficulty: String = "normal"
+    @Published var currentDifficulty: String = "easy"
     
     private init() {
         // 加载默认配置
@@ -158,8 +158,12 @@ class GameConfigManager: ObservableObject {
             return multiplier["10"] ?? 10
         } else if poolSize <= 15 {
             return multiplier["15"] ?? 15
-        } else {
+        } else if poolSize <= 20 {
             return multiplier["20"] ?? 20
+        } else if poolSize <= 25 {
+            return multiplier["25"] ?? 25
+        } else {
+            return multiplier["25"] ?? 25 // 超过25个时，最多显示25个
         }
     }
     

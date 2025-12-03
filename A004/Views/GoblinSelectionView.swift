@@ -12,6 +12,8 @@ struct GoblinSelectionView: View {
     @Binding var isPresented: Bool
     @Binding var unlockedGoblinIds: Set<Int> // 已解锁的哥布林ID
     @Binding var currentCoins: Int // 当前金币用于解锁
+    @ObservedObject var viewModel: GameViewModel // 用于访问钻石
+    @ObservedObject var localizationManager = LocalizationManager.shared
     
     @State private var currentIndex: Int = 0
     @State private var dragOffset: CGFloat = 0
@@ -36,13 +38,13 @@ struct GoblinSelectionView: View {
             VStack(spacing: 30) {
                 // 标题
                 VStack(spacing: 10) {
-                    Text("🎭 选择你的哥布林")
+                    Text(localizationManager.localized("goblin.select_title"))
                         .font(.largeTitle)
                         .fontWeight(.bold)
                         .foregroundColor(.white)
                         .shadow(color: .black.opacity(0.3), radius: 5, x: 0, y: 2)
-                    
-                    Text("左右滑动查看不同哥布林")
+
+                    Text(localizationManager.localized("goblin.swipe_hint"))
                         .font(.subheadline)
                         .foregroundColor(.white.opacity(0.8))
                 }
@@ -55,7 +57,8 @@ struct GoblinSelectionView: View {
                             GoblinCardView(
                                 goblin: goblin,
                                 isUnlocked: goblin.isFree || unlockedGoblinIds.contains(goblin.id),
-                                currentCoins: currentCoins
+                                currentCoins: currentCoins,
+                                currentDiamonds: viewModel.diamonds
                             )
                             .transition(.asymmetric(
                                 insertion: .move(edge: dragOffset > 0 ? .leading : .trailing).combined(with: .opacity),
@@ -124,12 +127,17 @@ struct GoblinSelectionView: View {
                 }) {
                     let currentGoblin = goblins[currentIndex]
                     let isUnlocked = currentGoblin.isFree || unlockedGoblinIds.contains(currentGoblin.id)
-                    
+                    let currencyIcon = currentGoblin.unlockCurrency == "diamonds" ? "💎" : "💰"
+                    let currencyAmount = currentGoblin.unlockCurrency == "diamonds" ? viewModel.diamonds : currentCoins
+                    let canUnlock = isUnlocked || (currentGoblin.unlockCurrency == "diamonds" ? viewModel.diamonds >= currentGoblin.unlockPrice : currentCoins >= currentGoblin.unlockPrice)
+
                     HStack(spacing: 12) {
                         Image(systemName: isUnlocked ? "checkmark.circle.fill" : "lock.fill")
                             .font(.title2)
-                        
-                        Text(isUnlocked ? "选择 \(currentGoblin.name)" : "解锁 \(currentGoblin.name) (\(currentGoblin.unlockPrice) 💰)")
+
+                        Text(isUnlocked ?
+                             "\(localizationManager.localized("goblin.select")) \(currentGoblin.name)" :
+                             "\(localizationManager.localized("goblin.unlock")) \(currentGoblin.name) (\(currentGoblin.unlockPrice) \(currencyIcon))")
                             .font(.title3)
                             .fontWeight(.bold)
                     }
@@ -140,11 +148,12 @@ struct GoblinSelectionView: View {
                         LinearGradient(
                             gradient: Gradient(colors: isUnlocked ? 
                                 [Color.green, Color.blue] : 
-                                [Color.orange, Color.red]),
+                                (canUnlock ? [Color.orange, Color.red] : [Color.gray, Color.gray.opacity(0.7)])),
                             startPoint: .leading,
                             endPoint: .trailing
                         )
                     )
+                    .disabled(!isUnlocked && !canUnlock)
                     .cornerRadius(20)
                     .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
                 }
@@ -152,28 +161,48 @@ struct GoblinSelectionView: View {
                 .padding(.bottom, 40)
             }
         }
-        .alert("解锁哥布林", isPresented: $showUnlockAlert) {
+        .alert(localizationManager.localized("goblin.unlock_goblin"), isPresented: $showUnlockAlert) {
             if let goblin = goblinToUnlock {
-                if currentCoins >= goblin.unlockPrice {
-                    Button("确认解锁 (\(goblin.unlockPrice) 💰)") {
-                        // 扣除金币并解锁
+                let currencyIcon = goblin.unlockCurrency == "diamonds" ? "💎" : "💰"
+                let hasEnough = goblin.unlockCurrency == "diamonds" ? 
+                    viewModel.diamonds >= goblin.unlockPrice : 
+                    currentCoins >= goblin.unlockPrice
+                
+                if hasEnough {
+                    Button("\(localizationManager.localized("goblin.confirm_unlock")) (\(goblin.unlockPrice) \(currencyIcon))") {
+                        // 扣除货币并解锁
+                        if goblin.unlockCurrency == "diamonds" {
+                            if viewModel.unlockGoblin(goblinId: goblin.id, cost: goblin.unlockPrice) {
+                                selectedGoblin = goblin
+                                isPresented = false
+                                print("🎭 [哥布林解锁] 成功解锁: \(goblin.name)")
+                            }
+                        } else {
                         currentCoins -= goblin.unlockPrice
                         unlockedGoblinIds.insert(goblin.id)
                         selectedGoblin = goblin
                         isPresented = false
                         print("🎭 [哥布林解锁] 成功解锁: \(goblin.name)")
+                        }
                     }
-                    Button("取消", role: .cancel) { }
+                    Button(localizationManager.localized("confirmations.cancel"), role: .cancel) { }
                 } else {
-                    Button("确定", role: .cancel) { }
+                    Button(localizationManager.localized("confirmations.confirm"), role: .cancel) { }
                 }
             }
         } message: {
             if let goblin = goblinToUnlock {
-                if currentCoins >= goblin.unlockPrice {
-                    Text("是否花费 \(goblin.unlockPrice) 金币解锁 \(goblin.name)？")
+                let currencyIcon = goblin.unlockCurrency == "diamonds" ? "💎" : "💰"
+                let currencyName = goblin.unlockCurrency == "diamonds" ? localizationManager.localized("store.tabs.diamonds") : localizationManager.localized("goblin.price_suffix")
+                let hasEnough = goblin.unlockCurrency == "diamonds" ? 
+                    viewModel.diamonds >= goblin.unlockPrice : 
+                    currentCoins >= goblin.unlockPrice
+                let currentAmount = goblin.unlockCurrency == "diamonds" ? viewModel.diamonds : currentCoins
+                
+                if hasEnough {
+                    Text("\(localizationManager.localized("goblin.unlock_confirm")) \(goblin.unlockPrice) \(currencyIcon) \(localizationManager.localized("goblin.unlock")) \(goblin.name)？")
                 } else {
-                    Text("金币不足！需要 \(goblin.unlockPrice) 金币，当前只有 \(currentCoins) 金币。")
+                    Text("\(localizationManager.localized("goblin.insufficient_coins"))！\(localizationManager.localized("goblin.need")) \(goblin.unlockPrice) \(currencyIcon)，\(localizationManager.localized("goblin.current")) \(currentAmount) \(currencyIcon)。")
                 }
             }
         }
@@ -182,9 +211,11 @@ struct GoblinSelectionView: View {
 
 // MARK: - 哥布林卡片视图
 struct GoblinCardView: View {
+    @ObservedObject var localizationManager = LocalizationManager.shared
     let goblin: Goblin
     let isUnlocked: Bool
     let currentCoins: Int
+    let currentDiamonds: Int
     
     var body: some View {
         VStack(spacing: 25) {
@@ -234,7 +265,7 @@ struct GoblinCardView: View {
             
             // 免费/付费标签
             if goblin.isFree {
-                Text("免费")
+                Text(localizationManager.localized("goblin.free"))
                     .font(.caption)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
@@ -245,11 +276,16 @@ struct GoblinCardView: View {
                             .fill(Color.green)
                     )
             } else {
+                let currencyIcon = goblin.unlockCurrency == "diamonds" ? "💎" : "💰"
+                let hasEnough = goblin.unlockCurrency == "diamonds" ? 
+                    currentDiamonds >= goblin.unlockPrice : 
+                    currentCoins >= goblin.unlockPrice
+                
                 HStack(spacing: 5) {
                     Text("\(goblin.unlockPrice)")
                         .font(.caption)
                         .fontWeight(.bold)
-                    Text("💰")
+                    Text(currencyIcon)
                         .font(.caption)
                 }
                 .foregroundColor(.white)
@@ -257,14 +293,14 @@ struct GoblinCardView: View {
                 .padding(.vertical, 6)
                 .background(
                     Capsule()
-                        .fill(isUnlocked ? Color.blue : Color.orange)
+                        .fill(isUnlocked ? Color.blue : (hasEnough ? Color.orange : Color.gray))
                 )
             }
             
             // buff描述（增加显示区域）
             VStack(spacing: 15) {
                 HStack {
-                    Text("⭐ 特殊能力")
+                    Text("⭐ \(localizationManager.localized("goblin.special_ability"))")
                         .font(.headline)
                         .fontWeight(.bold)
                         .foregroundColor(.yellow)
@@ -308,7 +344,8 @@ struct GoblinCardView: View {
         selectedGoblin: .constant(nil),
         isPresented: .constant(true),
         unlockedGoblinIds: .constant([1, 2, 3]),
-        currentCoins: .constant(50)
+        currentCoins: .constant(50),
+        viewModel: GameViewModel()
     )
 }
 

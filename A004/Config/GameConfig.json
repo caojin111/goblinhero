@@ -45,7 +45,7 @@
   "gameSettings": {
     "initialCoins": 0,
     "spinsPerRound": 3,
-    "slotCount": 20,
+    "slotCount": 25,
     "symbolChoiceCount": 3,
     "startingSymbolCount": 3
   },
@@ -57,7 +57,8 @@
       "6": 6,
       "10": 10,
       "15": 15,
-      "20": 20
+      "20": 20,
+      "25": 25
     },
     "rarityWeights": {
       "common": 0.5,

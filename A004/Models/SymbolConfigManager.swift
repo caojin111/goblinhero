@@ -16,13 +16,14 @@ struct SymbolConfigFile: Codable {
 
 struct SymbolConfigData: Codable {
     let id: Int
-    let name: String
+    let nameKey: String
     let icon: String
     let rarity: String
     let types: [String]
     let baseValue: Int
     let weight: Int
-    let effect: String
+    let effect: String  // 被挖起时的效果（技术性描述，给开发看的）
+    let descriptionKey: String?  // 展示描述键名（多语言）
     let effectType: String
     let effectParams: [String: AnyCodable]
 }
@@ -122,12 +123,12 @@ class SymbolConfigManager {
         return configFile.symbols.map { config in
             Symbol(
                 id: UUID(),
-                name: config.name,
+                nameKey: config.nameKey,
                 icon: config.icon,
                 baseValue: config.baseValue,
                 rarity: mapRarity(config.rarity),
                 type: mapPrimaryType(config.types),
-                description: config.effect,
+                descriptionKey: config.descriptionKey ?? config.nameKey,  // 使用键名作为描述键，如果没有则使用名称键
                 weight: config.weight,
                 types: config.types,
                 effectType: config.effectType,
@@ -170,9 +171,9 @@ class SymbolConfigManager {
         return selectedSymbols
     }
     
-    /// 根据名称查找符号
+    /// 根据名称查找符号（支持本地化名称和键值）
     func getSymbol(byName name: String) -> Symbol? {
-        return getAllSymbols().first { $0.name == name }
+        return getAllSymbols().first { $0.name == name || $0.nameKey == name }
     }
     
     /// 根据类型过滤符号
@@ -187,15 +188,42 @@ class SymbolConfigManager {
     
     /// 获取符号选择选项（3选1）
     func getSymbolChoiceOptions() -> [Symbol] {
-        let allSymbols = getAllSymbols()
-        var options: [Symbol] = []
-        
-        for _ in 0..<3 {
-            if let symbol = getRandomSymbol(fromPool: allSymbols) {
-                options.append(symbol)
-            }
+        // 过滤掉不应该出现在三选一中的符号（死神只能通过死灵之书产出）
+        let availableSymbols = getAllSymbols().filter { symbol in
+            symbol.name != "死神"
         }
         
+        var options: [Symbol] = []
+        var usedSymbols = Set<String>() // 用于跟踪已选择的符号名称
+        
+        // 确保至少选择3个不同的符号
+        var attempts = 0
+        let maxAttempts = availableSymbols.count * 2 // 防止无限循环
+        
+        while options.count < 3 && attempts < maxAttempts {
+            if let symbol = getRandomSymbol(fromPool: availableSymbols) {
+                // 检查是否已经选择过这个符号
+                if !usedSymbols.contains(symbol.name) {
+                    options.append(symbol)
+                    usedSymbols.insert(symbol.name)
+                    print("🎯 [符号选择] 添加选项: \(symbol.name)")
+                } else {
+                    print("🎯 [符号选择] 跳过重复符号: \(symbol.name)")
+                }
+            }
+            attempts += 1
+        }
+        
+        // 如果仍然不足3个，从剩余符号中随机选择
+        if options.count < 3 {
+            let remainingSymbols = availableSymbols.filter { !usedSymbols.contains($0.name) }
+            let needed = 3 - options.count
+            let additionalSymbols = Array(remainingSymbols.shuffled().prefix(needed))
+            options.append(contentsOf: additionalSymbols)
+            print("🎯 [符号选择] 补充选项: \(additionalSymbols.map { $0.name })")
+        }
+        
+        print("🎯 [符号选择] 最终选项: \(options.map { $0.name })")
         return options
     }
     

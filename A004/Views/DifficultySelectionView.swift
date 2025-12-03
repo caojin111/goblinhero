@@ -9,6 +9,7 @@ import SwiftUI
 
 struct DifficultySelectionView: View {
     @ObservedObject var configManager = GameConfigManager.shared
+    @ObservedObject var localizationManager = LocalizationManager.shared
     @Binding var isPresented: Bool
     let onDifficultySelected: (String) -> Void
     
@@ -23,20 +24,20 @@ struct DifficultySelectionView: View {
             
             VStack(spacing: 25) {
                 // 标题
-                Text("🎮 选择难度")
+                Text(localizationManager.localized("difficulty.select_title"))
                     .font(.title)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
                 
-                Text("选择适合你的挑战难度")
+                Text(localizationManager.localized("difficulty.select_hint"))
                     .font(.subheadline)
                     .foregroundColor(.white.opacity(0.8))
                 
                 // 难度选项
                 VStack(spacing: 15) {
                     DifficultyButton(
-                        title: "😊 简单",
-                        description: "初始房租: 30金币\n递增: 20%",
+                        title: "😊 \(localizationManager.getDifficultyName("easy"))",
+                        description: "\(localizationManager.localized("difficulty.initial_rent")): 30\(localizationManager.localized("game.coins"))\n\(localizationManager.localized("difficulty.increase")): 20%",
                         color: .green,
                         isSelected: configManager.currentDifficulty == "easy"
                     ) {
@@ -44,8 +45,8 @@ struct DifficultySelectionView: View {
                     }
                     
                     DifficultyButton(
-                        title: "😐 普通",
-                        description: "初始房租: 50金币\n递增: 50%",
+                        title: "😐 \(localizationManager.getDifficultyName("normal"))",
+                        description: "\(localizationManager.localized("difficulty.initial_rent")): 50\(localizationManager.localized("game.coins"))\n\(localizationManager.localized("difficulty.increase")): 50%",
                         color: .blue,
                         isSelected: configManager.currentDifficulty == "normal"
                     ) {
@@ -53,8 +54,8 @@ struct DifficultySelectionView: View {
                     }
                     
                     DifficultyButton(
-                        title: "😤 困难",
-                        description: "初始房租: 100金币\n递增: 80%",
+                        title: "😤 \(localizationManager.getDifficultyName("hard"))",
+                        description: "\(localizationManager.localized("difficulty.initial_rent")): 100\(localizationManager.localized("game.coins"))\n\(localizationManager.localized("difficulty.increase")): 80%",
                         color: .orange,
                         isSelected: configManager.currentDifficulty == "hard"
                     ) {
@@ -62,8 +63,8 @@ struct DifficultySelectionView: View {
                     }
                     
                     DifficultyButton(
-                        title: "🔥 极限",
-                        description: "初始房租: 200金币\n递增: 100%",
+                        title: "🔥 \(localizationManager.getDifficultyName("extreme"))",
+                        description: "\(localizationManager.localized("difficulty.initial_rent")): 200\(localizationManager.localized("game.coins"))\n\(localizationManager.localized("difficulty.increase")): 100%",
                         color: .red,
                         isSelected: configManager.currentDifficulty == "extreme"
                     ) {
@@ -72,7 +73,7 @@ struct DifficultySelectionView: View {
                 }
                 
                 // 关闭按钮
-                Button("关闭") {
+                Button(localizationManager.localized("settings.close")) {
                     isPresented = false
                 }
                 .font(.headline)
