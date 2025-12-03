@@ -1,0 +1,23 @@
+{
+  "images" : [
+    {
+      "filename" : "jimeng-2025-12-02-3675-_Lucky_Goblin__像素风格体_字形由方块状像素组成_呈现出数字化_复..._1-removebg-preview.png",
+      "idiom" : "universal",
+      "scale" : "1x"
+    },
+    {
+      "filename" : "jimeng-2025-12-02-3675-_Lucky_Goblin__像素风格体_字形由方块状像素组成_呈现出数字化_复..._1-removebg-preview 1.png",
+      "idiom" : "universal",
+      "scale" : "2x"
+    },
+    {
+      "filename" : "jimeng-2025-12-02-3675-_Lucky_Goblin__像素风格体_字形由方块状像素组成_呈现出数字化_复..._1-removebg-preview 2.png",
+      "idiom" : "universal",
+      "scale" : "3x"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
