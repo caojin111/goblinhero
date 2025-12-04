@@ -13,6 +13,11 @@ struct DifficultySelectionView: View {
     @Binding var isPresented: Bool
     let onDifficultySelected: (String) -> Void
     
+    // 获取自定义字体
+    private func customFont(size: CGFloat) -> Font {
+        return FontManager.shared.customFont(size: size)
+    }
+    
     var body: some View {
         ZStack {
             // 背景
@@ -25,13 +30,14 @@ struct DifficultySelectionView: View {
             VStack(spacing: 25) {
                 // 标题
                 Text(localizationManager.localized("difficulty.select_title"))
-                    .font(.title)
-                    .fontWeight(.bold)
+                    .font(customFont(size: 28))
                     .foregroundColor(.white)
+                    .textStroke()
                 
                 Text(localizationManager.localized("difficulty.select_hint"))
-                    .font(.subheadline)
+                    .font(customFont(size: 14))
                     .foregroundColor(.white.opacity(0.8))
+                    .textStroke()
                 
                 // 难度选项
                 VStack(spacing: 15) {
@@ -76,8 +82,9 @@ struct DifficultySelectionView: View {
                 Button(localizationManager.localized("settings.close")) {
                     isPresented = false
                 }
-                .font(.headline)
+                .font(customFont(size: 17))
                 .foregroundColor(.white)
+                .textStroke()
                 .padding(.horizontal, 30)
                 .padding(.vertical, 12)
                 .background(
@@ -109,18 +116,24 @@ struct DifficultyButton: View {
     let isSelected: Bool
     let action: () -> Void
     
+    // 获取自定义字体
+    private func customFont(size: CGFloat) -> Font {
+        return FontManager.shared.customFont(size: size)
+    }
+    
     var body: some View {
         Button(action: action) {
             HStack {
                 VStack(alignment: .leading, spacing: 5) {
                     Text(title)
-                        .font(.headline)
-                        .fontWeight(.bold)
+                        .font(customFont(size: 17))
                         .foregroundColor(.white)
+                        .textStroke()
                     
                     Text(description)
-                        .font(.caption)
+                        .font(customFont(size: 12))
                         .foregroundColor(.white.opacity(0.8))
+                        .textStroke()
                 }
                 
                 Spacer()

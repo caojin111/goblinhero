@@ -16,6 +16,11 @@ struct DailySignInView: View {
     @State private var selectedReward: SignInReward?
     @State private var pulseAnimation: Bool = false
     
+    // 获取自定义字体
+    private func customFont(size: CGFloat) -> Font {
+        return FontManager.shared.customFont(size: size)
+    }
+    
     var body: some View {
         NavigationView {
             ZStack {
@@ -37,12 +42,13 @@ struct DailySignInView: View {
                         Text("📅")
                             .font(.system(size: 60))
                         Text(localizationManager.localized("sign_in.title"))
-                            .font(.title)
-                            .fontWeight(.bold)
+                            .font(customFont(size: 28))
                             .foregroundColor(.white)
+                            .textStroke()
                         Text(localizationManager.localized("sign_in.subtitle"))
-                            .font(.subheadline)
+                            .font(customFont(size: 14))
                             .foregroundColor(.white.opacity(0.8))
+                            .textStroke()
                     }
                     .padding(.top, 20)
                     .padding(.bottom, 30)
@@ -84,8 +90,8 @@ struct DailySignInView: View {
                                 Text(viewModel.canSignInToday ?
                                      localizationManager.localized("sign_in.button.sign_in") :
                                      localizationManager.localized("sign_in.button.signed"))
-                                    .font(.title3)
-                                    .fontWeight(.bold)
+                                    .font(customFont(size: 20))
+                                    .textStroke()
                             }
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
@@ -154,8 +160,9 @@ struct DailySignInView: View {
                         Text(viewModel.canSignInToday ?
                              localizationManager.localized("sign_in.hint.can_sign") :
                              localizationManager.localized("sign_in.hint.signed"))
-                            .font(.caption)
+                            .font(customFont(size: 12))
                             .foregroundColor(.white.opacity(0.7))
+                            .textStroke()
                     }
                     .padding(.horizontal, 30)
                     .padding(.bottom, 30)
@@ -266,14 +273,19 @@ struct RewardNodeView: View {
     @State private var isPressed: Bool = false
     @ObservedObject var localizationManager = LocalizationManager.shared
     
+    // 获取自定义字体
+    private func customFont(size: CGFloat) -> Font {
+        return FontManager.shared.customFont(size: size)
+    }
+    
     var body: some View {
         Button(action: onTap) {
             VStack(spacing: 6) {
                 // 天数标签
                 Text("\(localizationManager.localized("sign_in.day")) \(reward.day)")
-                    .font(.caption)
-                    .fontWeight(.bold)
+                    .font(customFont(size: 12))
                     .foregroundColor(isToday ? .yellow : (isClaimed ? .green : .white.opacity(0.7)))
+                    .textStroke()
                 
                 // 奖励图标和数量
                 ZStack {
@@ -313,21 +325,23 @@ struct RewardNodeView: View {
                         Text(reward.type.icon)
                             .font(.system(size: 28))
                         Text("\(reward.amount)")
-                            .font(.caption)
-                            .fontWeight(.bold)
+                            .font(customFont(size: 12))
                             .foregroundColor(.white)
+                            .textStroke()
                     }
                 }
                 
                 // 状态标签
                 if isClaimed {
                     Text(localizationManager.localized("sign_in.status.claimed"))
-                        .font(.caption2)
+                        .font(customFont(size: 10))
                         .foregroundColor(.green)
+                        .textStroke()
                 } else if isToday {
                     Text(localizationManager.localized("sign_in.status.today"))
-                        .font(.caption2)
+                        .font(customFont(size: 10))
                         .foregroundColor(.yellow)
+                        .textStroke()
                 }
             }
         }
@@ -344,6 +358,11 @@ struct RewardDetailPopup: View {
     let reward: SignInReward
     @ObservedObject var localizationManager: LocalizationManager
     @Binding var isPresented: Bool
+    
+    // 获取自定义字体
+    private func customFont(size: CGFloat) -> Font {
+        return FontManager.shared.customFont(size: size)
+    }
     
     var body: some View {
         ZStack {
@@ -394,26 +413,28 @@ struct RewardDetailPopup: View {
                         Text(reward.type.icon)
                             .font(.system(size: 40))
                         Text("\(reward.amount)")
-                            .font(.title3)
-                            .fontWeight(.bold)
+                            .font(customFont(size: 20))
                             .foregroundColor(.white)
+                            .textStroke()
                     }
                 }
                 
                 // 奖励信息
                 VStack(spacing: 12) {
                     Text("\(localizationManager.localized("sign_in.day")) \(reward.day)")
-                        .font(.title3)
-                        .fontWeight(.bold)
+                        .font(customFont(size: 20))
                         .foregroundColor(.white)
+                        .textStroke()
                     
                     Text(reward.description)
-                        .font(.headline)
+                        .font(customFont(size: 17))
                         .foregroundColor(.white.opacity(0.9))
+                        .textStroke()
                     
                     Text(localizationManager.localized("sign_in.reward_type.\(reward.type == .diamonds ? "diamonds" : reward.type == .coins ? "coins" : "stamina")"))
-                        .font(.subheadline)
+                        .font(customFont(size: 14))
                         .foregroundColor(.white.opacity(0.7))
+                        .textStroke()
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)
                         .background(

@@ -683,8 +683,10 @@ struct GameOverView: View {
                 HStack {
                     Text(localizationManager.localized("game_over.survival_rounds"))
                         .foregroundColor(.white.opacity(0.8))
+                        .font(.subheadline)
                     Spacer()
                     Text("\(viewModel.currentRound)")
+                        .font(.body)
                         .fontWeight(.bold)
                         .foregroundColor(.yellow)
                 }
@@ -692,8 +694,10 @@ struct GameOverView: View {
                 HStack {
                     Text(localizationManager.localized("game_over.final_coins"))
                         .foregroundColor(.white.opacity(0.8))
+                        .font(.subheadline)
                     Spacer()
                     Text("\(viewModel.currentCoins)")
+                        .font(.body)
                         .fontWeight(.bold)
                         .foregroundColor(.yellow)
                 }
@@ -701,8 +705,10 @@ struct GameOverView: View {
                 HStack {
                     Text(localizationManager.localized("game_over.total_coins"))
                         .foregroundColor(.white.opacity(0.8))
+                        .font(.subheadline)
                     Spacer()
                     Text("\(viewModel.accumulatedCoins)")
+                        .font(.body)
                         .fontWeight(.bold)
                         .foregroundColor(.green)
                 }

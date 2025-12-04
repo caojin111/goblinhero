@@ -10,6 +10,11 @@ import SwiftUI
 struct LanguageSelectionView: View {
     @ObservedObject var localizationManager = LocalizationManager.shared
     @Binding var isPresented: Bool
+    
+    // 获取自定义字体
+    private func customFont(size: CGFloat) -> Font {
+        return FontManager.shared.customFont(size: size)
+    }
 
     var body: some View {
         ZStack {
@@ -23,9 +28,9 @@ struct LanguageSelectionView: View {
             VStack(spacing: 25) {
                 // 标题
                 Text(localizationManager.localized("settings.language"))
-                    .font(.title)
-                    .fontWeight(.bold)
+                    .font(customFont(size: 28))
                     .foregroundColor(.white)
+                    .textStroke()
 
                 // 语言选项
                 VStack(spacing: 10) {
@@ -36,8 +41,9 @@ struct LanguageSelectionView: View {
                         }) {
                             HStack {
                                 Text(language.name)
-                                    .font(.headline)
+                                    .font(customFont(size: 17))
                                     .foregroundColor(.white)
+                                    .textStroke()
 
                                 Spacer()
 
@@ -63,8 +69,9 @@ struct LanguageSelectionView: View {
                 Button(localizationManager.localized("settings.close")) {
                     isPresented = false
                 }
-                .font(.headline)
+                .font(customFont(size: 17))
                 .foregroundColor(.white)
+                .textStroke()
                 .padding(.horizontal, 30)
                 .padding(.vertical, 12)
                 .background(

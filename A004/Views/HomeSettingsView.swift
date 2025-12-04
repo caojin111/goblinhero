@@ -15,6 +15,11 @@ struct HomeSettingsView: View {
     @State private var showPrivacyPolicy = false
     @State private var showContactUs = false
     
+    // 获取自定义字体
+    private func customFont(size: CGFloat) -> Font {
+        return FontManager.shared.customFont(size: size)
+    }
+    
     var body: some View {
         ZStack {
             // 背景
@@ -27,9 +32,9 @@ struct HomeSettingsView: View {
             VStack(spacing: 25) {
                 // 标题
                 Text(localizationManager.localized("settings.title"))
-                    .font(.title)
-                    .fontWeight(.bold)
+                    .font(customFont(size: 28))
                     .foregroundColor(.white)
+                    .textStroke()
                 
                 // 设置选项
                 VStack(spacing: 15) {
@@ -41,13 +46,14 @@ struct HomeSettingsView: View {
                         
                         VStack(alignment: .leading, spacing: 5) {
                             Text(localizationManager.localized("settings.music"))
-                                .font(.headline)
-                                .fontWeight(.bold)
+                                .font(customFont(size: 17))
                                 .foregroundColor(.white)
+                                .textStroke()
                             
                             Text(localizationManager.localized("settings.music_description"))
-                                .font(.caption)
+                                .font(customFont(size: 12))
                                 .foregroundColor(.white.opacity(0.8))
+                                .textStroke()
                         }
                         
                         Spacer()
@@ -70,13 +76,14 @@ struct HomeSettingsView: View {
                         
                         VStack(alignment: .leading, spacing: 5) {
                             Text(localizationManager.localized("settings.sound_effects"))
-                                .font(.headline)
-                                .fontWeight(.bold)
+                                .font(customFont(size: 17))
                                 .foregroundColor(.white)
+                                .textStroke()
                             
                             Text(localizationManager.localized("settings.sound_effects_description"))
-                                .font(.caption)
+                                .font(customFont(size: 12))
                                 .foregroundColor(.white.opacity(0.8))
+                                .textStroke()
                         }
                         
                         Spacer()
@@ -106,13 +113,14 @@ struct HomeSettingsView: View {
                             
                             VStack(alignment: .leading, spacing: 5) {
                                 Text(localizationManager.localized("settings.privacy_policy"))
-                                    .font(.headline)
-                                    .fontWeight(.bold)
+                                    .font(customFont(size: 17))
                                     .foregroundColor(.white)
+                                    .textStroke()
                                 
                                 Text(localizationManager.localized("settings.privacy_policy_description"))
-                                    .font(.caption)
+                                    .font(customFont(size: 12))
                                     .foregroundColor(.white.opacity(0.8))
+                                    .textStroke()
                             }
                             
                             Spacer()
@@ -139,13 +147,14 @@ struct HomeSettingsView: View {
                             
                             VStack(alignment: .leading, spacing: 5) {
                                 Text(localizationManager.localized("settings.contact_us"))
-                                    .font(.headline)
-                                    .fontWeight(.bold)
+                                    .font(customFont(size: 17))
                                     .foregroundColor(.white)
+                                    .textStroke()
                                 
                                 Text(localizationManager.localized("settings.contact_us_description"))
-                                    .font(.caption)
+                                    .font(customFont(size: 12))
                                     .foregroundColor(.white.opacity(0.8))
+                                    .textStroke()
                             }
                             
                             Spacer()
@@ -166,8 +175,9 @@ struct HomeSettingsView: View {
                 Button(localizationManager.localized("settings.close")) {
                     isPresented = false
                 }
-                .font(.headline)
+                .font(customFont(size: 17))
                 .foregroundColor(.white)
+                .textStroke()
                 .padding(.horizontal, 30)
                 .padding(.vertical, 12)
                 .background(

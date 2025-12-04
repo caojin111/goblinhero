@@ -15,6 +15,11 @@ struct TutorialView: View {
     // 教程步骤数据
     let steps: [TutorialStep]
     
+    // 获取自定义字体
+    private func customFont(size: CGFloat) -> Font {
+        return FontManager.shared.customFont(size: size)
+    }
+    
     var body: some View {
         ZStack {
             // 高亮区域（通过遮罩挖洞实现）- 包含遮罩层
@@ -72,8 +77,9 @@ struct TutorialView: View {
                         skipTutorial()
                     }) {
                         Text(localizationManager.localized("tutorial.skip"))
-                            .font(.system(size: 16, weight: .medium))
+                            .font(customFont(size: 16))
                             .foregroundColor(.white.opacity(0.8))
+                            .textStroke()
                             .padding(.horizontal, 20)
                             .padding(.vertical, 10)
                             .background(
@@ -102,8 +108,9 @@ struct TutorialView: View {
                                 Image(systemName: "chevron.left")
                                 Text(localizationManager.localized("tutorial.previous"))
                             }
-                            .font(.system(size: 16, weight: .medium))
+                            .font(customFont(size: 16))
                             .foregroundColor(.white)
+                            .textStroke()
                             .padding(.horizontal, 24)
                             .padding(.vertical, 12)
                             .background(
@@ -137,8 +144,9 @@ struct TutorialView: View {
                                 Image(systemName: "chevron.right")
                             }
                         }
-                        .font(.system(size: 16, weight: .bold))
+                        .font(customFont(size: 16))
                         .foregroundColor(.white)
+                        .textStroke()
                         .padding(.horizontal, 24)
                         .padding(.vertical, 12)
                         .background(
@@ -265,20 +273,27 @@ struct TutorialTipCard: View {
     let description: String
     @ObservedObject var localizationManager: LocalizationManager
     
+    // 获取自定义字体
+    private func customFont(size: CGFloat) -> Font {
+        return FontManager.shared.customFont(size: size)
+    }
+    
     var body: some View {
         VStack(spacing: 15) {
             // 标题
             Text(localizationManager.localized(title))
-                .font(.system(size: 24, weight: .bold))
+                .font(customFont(size: 24))
                 .foregroundColor(.white)
                 .multilineTextAlignment(.center)
+                .textStroke()
             
             // 描述
             Text(localizationManager.localized(description))
-                .font(.system(size: 16, weight: .regular))
+                .font(customFont(size: 16))
                 .foregroundColor(.white.opacity(0.9))
                 .multilineTextAlignment(.center)
                 .lineSpacing(6)
+                .textStroke()
         }
         .padding(25)
         .background(

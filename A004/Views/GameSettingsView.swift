@@ -31,6 +31,7 @@ struct GameSettingsView: View {
                     .font(.title)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
+                    .textStroke()
                 
                 // 设置选项
                 VStack(spacing: 15) {
@@ -48,10 +49,12 @@ struct GameSettingsView: View {
                                     .font(.headline)
                                     .fontWeight(.bold)
                                     .foregroundColor(.white)
+                                    .textStroke()
 
                                 Text("\(localizationManager.getAvailableLanguages().first { $0.code == localizationManager.currentLanguage }?.name ?? "Unknown")")
                                     .font(.caption)
                                     .foregroundColor(.white.opacity(0.8))
+                                    .textStroke()
                             }
 
                             Spacer()
@@ -81,10 +84,12 @@ struct GameSettingsView: View {
                                     .font(.headline)
                                     .fontWeight(.bold)
                                     .foregroundColor(.white)
+                                    .textStroke()
 
                                 Text("\(localizationManager.localized("settings.current")): \(localizationManager.getDifficultyName(configManager.currentDifficulty))")
                                     .font(.caption)
                                     .foregroundColor(.white.opacity(0.8))
+                                    .textStroke()
                             }
 
                             Spacer()
@@ -114,10 +119,12 @@ struct GameSettingsView: View {
                                     .font(.headline)
                                     .fontWeight(.bold)
                                     .foregroundColor(.white)
+                                    .textStroke()
                                 
                                 Text(localizationManager.localized("settings.back_to_home"))
                                     .font(.caption)
                                     .foregroundColor(.white.opacity(0.8))
+                                    .textStroke()
                             }
                             
                             Spacer()
@@ -140,6 +147,7 @@ struct GameSettingsView: View {
                 }
                 .font(.headline)
                 .foregroundColor(.white)
+                .textStroke()
                 .padding(.horizontal, 30)
                 .padding(.vertical, 12)
                 .background(

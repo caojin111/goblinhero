@@ -12,6 +12,11 @@ struct StoryIntroView: View {
     @Binding var isPresented: Bool
     @State private var currentPage: Int = 0
     
+    // 获取自定义字体
+    private func customFont(size: CGFloat) -> Font {
+        return FontManager.shared.customFont(size: size)
+    }
+    
     // 故事页面数据
     let storyPages: [StoryPage] = [
         StoryPage(
@@ -53,8 +58,9 @@ struct StoryIntroView: View {
                         skipStory()
                     }) {
                         Text(localizationManager.localized("story.skip"))
-                            .font(.system(size: 16, weight: .medium))
+                            .font(customFont(size: 16))
                             .foregroundColor(.white.opacity(0.8))
+                            .textStroke()
                             .padding(.horizontal, 20)
                             .padding(.vertical, 10)
                             .background(
@@ -92,8 +98,9 @@ struct StoryIntroView: View {
                                 Image(systemName: "chevron.left")
                                 Text(localizationManager.localized("story.previous"))
                             }
-                            .font(.system(size: 16, weight: .medium))
+                            .font(customFont(size: 16))
                             .foregroundColor(.white)
+                            .textStroke()
                             .padding(.horizontal, 24)
                             .padding(.vertical, 12)
                             .background(
@@ -127,8 +134,9 @@ struct StoryIntroView: View {
                                 Image(systemName: "chevron.right")
                             }
                         }
-                        .font(.system(size: 16, weight: .bold))
+                        .font(customFont(size: 16))
                         .foregroundColor(.white)
+                        .textStroke()
                         .padding(.horizontal, 24)
                         .padding(.vertical, 12)
                         .background(
@@ -180,6 +188,11 @@ struct StoryPageView: View {
     let page: StoryPage
     @ObservedObject var localizationManager: LocalizationManager
     
+    // 获取自定义字体
+    private func customFont(size: CGFloat) -> Font {
+        return FontManager.shared.customFont(size: size)
+    }
+    
     var body: some View {
         VStack(spacing: 40) {
             Spacer()
@@ -189,18 +202,19 @@ struct StoryPageView: View {
             
             // 标题
             Text(localizationManager.localized(page.title))
-                .font(.system(size: 32, weight: .bold))
+                .font(customFont(size: 32))
                 .foregroundColor(.white)
                 .multilineTextAlignment(.center)
-                .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 2)
+                .textStroke()
                 .padding(.horizontal, 30)
             
             // 内容
             Text(localizationManager.localized(page.content))
-                .font(.system(size: 18, weight: .regular))
+                .font(customFont(size: 18))
                 .foregroundColor(.white.opacity(0.9))
                 .multilineTextAlignment(.center)
                 .lineSpacing(8)
+                .textStroke()
                 .padding(.horizontal, 40)
             
             Spacer()

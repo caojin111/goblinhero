@@ -22,6 +22,11 @@ struct GoblinSelectionView: View {
     
     let goblins = Goblin.allGoblins
     
+    // 获取自定义字体
+    private func customFont(size: CGFloat) -> Font {
+        return FontManager.shared.customFont(size: size)
+    }
+    
     var body: some View {
         ZStack {
             // 背景
@@ -39,14 +44,14 @@ struct GoblinSelectionView: View {
                 // 标题
                 VStack(spacing: 10) {
                     Text(localizationManager.localized("goblin.select_title"))
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
+                        .font(customFont(size: 34))
                         .foregroundColor(.white)
-                        .shadow(color: .black.opacity(0.3), radius: 5, x: 0, y: 2)
+                        .textStroke()
 
                     Text(localizationManager.localized("goblin.swipe_hint"))
-                        .font(.subheadline)
+                        .font(customFont(size: 14))
                         .foregroundColor(.white.opacity(0.8))
+                        .textStroke()
                 }
                 .padding(.top, 40)
                 
@@ -138,8 +143,8 @@ struct GoblinSelectionView: View {
                         Text(isUnlocked ?
                              "\(localizationManager.localized("goblin.select")) \(currentGoblin.name)" :
                              "\(localizationManager.localized("goblin.unlock")) \(currentGoblin.name) (\(currentGoblin.unlockPrice) \(currencyIcon))")
-                            .font(.title3)
-                            .fontWeight(.bold)
+                            .font(customFont(size: 20))
+                            .textStroke()
                     }
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
@@ -217,6 +222,11 @@ struct GoblinCardView: View {
     let currentCoins: Int
     let currentDiamonds: Int
     
+    // 获取自定义字体
+    private func customFont(size: CGFloat) -> Font {
+        return FontManager.shared.customFont(size: size)
+    }
+    
     var body: some View {
         VStack(spacing: 25) {
             // 哥布林图标
@@ -253,9 +263,9 @@ struct GoblinCardView: View {
             // 哥布林名称
             HStack(spacing: 10) {
                 Text(goblin.name)
-                    .font(.title)
-                    .fontWeight(.bold)
+                    .font(customFont(size: 28))
                     .foregroundColor(.white)
+                    .textStroke()
                 
                 if !isUnlocked {
                     Text("🔒")
@@ -266,9 +276,9 @@ struct GoblinCardView: View {
             // 免费/付费标签
             if goblin.isFree {
                 Text(localizationManager.localized("goblin.free"))
-                    .font(.caption)
-                    .fontWeight(.bold)
+                    .font(customFont(size: 12))
                     .foregroundColor(.white)
+                    .textStroke()
                     .padding(.horizontal, 16)
                     .padding(.vertical, 6)
                     .background(
@@ -283,8 +293,8 @@ struct GoblinCardView: View {
                 
                 HStack(spacing: 5) {
                     Text("\(goblin.unlockPrice)")
-                        .font(.caption)
-                        .fontWeight(.bold)
+                        .font(customFont(size: 12))
+                        .textStroke()
                     Text(currencyIcon)
                         .font(.caption)
                 }
@@ -301,21 +311,21 @@ struct GoblinCardView: View {
             VStack(spacing: 15) {
                 HStack {
                     Text("⭐ \(localizationManager.localized("goblin.special_ability"))")
-                        .font(.headline)
-                        .fontWeight(.bold)
+                        .font(customFont(size: 17))
                         .foregroundColor(.yellow)
+                        .textStroke()
                     Spacer()
                 }
                 
                 Text(goblin.buff)
-                    .font(.title3)
-                    .fontWeight(.medium)
+                    .font(customFont(size: 20))
                     .foregroundColor(.white)
                     .multilineTextAlignment(.leading)
                     .lineSpacing(6)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, 5)
+                    .textStroke()
             }
             .padding(20)
             .frame(maxWidth: .infinity, minHeight: 100)

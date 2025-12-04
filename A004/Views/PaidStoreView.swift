@@ -15,6 +15,11 @@ struct PaidStoreView: View {
     var initialTab: StoreTab = .goblins
     @State private var selectedTab: StoreTab = .goblins
     
+    // 获取自定义字体
+    private func customFont(size: CGFloat) -> Font {
+        return FontManager.shared.customFont(size: size)
+    }
+    
     init(viewModel: GameViewModel, isPresented: Binding<Bool>, initialTab: StoreTab = .goblins) {
         self.viewModel = viewModel
         self._isPresented = isPresented
@@ -70,9 +75,9 @@ struct PaidStoreView: View {
                             Text("💎")
                                 .font(.title2)
                             Text("\(viewModel.diamonds)")
-                                .font(.title2)
-                                .fontWeight(.bold)
+                                .font(customFont(size: 22))
                                 .foregroundColor(.white)
+                                .textStroke()
                         }
                         .padding(.horizontal, 20)
                         .padding(.vertical, 10)
@@ -100,8 +105,8 @@ struct PaidStoreView: View {
                                     Text(tab.icon)
                                         .font(.title2)
                                     Text(tab.displayName(using: localizationManager))
-                                        .font(.caption)
-                                        .fontWeight(.medium)
+                                        .font(customFont(size: 12))
+                                        .textStroke()
                                 }
                                 .foregroundColor(selectedTab == tab ? .white : .white.opacity(0.6))
                                 .frame(maxWidth: .infinity)
@@ -172,6 +177,11 @@ struct GoblinsStoreView: View {
     @State private var showUnlockAlert: Bool = false
     @State private var goblinToUnlock: Goblin?
     
+    // 获取自定义字体
+    private func customFont(size: CGFloat) -> Font {
+        return FontManager.shared.customFont(size: size)
+    }
+    
     // 获取需要解锁的哥布林（国王和巫师）
     var lockedGoblins: [Goblin] {
         Goblin.allGoblins.filter { goblin in
@@ -186,9 +196,10 @@ struct GoblinsStoreView: View {
                     Text("✅")
                         .font(.system(size: 60))
                     Text(localizationManager.localized("store.goblins.all_unlocked"))
-                        .font(.title3)
+                        .font(customFont(size: 20))
                         .foregroundColor(.white)
                         .multilineTextAlignment(.center)
+                        .textStroke()
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 60)
@@ -239,6 +250,11 @@ struct GoblinStoreCard: View {
     let onUnlock: () -> Void
     @ObservedObject var localizationManager = LocalizationManager.shared
     
+    // 获取自定义字体
+    private func customFont(size: CGFloat) -> Font {
+        return FontManager.shared.customFont(size: size)
+    }
+    
     var body: some View {
         VStack(spacing: 15) {
             // 哥布林图标
@@ -248,18 +264,20 @@ struct GoblinStoreCard: View {
             
             // 名称
             Text(goblin.name)
-                .font(.title2)
-                .fontWeight(.bold)
+                .font(customFont(size: 22))
                 .foregroundColor(.white)
+                .textStroke()
             
             // Buff描述
             VStack(alignment: .leading, spacing: 8) {
                 Text("⭐ \(localizationManager.localized("goblin.special_ability"))")
-                    .font(.headline)
+                    .font(customFont(size: 17))
                     .foregroundColor(.yellow)
+                    .textStroke()
                 Text(goblin.buff)
-                    .font(.body)
+                    .font(customFont(size: 16))
                     .foregroundColor(.white.opacity(0.9))
+                    .textStroke()
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding()
@@ -274,8 +292,8 @@ struct GoblinStoreCard: View {
                     Text("💎")
                         .font(.title3)
                     Text("\(localizationManager.localized("goblin.unlock")) - \(goblin.unlockPrice) 💎")
-                        .font(.headline)
-                        .fontWeight(.bold)
+                        .font(customFont(size: 17))
+                        .textStroke()
                 }
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
@@ -312,6 +330,11 @@ struct StaminaStoreView: View {
     @State private var showPurchaseAlert: Bool = false
     @State private var selectedStaminaPack: StaminaPack?
     
+    // 获取自定义字体
+    private func customFont(size: CGFloat) -> Font {
+        return FontManager.shared.customFont(size: size)
+    }
+    
     struct StaminaPack {
         let stamina: Int
         let diamonds: Int
@@ -331,12 +354,13 @@ struct StaminaStoreView: View {
                     .font(.title)
                 VStack(alignment: .leading, spacing: 4) {
                     Text("\(viewModel.stamina)/\(viewModel.maxStamina)")
-                        .font(.title2)
-                        .fontWeight(.bold)
+                        .font(customFont(size: 22))
                         .foregroundColor(.white)
+                        .textStroke()
                     Text(localizationManager.localized("store.stamina.current"))
-                        .font(.caption)
+                        .font(customFont(size: 12))
                         .foregroundColor(.white.opacity(0.7))
+                        .textStroke()
                 }
                 Spacer()
             }
@@ -390,6 +414,11 @@ struct StaminaPackCard: View {
     let onPurchase: () -> Void
     @ObservedObject var localizationManager = LocalizationManager.shared
     
+    // 获取自定义字体
+    private func customFont(size: CGFloat) -> Font {
+        return FontManager.shared.customFont(size: size)
+    }
+    
     var body: some View {
         HStack(spacing: 20) {
             // 体力图标和数量
@@ -397,9 +426,9 @@ struct StaminaPackCard: View {
                 Text("⚡")
                     .font(.system(size: 50))
                 Text("\(pack.stamina)")
-                    .font(.title2)
-                    .fontWeight(.bold)
+                    .font(customFont(size: 22))
                     .foregroundColor(.white)
+                    .textStroke()
             }
             
             Spacer()
@@ -410,17 +439,17 @@ struct StaminaPackCard: View {
                     Text("💎")
                         .font(.title3)
                     Text("\(pack.diamonds)")
-                        .font(.title3)
-                        .fontWeight(.bold)
+                        .font(customFont(size: 20))
                         .foregroundColor(.white)
+                        .textStroke()
                 }
                 
                 // 购买按钮
                 Button(action: onPurchase) {
                     Text(localizationManager.localized("store.stamina.buy"))
-                        .font(.subheadline)
-                        .fontWeight(.bold)
+                        .font(customFont(size: 14))
                         .foregroundColor(.white)
+                        .textStroke()
                         .padding(.horizontal, 20)
                         .padding(.vertical, 8)
                         .background(
@@ -456,6 +485,11 @@ struct DiamondsStoreView: View {
     @State private var showPurchaseAlert: Bool = false
     @State private var selectedProduct: DiamondProduct?
     
+    // 获取自定义字体
+    private func customFont(size: CGFloat) -> Font {
+        return FontManager.shared.customFont(size: size)
+    }
+    
     struct DiamondProduct: Identifiable {
         let id: String
         let type: ProductType
@@ -485,12 +519,13 @@ struct DiamondsStoreView: View {
                         .font(.title)
                     VStack(alignment: .leading, spacing: 4) {
                         Text("\(viewModel.diamonds)")
-                            .font(.title2)
-                            .fontWeight(.bold)
+                            .font(customFont(size: 22))
                             .foregroundColor(.white)
+                            .textStroke()
                         Text(localizationManager.localized("store.diamonds.current"))
-                            .font(.caption)
+                            .font(customFont(size: 12))
                             .foregroundColor(.white.opacity(0.7))
+                            .textStroke()
                     }
                     Spacer()
                 }
@@ -584,6 +619,11 @@ struct DiamondProductCard: View {
     let onPurchase: () -> Void
     @ObservedObject var localizationManager = LocalizationManager.shared
     
+    // 获取自定义字体
+    private func customFont(size: CGFloat) -> Font {
+        return FontManager.shared.customFont(size: size)
+    }
+    
     var body: some View {
         HStack(spacing: 20) {
             // 左侧：钻石图标和数量
@@ -591,9 +631,9 @@ struct DiamondProductCard: View {
                 Text("💎")
                     .font(.system(size: 50))
                 Text("\(product.diamonds)")
-                    .font(.title2)
-                    .fontWeight(.bold)
+                    .font(customFont(size: 22))
                     .foregroundColor(.white)
+                    .textStroke()
             }
             
             Spacer()
@@ -606,9 +646,9 @@ struct DiamondProductCard: View {
                         Text("🆓")
                             .font(.title3)
                         Text(localizationManager.localized("store.diamonds.free"))
-                            .font(.headline)
-                            .fontWeight(.bold)
+                            .font(customFont(size: 17))
                             .foregroundColor(.green)
+                            .textStroke()
                     }
                     
                     // 领取按钮
@@ -616,9 +656,9 @@ struct DiamondProductCard: View {
                         Text(canClaimFreeDaily() ? 
                              localizationManager.localized("store.diamonds.claim") : 
                              localizationManager.localized("store.diamonds.claimed"))
-                            .font(.subheadline)
-                            .fontWeight(.bold)
+                            .font(customFont(size: 14))
                             .foregroundColor(.white)
+                            .textStroke()
                             .padding(.horizontal, 24)
                             .padding(.vertical, 10)
                             .background(
@@ -640,17 +680,17 @@ struct DiamondProductCard: View {
                             .font(.title3)
                             .foregroundColor(.white.opacity(0.8))
                         Text(String(format: "%.2f", product.priceUSD))
-                            .font(.title3)
-                            .fontWeight(.bold)
+                            .font(customFont(size: 20))
                             .foregroundColor(.white)
+                            .textStroke()
                     }
                     
                     // 购买按钮
                     Button(action: onPurchase) {
                         Text(localizationManager.localized("store.diamonds.buy"))
-                            .font(.subheadline)
-                            .fontWeight(.bold)
+                            .font(customFont(size: 14))
                             .foregroundColor(.white)
+                            .textStroke()
                             .padding(.horizontal, 24)
                             .padding(.vertical, 10)
                             .background(
