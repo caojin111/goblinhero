@@ -31,16 +31,14 @@
       ],
       "baseValue": 2,
       "weight": 1000,
-      "effect": "全局永久buff：勾玉和硬币的baseValue+20（只针对当前局游戏）",
-      "effectType": "global_buff",
+      "effect": "挖起时消除1个勾玉或硬币，额外获得30金币",
+      "effectType": "eliminate_trading_symbol_bonus",
       "effectParams": {
-        "buffType": "trading_buff",
         "targetSymbols": [
           "勾玉",
           "硬币"
         ],
-        "baseValueBonus": 20,
-        "isPersistent": true
+        "bonus": 30
       },
       "descriptionKey": "merchant"
     },
@@ -94,7 +92,7 @@
       "id": 5,
       "nameKey": "soldier",
       "icon": "💂",
-      "rarity": "epic",
+      "rarity": "rare",
       "types": [
         "human",
         "classic tale"
@@ -212,7 +210,7 @@
       "id": 11,
       "nameKey": "paladin",
       "icon": "⚔️",
-      "rarity": "rare",
+      "rarity": "epic",
       "types": [
         "human",
         "live or dead"
@@ -486,11 +484,10 @@
       ],
       "baseValue": 2,
       "weight": 1000,
-      "effect": "生成一个除'水元素'之外的随机元素到符号池。如果符号池拥有全部五种元素（水、火、雷、冰、土），则每回合开始时获得500金币（回合开始时触发）",
+      "effect": "生成一个除'水元素'之外的随机元素到符号池",
       "effectType": "spawn_random_element",
       "effectParams": {
-        "excludeSelf": true,
-        "elementBonus": 500
+        "excludeSelf": true
       },
       "descriptionKey": "water_element"
     },
@@ -505,11 +502,10 @@
       ],
       "baseValue": 2,
       "weight": 1000,
-      "effect": "生成一个除'火元素'之外的随机元素到符号池。如果符号池拥有全部五种元素（水、火、雷、冰、土），则每回合开始时获得500金币（回合开始时触发）",
+      "effect": "生成一个除'火元素'之外的随机元素到符号池",
       "effectType": "spawn_random_element",
       "effectParams": {
-        "excludeSelf": true,
-        "elementBonus": 500
+        "excludeSelf": true
       },
       "descriptionKey": "fire_element"
     },
@@ -524,11 +520,10 @@
       ],
       "baseValue": 2,
       "weight": 1000,
-      "effect": "生成一个除'雷元素'之外的随机元素到符号池。如果符号池拥有全部五种元素（水、火、雷、冰、土），则每回合开始时获得500金币（回合开始时触发）",
+      "effect": "生成一个除'雷元素'之外的随机元素到符号池",
       "effectType": "spawn_random_element",
       "effectParams": {
-        "excludeSelf": true,
-        "elementBonus": 500
+        "excludeSelf": true
       },
       "descriptionKey": "thunder_element"
     },
@@ -543,11 +538,10 @@
       ],
       "baseValue": 2,
       "weight": 1000,
-      "effect": "生成一个除'冰元素'之外的随机元素到符号池。如果符号池拥有全部五种元素（水、火、雷、冰、土），则每回合开始时获得500金币（回合开始时触发）",
+      "effect": "生成一个除'冰元素'之外的随机元素到符号池",
       "effectType": "spawn_random_element",
       "effectParams": {
-        "excludeSelf": true,
-        "elementBonus": 500
+        "excludeSelf": true
       },
       "descriptionKey": "ice_element"
     },
@@ -562,11 +556,10 @@
       ],
       "baseValue": 2,
       "weight": 1000,
-      "effect": "生成一个除'土元素'之外的随机元素到符号池。如果符号池拥有全部五种元素（水、火、雷、冰、土），则每回合开始时获得500金币（回合开始时触发）",
+      "effect": "生成一个除'土元素'之外的随机元素到符号池",
       "effectType": "spawn_random_element",
       "effectParams": {
-        "excludeSelf": true,
-        "elementBonus": 500
+        "excludeSelf": true
       },
       "descriptionKey": "earth_element"
     },
@@ -663,12 +656,9 @@
       ],
       "baseValue": 2,
       "weight": 1000,
-      "effect": "如果本次挖出中有'士兵'，额外获得5金币",
-      "effectType": "conditional_bonus",
-      "effectParams": {
-        "triggerSymbol": "士兵",
-        "bonus": 5
-      },
+      "effect": "消灭符号池随机一个怪物，获得 50 金币",
+      "effectType": "none",
+      "effectParams": {},
       "descriptionKey": "dragon_fire_gun"
     },
     {
@@ -1303,12 +1293,10 @@
       ],
       "baseValue": 3,
       "weight": 800,
-      "effect": "感染符号池里一个type1或type2包含'human'的符号变成'丧尸'。符号池里每有一个'丧尸'，金币+5",
-      "effectType": "infect_and_bonus",
+      "effect": "挖起时消灭一个随机人类",
+      "effectType": "eliminate_random_human",
       "effectParams": {
-        "infectType": "human",
-        "countType": "丧尸",
-        "bonusPerCount": 5
+        "targetType": "human"
       },
       "descriptionKey": "zombie"
     },
@@ -1323,11 +1311,11 @@
       ],
       "baseValue": 6,
       "weight": 800,
-      "effect": "第一次被挖出6金币，第二次5金币，一直递减到0（每回合重置计数器）",
+      "effect": "第一次被挖出30金币，第二次20金币，一直递减到0（每回合重置）",
       "effectType": "diminishing_value",
       "effectParams": {
-        "initialValue": 6,
-        "decrement": 1,
+        "initialValue": 30,
+        "decrement": 10,
         "minValue": 0
       },
       "descriptionKey": "one_eyed_monster"
@@ -1431,7 +1419,7 @@
       ],
       "baseValue": 3,
       "weight": 800,
-      "effect": "随机转化符号池的一个符号为type1='material'的符号（保持原名称和icon，只改变types）",
+      "effect": "随机转化符号池的一个符号为type1='material'的符号（变成完全是另一个符号）",
       "effectType": "convert_symbol_type",
       "effectParams": {
         "targetType": "material"
@@ -1493,6 +1481,25 @@
         "maxCount": 5
       },
       "descriptionKey": "magic_bag"
+    },
+    {
+      "id": 78,
+      "nameKey": "artwork",
+      "icon": "symbol_78.png",
+      "rarity": "epic",
+      "types": [
+        "material",
+        "tool"
+      ],
+      "baseValue": 50,
+      "weight": 0,
+      "effect": "生成5个商人",
+      "effectType": "spawn_multiple",
+      "effectParams": {
+        "symbol": "merchant",
+        "count": 5
+      },
+      "descriptionKey": "artwork"
     }
   ],
   "config": {

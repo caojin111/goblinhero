@@ -132,12 +132,14 @@ class GameConfigManager: ObservableObject {
     func getRentAmount(for round: Int) -> Int {
         let settings = getCurrentRentSettings()
         
-        if round < settings.customSequence.count {
-            return settings.customSequence[round]
+        // round 从1开始，数组索引从0开始，所以需要 round - 1
+        let index = round - 1
+        if index >= 0 && index < settings.customSequence.count {
+            return settings.customSequence[index]
         } else {
             // 超出预设序列后，按倍率递增
             let lastRent = settings.customSequence.last ?? settings.initialRent
-            let roundsBeyond = round - settings.customSequence.count + 1
+            let roundsBeyond = round - settings.customSequence.count
             return Int(Double(lastRent) * pow(settings.incrementMultiplier, Double(roundsBeyond)))
         }
     }

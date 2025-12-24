@@ -16,6 +16,7 @@ struct StoreTabIdentifier: Identifiable {
 struct HomeView: View {
     @ObservedObject var viewModel: GameViewModel
     @ObservedObject var localizationManager = LocalizationManager.shared
+    @ObservedObject var audioManager = AudioManager.shared
     @State private var showGoblinSelection = false
     @State private var storeTabIdentifier: StoreTabIdentifier? = nil
     @State private var showDailySignIn = false
@@ -51,15 +52,16 @@ struct HomeView: View {
                 let scaleX = geometry.size.width / figmaWidth
                 let scaleY = geometry.size.height / figmaHeight
                 
+                // 打印字体大小用于调试
+                let _ = print("🔤 [首页字体] scaleX: \(scaleX), settings/shop/sign-in 字体大小: \(53 * scaleX)")
+                
                 ZStack {
                     // 顶部左侧：哥布林信息区域
-                    // Main_menu 1 背景（Figma: x: 37, y: 76, 485.01 x 251.44）
+                    // Main_menu 1 背景（Figma: x: 37, y: 76, 485.01 x 251.44）- 已移除，用透明占位保持布局
                     ZStack(alignment: .topLeading) {
-                        Image("Main_menu 1")
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
+                        // 透明占位，保持原有布局结构
+                        Color.clear
                             .frame(width: 485.01 * scaleX, height: 251.44 * scaleY)
-                            .clipped()
                         
                         // avatarBG（Figma: x: 37, y: 72, 191 x 191）
                         Image("avatarBG")
@@ -76,17 +78,24 @@ struct HomeView: View {
                             .offset(x: 18 * scaleX, y: 14 * scaleY)
                         
                         // "[Goblin]" 文字（Figma: x: 237, y: 112）
-                        Text("[Goblin]")
-                            .font(customFont(size: 57 * scaleX))
+                        Text(localizationManager.localized("home.goblin"))
+                            .font(customFont(size: 62 * scaleX)) // 从 57 增加到 62（+5）
                             .foregroundColor(.white)
                             .textStroke()
                             .offset(x: (237 - 37) * scaleX, y: (112 - 76) * scaleY)
                         
-                        // "best level: 10" 文字（Figma: x: 242, y: 191）
-                        Text("best level:\n\(viewModel.bestRound)")
-                            .font(customFont(size: 42 * scaleX))
+                        // "best level: 10-1" 文字（Figma: x: 242, y: 191）
+                        VStack(alignment: .leading, spacing: 0) {
+                            Text(localizationManager.localized("home.best_level"))
+                            .font(customFont(size: 47 * scaleX)) // 从 42 增加到 47（+5）
                             .foregroundColor(.white)
                             .textStroke()
+                            
+                            Text(viewModel.bestRound > 0 ? "\(viewModel.bestRound)-\(viewModel.bestSpinInRound)" : "0")
+                                .font(customFont(size: 47 * scaleX))
+                                .foregroundColor(.white)
+                                .textStroke()
+                        }
                             .offset(x: (242 - 37) * scaleX, y: (191 - 76) * scaleY)
                     }
                     .frame(width: 485.01 * scaleX, height: 251.44 * scaleY)
@@ -142,6 +151,8 @@ struct HomeView: View {
                     
                     // Start 按钮（Figma: x: 344, y: 1802, 503 x 263）
                     Button(action: {
+                        // 播放 start 按钮音效
+                        audioManager.playSoundEffect("start", fileExtension: "wav")
                         if viewModel.stamina < 30 {
                             storeTabIdentifier = StoreTabIdentifier(tab: .stamina)
                         } else {
@@ -155,32 +166,38 @@ struct HomeView: View {
                                 .frame(width: min(503 * scaleX, geometry.size.width * 0.85), height: 263 * scaleY)
                                 .clipped()
                             
-                            Text("Start")
-                                .font(customFont(size: 78 * scaleX))
+                            Text(localizationManager.localized("home.start"))
+                                .font(customFont(size: 95 * scaleX)) // 从83增加到88（+5）
                                 .foregroundColor(.white)
                                 .textStroke()
+                                .offset(y: -20 * scaleY) // 文本向上移动20像素
                         }
                     }
+                    .buttonStyle(ScaleButtonStyle())
                     .frame(width: min(503 * scaleX, geometry.size.width * 0.85), height: 263 * scaleY)
                     .position(
                         x: geometry.size.width / 2,
-                        y: (1802 + 263/2) * scaleY - 13
+                        y: (1802 + 263/2) * scaleY - 43 // 从-13向上移动10像素到-23
                     )
                     
                     // 底部区域：蒙版背景 + 按钮 + 文本标签
                     ZStack {
-                        // 底部蒙版背景（Figma: x: 0, y: 2314, 1202 x 308，向上移动 20 像素）
-                        Rectangle()
-                            .fill(Color(red: 0.672, green: 0.609, blue: 0.388, opacity: 0.38))
+                        // 底部菜单背景图（Figma: x: 0, y: 2314, 1202 x 308，向上移动 50 像素）
+                        Image("menu")
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
                             .frame(width: figmaWidth * scaleX, height: 308 * scaleY)
+                            .ignoresSafeArea(.container, edges: .bottom) // 确保不被安全区域裁剪顶部
                             .position(
                                 x: geometry.size.width / 2,
-                                y: geometry.size.height - (figmaHeight - 2314 - 308/2) * scaleY - 40
+                                y: geometry.size.height - (figmaHeight - 2314 - 308/2) * scaleY - 50
                             )
+                            .clipped() // 将 clipped 移到 position 之后，避免裁剪顶部
                         
                         // settings 按钮图标（Figma: x: 194, y: 2363, 142 x 142）
                         // 注意：使用 settings 图片集（包含 gear 2.png）
                         Button(action: {
+                            audioManager.playSoundEffect("click", fileExtension: "wav")
                             showSettings = true
                         }) {
                             Image("settings")
@@ -188,6 +205,7 @@ struct HomeView: View {
                                 .aspectRatio(contentMode: .fit)
                                 .frame(width: 142 * scaleX, height: 142 * scaleY)
                         }
+                        .buttonStyle(ScaleButtonStyle())
                         .position(
                             x: (194 + 142/2) * scaleX,
                             y: geometry.size.height - (figmaHeight - 2363 - 142/2) * scaleY - 55
@@ -196,6 +214,7 @@ struct HomeView: View {
                         // shop 按钮图标（Figma: x: 529, y: 2363, 142 x 142）
                         // 注意：使用 shop 图片集（包含 fc16 2.png）
                         Button(action: {
+                            audioManager.playSoundEffect("click", fileExtension: "wav")
                             storeTabIdentifier = StoreTabIdentifier(tab: .goblins)
                         }) {
                             Image("shop")
@@ -203,6 +222,7 @@ struct HomeView: View {
                                 .aspectRatio(contentMode: .fit)
                                 .frame(width: 142 * scaleX, height: 142 * scaleY)
                         }
+                        .buttonStyle(ScaleButtonStyle())
                         .position(
                             x: (529 + 142/2) * scaleX,
                             y: geometry.size.height - (figmaHeight - 2363 - 142/2) * scaleY - 55
@@ -211,6 +231,7 @@ struct HomeView: View {
                         // gift 按钮图标（Figma: x: 883, y: 2363, 142 x 142）
                         // 注意：使用 gift 图片集（包含 gift_01d 1.png）
                         Button(action: {
+                            audioManager.playSoundEffect("click", fileExtension: "wav")
                             showDailySignIn = true
                         }) {
                             Image("gift")
@@ -218,17 +239,18 @@ struct HomeView: View {
                                 .aspectRatio(contentMode: .fit)
                                 .frame(width: 142 * scaleX, height: 142 * scaleY)
                         }
+                        .buttonStyle(ScaleButtonStyle())
                         .position(
                             x: (883 + 142/2) * scaleX,
                             y: geometry.size.height - (figmaHeight - 2363 - 142/2) * scaleY - 55
                         )
                         
                         // "settings" 文本标签（Figma: x: 163, y: 2522, 210 x 69）
-                        Text("settings")
-                            .font(customFont(size: 48 * scaleX))
+                        Text(localizationManager.localized("home.settings"))
+                            .font(customFont(size: 66 * scaleX)) // 从 61 增加到 66（+5）
                             .foregroundColor(.white)
                             .textStroke()
-                            .frame(width: 210 * scaleX, height: 69 * scaleY)
+                            .lineLimit(1)
                             .multilineTextAlignment(.center)
                             .position(
                                 x: (163 + 210/2) * scaleX,
@@ -236,11 +258,11 @@ struct HomeView: View {
                             )
                         
                         // "shop" 文本标签（Figma: x: 549, y: 2522, 113 x 74）
-                        Text("shop")
-                            .font(customFont(size: 48 * scaleX))
+                        Text(localizationManager.localized("home.shop"))
+                            .font(customFont(size: 66 * scaleX)) // 从 61 增加到 66（+5）
                             .foregroundColor(.white)
                             .textStroke()
-                            .frame(width: 113 * scaleX, height: 74 * scaleY)
+                            .lineLimit(1)
                             .multilineTextAlignment(.center)
                             .position(
                                 x: (549 + 113/2) * scaleX,
@@ -248,31 +270,52 @@ struct HomeView: View {
                             )
                         
                         // "sign-in" 文本标签（Figma: x: 869, y: 2525, 176 x 69）
-                        Text("sign-in")
-                            .font(customFont(size: 48 * scaleX))
+                        Text(localizationManager.localized("home.sign_in"))
+                            .font(customFont(size: 66 * scaleX)) // 从 61 增加到 66（+5）
                             .foregroundColor(.white)
                             .textStroke()
-                            .frame(width: 176 * scaleX, height: 69 * scaleY)
+                            .lineLimit(1)
                             .multilineTextAlignment(.center)
                             .position(
                                 x: (869 + 176/2) * scaleX,
                                 y: geometry.size.height - (figmaHeight - 2525 - 69/2) * scaleY - 55
                             )
                     }
+                    
+                    // 哥布林待机动画（放在 ZStack 最后，确保层级最高）
+                    // 位置待根据 Figma 调整，暂时放在房子前方
+                    GoblinIdleAnimationView()
+                        .frame(width: 200 * scaleX * 5 / 3, height: 200 * scaleY * 5 / 3) // 缩小3倍（原来是5倍，现在除以3）
+                        .position(
+                            x: geometry.size.width / 2 - 80 * scaleX, // 向左移动 30 像素
+                            y: (609 + 1121/2) * scaleY - 100 * scaleY + 300 * scaleY // 向下移动 50 像素
+                        )
+                        .zIndex(1000) // 确保层级最高
                 }
             }
         }
         .ignoresSafeArea(.all)
-        // 哥布林选择弹窗
-        .sheet(isPresented: $showGoblinSelection) {
-            GoblinSelectionView(
-                selectedGoblin: $viewModel.selectedGoblin,
-                isPresented: $showGoblinSelection,
-                unlockedGoblinIds: $viewModel.unlockedGoblinIds,
-                currentCoins: $viewModel.currentCoins,
-                viewModel: viewModel
-            )
+        // 哥布林选择弹窗（窗口式）
+        .overlay {
+            if showGoblinSelection {
+                GoblinSelectionView(
+                    selectedGoblin: $viewModel.selectedGoblin,
+                    isPresented: $showGoblinSelection,
+                    unlockedGoblinIds: $viewModel.unlockedGoblinIds,
+                    currentCoins: $viewModel.currentCoins,
+                    viewModel: viewModel,
+                    onNavigateToStore: {
+                        // 跳转到商店-哥布林分页
+                        print("🏪 [首页] 收到跳转到商店-哥布林分页的回调")
+                        storeTabIdentifier = StoreTabIdentifier(tab: .goblins)
+                        print("🏪 [首页] storeTabIdentifier已设置: \(storeTabIdentifier?.tab.rawValue ?? "nil")")
+                    }
+                )
+                .transition(.scale.combined(with: .opacity))
+                .zIndex(1000)
+            }
         }
+        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: showGoblinSelection)
         .onChange(of: viewModel.selectedGoblin) { goblin in
             if goblin != nil {
                 viewModel.onGoblinSelected()
@@ -288,6 +331,7 @@ struct HomeView: View {
                 ),
                 initialTab: identifier.tab
             )
+            .presentationCornerRadius(10) // 设置顶部圆角，可根据需要调整数值
         }
         // 七日签到弹窗
         .sheet(isPresented: $showDailySignIn) {
@@ -311,9 +355,39 @@ struct HomeView: View {
             }
         }
         .onAppear {
+            print("🏠 [HomeView] 视图出现，准备播放首页背景音乐")
+            // 播放首页背景音乐
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                audioManager.playBackgroundMusic(fileName: "homepage", fileExtension: "mp3")
+            }
             if shouldShowTutorial {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     showTutorial = true
+                }
+            }
+        }
+        .onDisappear {
+            print("🏠 [HomeView] 视图消失，停止首页背景音乐")
+            // 停止首页背景音乐
+            audioManager.stopMusic()
+        }
+        .onChange(of: viewModel.goblinSelectionCompleted) { completed in
+            // 当退出游戏返回首页时，播放首页背景音乐
+            if !completed {
+                print("🏠 [HomeView] 游戏退出（onChange），播放首页背景音乐")
+                // 延迟播放首页背景音乐，确保视图切换完成
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    print("🏠 [HomeView] 开始播放首页背景音乐")
+                    audioManager.playBackgroundMusic(fileName: "homepage", fileExtension: "mp3")
+                }
+            }
+        }
+        .onChange(of: showSettings) { isShowing in
+            // 当设置弹窗关闭时，如果已返回首页，确保播放背景音乐
+            if !isShowing && !viewModel.goblinSelectionCompleted {
+                print("🏠 [HomeView] 设置弹窗关闭，确保播放首页背景音乐")
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                    audioManager.playBackgroundMusic(fileName: "homepage", fileExtension: "mp3")
                 }
             }
         }
@@ -326,45 +400,89 @@ struct HomeView: View {
         let scaleX = screenWidth / figmaWidth
         let scaleY = screenHeight / figmaHeight
         
+        // Start按钮位置（Figma: x: 344, y: 1802, width: 503, height: 263）
+        // 实际位置：x: screenWidth / 2, y: (1802 + 263/2) * scaleY - 43
+        let startButtonWidth = min(503 * scaleX, screenWidth * 0.85)
+        let startButtonHeight = 263 * scaleY
+        let startButtonCenterX = screenWidth / 2
+        let startButtonCenterY = (1802 + 263/2) * scaleY - 43
+        
+        // Shop按钮位置（Figma: x: 529, y: 2363, width: 142, height: 142）
+        // 实际位置：x: (529 + 142/2) * scaleX, y: screenHeight - (figmaHeight - 2363 - 142/2) * scaleY - 55
+        let shopButtonWidth = 142 * scaleX
+        let shopButtonHeight = 142 * scaleY
+        let shopButtonCenterX = (529 + 142/2) * scaleX
+        let shopButtonCenterY = screenHeight - (figmaHeight - 2363 - 142/2) * scaleY - 55
+        
+        // Sign-in按钮位置（7日签到，Figma: x: 883, y: 2363, width: 142, height: 142）
+        // 实际位置：x: (883 + 142/2) * scaleX, y: screenHeight - (figmaHeight - 2363 - 142/2) * scaleY - 55
+        let signInButtonWidth = 142 * scaleX
+        let signInButtonHeight = 142 * scaleY
+        let signInButtonCenterX = (883 + 142/2) * scaleX
+        let signInButtonCenterY = screenHeight - (figmaHeight - 2363 - 142/2) * scaleY - 55
+        
+        // 统一的圆角半径
+        let cornerRadius: CGFloat = 25
+        
+        // 打印调试信息
+        print("📚 [新手引导] Start按钮: center(\(startButtonCenterX), \(startButtonCenterY)), size(\(startButtonWidth), \(startButtonHeight))")
+        print("📚 [新手引导] Shop按钮: center(\(shopButtonCenterX), \(shopButtonCenterY)), size(\(shopButtonWidth), \(shopButtonHeight))")
+        print("📚 [新手引导] Sign-in按钮: center(\(signInButtonCenterX), \(signInButtonCenterY)), size(\(signInButtonWidth), \(signInButtonHeight))")
+        
+        // 创建高亮区域（使用中心点和尺寸）
+        // 第一步：向下移动 50 + 100 = 150 像素
+        let startHighlightFrame = CGRect(
+            x: startButtonCenterX - startButtonWidth / 2,
+            y: startButtonCenterY - startButtonHeight / 2 + 150 * scaleY, // 向下移动 150 像素（50 + 100）
+            width: startButtonWidth,
+            height: startButtonHeight
+        )
+        // 第二步：扩大两倍，向下移动 150 + 100 = 250 像素
+        let shopHighlightFrame = CGRect(
+            x: shopButtonCenterX - shopButtonWidth, // 扩大两倍：宽度从 shopButtonWidth/2 改为 shopButtonWidth
+            y: shopButtonCenterY - shopButtonHeight + 250 * scaleY, // 扩大两倍：高度从 shopButtonHeight/2 改为 shopButtonHeight，向下移动 250 像素（150 + 100）
+            width: shopButtonWidth * 2, // 扩大两倍
+            height: shopButtonHeight * 2 // 扩大两倍
+        )
+        // 第三步：扩大两倍，向下移动 150 + 100 = 250 像素
+        let signInHighlightFrame = CGRect(
+            x: signInButtonCenterX - signInButtonWidth, // 扩大两倍：宽度从 signInButtonWidth/2 改为 signInButtonWidth
+            y: signInButtonCenterY - signInButtonHeight + 250 * scaleY, // 扩大两倍：高度从 signInButtonHeight/2 改为 signInButtonHeight，向下移动 250 像素（150 + 100）
+            width: signInButtonWidth * 2, // 扩大两倍
+            height: signInButtonHeight * 2 // 扩大两倍
+        )
+        
+        print("📚 [新手引导] Start高亮区域: \(startHighlightFrame)")
+        print("📚 [新手引导] Shop高亮区域: \(shopHighlightFrame)")
+        print("📚 [新手引导] Sign-in高亮区域: \(signInHighlightFrame)")
+        
         return [
+            // 第一步：聚焦Start按钮
             TutorialStep(
                 title: "tutorial.step1.title",
                 description: "tutorial.step1.description",
-                highlightFrame: CGRect(
-                    x: (344 + 503/2 - 150) * scaleX,
-                    y: (1802 + 263/2 - 30) * scaleY,
-                    width: 300 * scaleX,
-                    height: 60 * scaleY
-                ),
-                highlightCornerRadius: 25,
+                highlightFrame: startHighlightFrame,
+                highlightCornerRadius: cornerRadius,
                 arrowPosition: CGPoint(x: 0, y: -80 * scaleY),
                 arrowDirection: .down,
                 arrowOffset: 0
             ),
+            // 第二步：聚焦Shop按钮
             TutorialStep(
                 title: "tutorial.step2.title",
                 description: "tutorial.step2.description",
-                highlightFrame: CGRect(
-                    x: screenWidth - 300 * scaleX,
-                    y: 90 * scaleY,
-                    width: 300 * scaleX,
-                    height: 127 * scaleY
-                ),
-                highlightCornerRadius: 15,
-                arrowPosition: CGPoint(x: -100 * scaleX, y: 0),
-                arrowDirection: .right,
+                highlightFrame: shopHighlightFrame,
+                highlightCornerRadius: cornerRadius,
+                arrowPosition: CGPoint(x: 0, y: 50 * scaleY),
+                arrowDirection: .up,
                 arrowOffset: 0
             ),
+            // 第三步：聚焦7日签到按钮
             TutorialStep(
                 title: "tutorial.step3.title",
                 description: "tutorial.step3.description",
-                highlightFrame: CGRect(
-                    x: screenWidth / 2 - 50 * scaleX,
-                    y: screenHeight - 150 * scaleY,
-                    width: 100 * scaleX,
-                    height: 60 * scaleY
-                ),
-                highlightCornerRadius: 12,
+                highlightFrame: signInHighlightFrame,
+                highlightCornerRadius: cornerRadius,
                 arrowPosition: CGPoint(x: 0, y: 50 * scaleY),
                 arrowDirection: .up,
                 arrowOffset: 0
@@ -380,6 +498,7 @@ struct StaminaBarView: View {
     let onShowStore: () -> Void
     @State private var timeRemaining: Int = 0
     @State private var timer: Timer?
+    @ObservedObject var localizationManager = LocalizationManager.shared
     
     // 获取自定义字体
     private func customFont(size: CGFloat) -> Font {
@@ -413,11 +532,12 @@ struct StaminaBarView: View {
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 40 * scaleX, height: 40 * scaleY)
                 }
+                .buttonStyle(ScaleButtonStyle())
                 .offset(x: (644 - 591) * scaleX, y: (151 - 90) * scaleY)
                 
                 // 体力数值（Figma: x: 677, y: 124）- 横向排列，不换行
                 Text("\(viewModel.stamina)/\(viewModel.maxStamina)")
-                    .font(customFont(size: 50 * scaleX))
+                    .font(customFont(size: (localizationManager.currentLanguage == "zh" ? 42 : 50) * scaleX)) // 中文时减小8号（3+5）
                     .foregroundColor(.white)
                     .textStroke()
                     .lineLimit(1)
@@ -509,6 +629,7 @@ struct DiamondBarView: View {
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 40 * scaleX, height: 40 * scaleY)
                 }
+                .buttonStyle(ScaleButtonStyle())
                 .offset(x: (939 - 894) * scaleX, y: (155 - 89) * scaleY)
                 
                 // 钻石数值（Figma: x: 980, y: 122）- 横向排列，不换行

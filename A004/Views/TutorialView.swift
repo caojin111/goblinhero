@@ -42,90 +42,32 @@ struct TutorialView: View {
                     // 点击遮罩区域不关闭教程，阻止事件穿透
                 }
             
-            // 提示内容区域
-            VStack {
-                Spacer()
-                
+            // 提示内容区域（固定在聚焦区域上方，三个步骤统一位置）
+            GeometryReader { geometry in
                 if !steps.isEmpty && currentStep < steps.count {
                     let step = steps[currentStep]
                     
-                    // 箭头（如果指定了位置）
-                    if let arrowPosition = step.arrowPosition {
-                        TutorialArrowView(
-                            position: arrowPosition,
-                            direction: step.arrowDirection
-                        )
-                        .offset(y: step.arrowOffset)
-                    }
+                    // 计算文字介绍框的位置（固定在聚焦区域上方150像素）
+                    let tipCardY = step.highlightFrame.minY - 150
                     
-                    // 提示卡片
+                    VStack(spacing: 0) {
+                        // 头像图片（固定在文本框正上方0像素处）
+                        Image("tutorial_avatar")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 120, height: 120) // 扩大1.5倍（80 * 1.5 = 120）
+                            .padding(.bottom, 0) // 文本框上方0像素
+                        
+                        // 提示卡片（固定在聚焦区域上方）
                     TutorialTipCard(
                         title: step.title,
                         description: step.description,
                         localizationManager: localizationManager
                     )
                     .padding(.horizontal, 30)
-                    .padding(.bottom, 100)
-                }
-            }
-            
-            // 顶部 Skip 按钮
-            VStack {
-                HStack {
-                    Spacer()
-                    Button(action: {
-                        skipTutorial()
-                    }) {
-                        Text(localizationManager.localized("tutorial.skip"))
-                            .font(customFont(size: 16))
-                            .foregroundColor(.white.opacity(0.8))
-                            .textStroke()
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 10)
-                            .background(
-                                RoundedRectangle(cornerRadius: 20)
-                                    .fill(Color.black.opacity(0.5))
-                            )
-                    }
-                    .padding(.top, 20)
-                    .padding(.trailing, 20)
-                }
-                Spacer()
-            }
-            
-            // 底部按钮区域
-            VStack {
-                Spacer()
-                HStack(spacing: 20) {
-                    // 上一步按钮（第一步不显示）
-                    if currentStep > 0 {
-                        Button(action: {
-                            withAnimation {
-                                currentStep -= 1
-                            }
-                        }) {
-                            HStack(spacing: 8) {
-                                Image(systemName: "chevron.left")
-                                Text(localizationManager.localized("tutorial.previous"))
-                            }
-                            .font(customFont(size: 16))
-                            .foregroundColor(.white)
-                            .textStroke()
-                            .padding(.horizontal, 24)
-                            .padding(.vertical, 12)
-                            .background(
-                                RoundedRectangle(cornerRadius: 25)
-                                    .fill(Color.white.opacity(0.2))
-                            )
-                        }
-                    } else {
-                        Spacer()
-                            .frame(width: 100)
-                    }
+                        .frame(maxWidth: .infinity)
                     
-                    Spacer()
-                    
-                    // 下一步/完成按钮
+                        // 下一步/完成按钮（固定在文字介绍框下方20像素）
                     Button(action: {
                         if !steps.isEmpty && currentStep < steps.count - 1 {
                             withAnimation {
@@ -159,9 +101,38 @@ struct TutorialView: View {
                         .cornerRadius(25)
                         .shadow(color: .black.opacity(0.3), radius: 5, x: 0, y: 3)
                     }
+                        .padding(.top, 20) // 文字介绍框下方20像素
+                    }
+                    .frame(width: geometry.size.width)
+                    .position(
+                        x: geometry.size.width / 2,
+                        y: tipCardY // 使用计算出的位置
+                    )
                 }
-                .padding(.horizontal, 30)
-                .padding(.bottom, 40)
+            }
+            
+            // 顶部 Skip 按钮
+            VStack {
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        skipTutorial()
+                    }) {
+                        Text(localizationManager.localized("tutorial.skip"))
+                            .font(customFont(size: 16))
+                            .foregroundColor(.white.opacity(0.8))
+                            .textStroke()
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 10)
+                            .background(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .fill(Color.black.opacity(0.5))
+                            )
+                    }
+                    .padding(.top, 20)
+                    .padding(.trailing, 20)
+                }
+                Spacer()
             }
         }
     }
@@ -220,12 +191,12 @@ struct TutorialHighlightView: View {
                 RoundedRectangle(cornerRadius: highlightCornerRadius)
                     .fill(Color.white)
                     .frame(
-                        width: max(0, min(highlightFrame.width, geometry.size.width)),
-                        height: max(0, min(highlightFrame.height, geometry.size.height))
+                        width: highlightFrame.width,
+                        height: highlightFrame.height
                     )
                     .position(
-                        x: max(highlightFrame.width/2, min(highlightFrame.midX, geometry.size.width - highlightFrame.width/2)),
-                        y: max(highlightFrame.height/2, min(highlightFrame.midY, geometry.size.height - highlightFrame.height/2))
+                        x: highlightFrame.midX,
+                        y: highlightFrame.midY
                     )
                     .blendMode(.destinationOut)
             }

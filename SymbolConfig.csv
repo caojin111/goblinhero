@@ -1,0 +1,79 @@
+id,nameKey,icon,rarity,types,baseValue,bondID,weight,effect,effectType,effectParams,descriptionKey
+1,child,symbol_01.png,normal,human;childish,2,,1000,如果已拥有符号池里每有一个除'儿童'之外的#childish，则额外获得金币+2,count_bonus,"{""countType"": ""childish"", ""bonusPerCount"": 2, ""excludeSelf"": true}",child
+2,merchant,symbol_02.png,normal,human;trading,2,1,1000,挖起时消除1个勾玉或硬币，额外获得30金币,eliminate_trading_symbol_bonus,"{""targetSymbols"": [""勾玉"", ""硬币""], ""bonus"": 30}",merchant
+3,barbarian,symbol_03.png,rare,human;worship,3,,800,符号池里每拥有一个#alien，金币-1，每拥有一个#monster，金币+1,mixed_count_bonus,"{""bonuses"": [{""countType"": ""alien"", ""bonusPerCount"": -1}, {""countType"": ""monster"", ""bonusPerCount"": 1}]}",barbarian
+4,farmer,symbol_04.png,rare,human;classic tale,3,,800,每拥有一个type含#tool 的符号，金币+2,count_bonus,"{""countType"": ""tool"", ""bonusPerCount"": 2}",farmer
+5,soldier,symbol_05.png,rare,human;classic tale,5,,300,如果'圣骑士'即将被其他符号消除，自动消除自身取消一次对'圣骑士'符号的消除,protect_symbol,{"protectSymbol": "圣骑士"},soldier
+6,village_chief,symbol_06.png,normal,human;worship,2,,1000,符号池里每有一个#human，金币+1,count_bonus,"{""countType"": ""human"", ""bonusPerCount"": 1}",village_chief
+7,forest_fairy,symbol_07.png,rare,elf;forest,3,,800,消除符号池里所有'暗月妖精'，获得100金币,eliminate_multiple,"{""targetSymbols"": [""暗月妖精""], ""bonus"": 100}",forest_fairy
+8,dark_moon_fairy,symbol_08.png,rare,elf;forest,3,,800,消除符号池里所有'星光妖精'，获得100金币,eliminate_multiple,"{""targetSymbols"": [""星光妖精""], ""bonus"": 100}",dark_moon_fairy
+9,starlight_fairy,symbol_09.png,rare,elf;forest,3,,800,消除符号池里所有'森林妖精'，获得100金币,eliminate_multiple,"{""targetSymbols"": [""森林妖精""], ""bonus"": 100}",starlight_fairy
+10,healer,symbol_10.png,normal,human;live or dead,2,,1000,抵消符号池里一个type1或type2包含'monster'的符号的每回合扣金币负面效果,cure_negative_effect,{"targetType": "monster"},healer
+11,paladin,symbol_11.png,epic,human;live or dead,3,,800,如果和type含 #monster的符号一起被挖起，消除一个type 含#monster 类型的符号，获得50金币,eliminate_bonus,"{""eliminateType"": ""monster"", ""bonus"": 50}",paladin
+12,nun,symbol_12.png,normal,human;vampire note,2,6,1000,如果本次挖出中有type1或type2包含'monster'的符号，且该怪物没有被其他效果消除，额外获得5金币,conditional_bonus,"{""condition"": ""monster_not_eliminated"", ""bonus"": 5}",nun
+13,ancient_tree_elder,symbol_13.png,rare,monster;forest,3,,800,生成一个'土元素'到符号池,spawn_specific,{"symbol": "土元素"},ancient_tree_elder
+14,thief,symbol_14.png,normal,human;classic tale,2,,1000,如果本次挖出中有'商人'，自身baseValue翻倍,conditional_multiplier,"{""triggerSymbol"": ""商人"", ""multiplier"": 2}",thief
+15,princess,symbol_15.png,rare,human;classic tale,3,,800,本次挖出中所有type1或type2包含'human'的符号的baseValue翻倍,group_multiplier,"{""targetType"": ""human"", ""multiplier"": 2}",princess
+16,vampire,symbol_16.png,epic,monster;vampire note,5,2;7,300,如果存在于符号池，每回合开始时减少50金币（回合开始时触发）,round_start_penalty,{"penalty": 50},vampire
+17,hunter,symbol_17.png,normal,human;vampire note,2,,1000,如果本次挖出中有'吸血鬼'，从符号池消除'吸血鬼'和自身，获得100金币,eliminate_pair_bonus,"{""targetSymbol"": ""吸血鬼"", ""bonus"": 100}",hunter
+18,female_ninja,symbol_18.png,normal,human;ninja,2,,1000,不会出现在矿洞里（weight=0）。如果符号池里同时存在'男忍者'，则清除符号池里所有'丧尸',round_start_eliminate,"{""requireSymbol"": ""男忍者"", ""targetSymbols"": [""丧尸""]}",female_ninja
+19,male_ninja,symbol_19.png,normal,human;ninja,2,,1000,不会出现在矿洞里（weight=0）。如果符号池里同时存在'女忍者'，则在每回合开始时清除符号池里所有'丧尸'（回合开始时触发）,round_start_eliminate,"{""requireSymbol"": ""女忍者"", ""targetSymbols"": [""丧尸""]}",male_ninja
+20,god_of_strength,symbol_20.png,rare,god;worship,3,,800,下次金币收益+300。被挖出后从符号池移除（消除自身）,next_round_bonus,"{""bonus"": 300, ""eliminateSelf"": true}",god_of_strength
+21,god_of_speed,symbol_21.png,rare,god;worship,3,,800,本次其他被挖出的符号数量翻倍（骰子点数翻倍）。被挖出后从符号池移除（消除自身）,double_dig_count,{"eliminateSelf": true},god_of_speed
+22,god_of_harvest,symbol_22.png,epic,god;worship,5,,300,下次金币收益结算2次（收益翻倍）。被挖出后从符号池移除（消除自身）,double_next_reward,{"eliminateSelf": true},god_of_harvest
+23,god_of_luck,symbol_23.png,epic,god;worship,5,,300,下一次挖矿多一个骰子可用（临时+1骰子）。被挖出后从符号池移除（消除自身）,temp_dice_bonus,"{""diceBonus"": 1, ""eliminateSelf"": true}",god_of_luck
+24,death,symbol_24.png,epic,god;live or dead,5,3,300,接下来5个回合每回合开始时获得1000金币，5个回合后游戏强制结束（回合开始时触发）,round_start_buff,"{""rounds"": 5, ""bonusPerRound"": 1000, ""gameOverAfter"": true}",death
+25,water_element,symbol_25.png,normal,element;made a wish,2,5,1000,生成一个除'水元素'之外的随机元素到符号池,spawn_random_element,{"excludeSelf": true},water_element
+26,fire_element,symbol_26.png,normal,element;made a wish,2,5,1000,生成一个除'火元素'之外的随机元素到符号池,spawn_random_element,{"excludeSelf": true},fire_element
+27,thunder_element,symbol_27.png,normal,element;made a wish,2,5,1000,生成一个除'雷元素'之外的随机元素到符号池,spawn_random_element,{"excludeSelf": true},thunder_element
+28,ice_element,symbol_28.png,normal,element;made a wish,2,5,1000,生成一个除'冰元素'之外的随机元素到符号池,spawn_random_element,{"excludeSelf": true},ice_element
+29,earth_element,symbol_29.png,normal,element;made a wish,2,5,1000,生成一个除'土元素'之外的随机元素到符号池,spawn_random_element,{"excludeSelf": true},earth_element
+30,rock,symbol_30.png,normal,material;forest,2,,1000,如果符号池里有type1或type2包含'tool'的符号，从符号池移除自身，获得20金币,conditional_self_eliminate,"{""conditionType"": ""has_tool"", ""bonus"": 20}",rock
+31,cross,symbol_31.png,normal,tool;vampire note,2,6,1000,如果在符号池内，'猎人'的权重翻倍（全局永久buff，只针对当前局游戏）,global_buff,"{""buffType"": ""weight_multiplier"", ""targetSymbol"": ""猎人"", ""multiplier"": 2, ""isPersistent"": true}",cross
+32,book_of_the_dead,symbol_32.png,rare,tool;live or dead,3,,800,从符号池移除自身，生成一个'死神'到符号池,spawn_specific,"{""symbol"": ""死神"", ""eliminateSelf"": true}",book_of_the_dead
+33,hypnosis_pendulum,symbol_33.png,rare,equipment;fantacy,3,,800,从符号池移除自身，随机生成'公主'或'女忍者'或'修女'中的一个到符号池,spawn_random_from_list,"{""symbols"": [""公主"", ""女忍者"", ""修女""], ""eliminateSelf"": true}",hypnosis_pendulum
+34,dragon_fire_gun,symbol_34.png,normal,equipment;tool,2,,1000,如果本次挖出中有'士兵'，额外获得5金币,conditional_bonus,"{""triggerSymbol"": ""士兵"", ""bonus"": 5}",dragon_fire_gun
+35,rune_armor,symbol_35.png,normal,equipment;classic tale,2,,1000,如果本次挖出中有'圣骑士'，额外获得10金币,conditional_bonus,"{""triggerSymbol"": ""圣骑士"", ""bonus"": 10}",rune_armor
+36,dawn_messenger_staff,symbol_36.png,normal,equipment;tool,2,,1000,如果本次挖出中有'公主'，额外获得20金币,conditional_bonus,"{""triggerSymbol"": ""公主"", ""bonus"": 20}",dawn_messenger_staff
+37,holy_bottle,symbol_37.png,normal,tool;first aid,2,,1000,如果本次挖出中有'修女'，从符号池移除自身，生成一个'水元素'到符号池,conditional_spawn,"{""triggerSymbol"": ""修女"", ""spawnSymbol"": ""水元素"", ""eliminateSelf"": true}",holy_bottle
+38,contract_scroll,symbol_38.png,normal,tool;fantacy,2,,1000,从符号池移除自身，随机生成'森林妖精'或'暗月妖精'或'星光妖精'中的一个到符号池,spawn_random_from_list,"{""symbols"": [""森林妖精"", ""暗月妖精"", ""星光妖精""], ""eliminateSelf"": true}",contract_scroll
+39,shuriken,symbol_39.png,normal,equipment;tool,2,,1000,如果符号池里有'女忍者'或'男忍者'，额外获得10金币,conditional_bonus,"{""condition"": ""has_ninja"", ""bonus"": 10}",shuriken
+40,diary,symbol_40.png,rare,material;cozy life,2,,1000,如果本次挖出中有'吸血鬼'，从符号池移除自身，生成一个'吸血鬼'到符号池,conditional_spawn,"{""triggerSymbol"": ""吸血鬼"", ""spawnSymbol"": ""吸血鬼"", ""eliminateSelf"": true}",diary
+41,ring,symbol_41.png,normal,equipment;cozy life,2,,1000,如果本次挖出中有'手机'，生成一个'雷元素'到符号池,conditional_spawn,"{""triggerSymbol"": ""手机"", ""spawnSymbol"": ""雷元素""}",ring
+42,mobile_phone,symbol_42.png,normal,material;cozy life,2,,1000,如果本次挖出中有'戒指'，生成一个'雷元素'到符号池,conditional_spawn,"{""triggerSymbol"": ""戒指"", ""spawnSymbol"": ""雷元素""}",mobile_phone
+43,glasses,symbol_43.png,normal,material;cozy life,2,,1000,如果本次挖出中有'领结'，生成一个'火元素'到符号池,conditional_spawn,"{""triggerSymbol"": ""领结"", ""spawnSymbol"": ""火元素""}",glasses
+44,tie,symbol_44.png,normal,material;cozy life,2,2,1000,如果本次挖出中有'眼镜'，生成一个'火元素'到符号池,conditional_spawn,"{""triggerSymbol"": ""眼镜"", ""spawnSymbol"": ""火元素""}",tie
+45,magatama,symbol_45.png,rare,material;trading,5,,800,无效果（基础金币值受商人buff影响）,none,{},magatama
+46,battery,symbol_46.png,normal,material;first aid,2,,1000,从符号池移除自身，生成一个'宇宙飞船'到符号池,spawn_specific,"{""symbol"": ""宇宙飞船"", ""eliminateSelf"": true}",battery
+47,medical_kit,symbol_47.png,normal,material;first aid,2,,1000,如果本次挖出中有'治疗师'，生成一个'风元素'到符号池（注：如果风元素不存在，可生成其他元素或忽略）,conditional_spawn,"{""triggerSymbol"": ""治疗师"", ""spawnSymbol"": ""风元素"", ""allowFallback"": true}",medical_kit
+48,coin,symbol_48.png,normal,material;trading,3,,1000,无效果（基础金币值受商人buff影响）,none,{},coin
+49,pillow,symbol_49.png,normal,material;cozy life,2,,1000,如果本次挖出中有'儿童'，从符号池移除自身，获得20金币,conditional_bonus_eliminate,"{""triggerSymbol"": ""儿童"", ""bonus"": 20}",pillow
+50,eye_mask,symbol_50.png,normal,material;cozy life,2,,1000,如果本次挖出中有'儿童'，从符号池移除自身，获得10金币,conditional_bonus_eliminate,"{""triggerSymbol"": ""儿童"", ""bonus"": 10}",eye_mask
+51,talisman_paper,symbol_51.png,normal,material;vampire note,2,,1000,如果本次挖出中有'狼人'，从符号池消除'狼人'和自身，获得100金币,eliminate_pair_bonus,"{""targetSymbol"": ""狼人"", ""bonus"": 100}",talisman_paper
+52,pumpkin_head,symbol_52.png,normal,tool;trading,2,,1000,无效果,none,{},pumpkin_head
+53,snowflake,symbol_53.png,normal,material;trading,2,,1000,符号池里每有一个'农民'，额外获得5金币,count_bonus,"{""countType"": ""human"", ""bonusPerCount"": 5, ""nameFilter"": ""农民""}",snowflake
+54,firecracker,symbol_54.png,normal,material;trading,2,,1000,符号池里每有一个'农民'，额外获得10金币,count_bonus,"{""countType"": ""human"", ""bonusPerCount"": 10, ""nameFilter"": ""农民""}",firecracker
+55,lantern,symbol_55.png,normal,tool;trading,1,,1000,无效果,none,{},lantern
+56,toy_duck,symbol_56.png,normal,tool;trading,2,,1000,无效果,none,{},toy_duck
+57,wine_bottle,symbol_57.png,normal,material;cozy life,2,,1000,如果本次挖出中有'野蛮人'，额外获得20金币,conditional_bonus,"{""triggerSymbol"": ""野蛮人"", ""bonus"": 20}",wine_bottle
+58,briefcase,symbol_58.png,rare,material;cozy life,3,,800,如果本次挖出中有'商人'，从符号池移除自身，获得20金币,conditional_bonus_eliminate,"{""triggerSymbol"": ""商人"", ""bonus"": 20}",briefcase
+59,hoe,symbol_59.png,rare,material;tool,3,4,800,50%概率生成'花精'到符号池，50%概率生成'丧尸'到符号池,random_spawn,"{""options"": [{""symbol"": ""花精"", ""probability"": 0.5}, {""symbol"": ""丧尸"", ""probability"": 0.5}]}",hoe
+60,horn,symbol_60.png,epic,material;tool,5,,300,生成5个'士兵'到符号池,spawn_multiple,"{""symbol"": ""士兵"", ""count"": 5}",horn
+61,iron_box,symbol_61.png,normal,box;box,2,,1000,无效果,none,{},iron_box
+62,silver_box,symbol_62.png,rare,box;box,3,,800,无效果,none,{},silver_box
+63,iron_key,symbol_63.png,normal,box;tool,2,,1000,从符号池消除一个'铁箱子'，获得10金币,unlock_bonus,"{""unlockSymbol"": ""铁箱子"", ""bonus"": 10}",iron_key
+64,silver_key,symbol_64.png,rare,box;tool,3,,800,从符号池消除一个'银箱子'，获得20金币,unlock_bonus,"{""unlockSymbol"": ""银箱子"", ""bonus"": 20}",silver_key
+65,master_key,symbol_65.png,epic,box;tool,5,,300,从符号池消除一个较高等级的箱子（优先银箱子），获得箱子baseValue×2的金币,universal_unlock,"{""unlockTypes"": [""box""], ""bonusMultiplier"": 2}",master_key
+66,flower_fairy,symbol_66.png,normal,monster;forest,2,,1000,无效果（每回合开始时检查：符号池里每存在3个'花精'，自动合成1个'森林妖精'，移除3个'花精'）,none,{},flower_fairy
+67,werewolf,symbol_67.png,normal,monster;vampire note,2,4;7,1000,如果存在于符号池，每回合开始时减少20金币（回合开始时触发）,round_start_penalty,{"penalty": 20},werewolf
+68,zombie,symbol_68.png,rare,monster;vampire note,3,7;9,800,挖起时消灭一个随机人类,eliminate_random_human,{"targetType": "human"},zombie
+69,one_eyed_monster,symbol_69.png,rare,monster;classic tale,6,,800,第一次被挖出6金币，第二次5金币，一直递减到0（每回合重置计数器）,diminishing_value,"{""initialValue"": 6, ""decrement"": 1, ""minValue"": 0}",one_eyed_monster
+70,gomorrah,symbol_70.png,epic,monster;classic tale,5,7,300,从符号池随机消除一个除自身以外的符号，获得30金币,random_eliminate_bonus,"{""excludeSelf"": true, ""bonus"": 30}",gomorrah
+71,ray_gun,symbol_71.png,normal,alien;tool,2,8,1000,如果本次挖出中同时有'外星头盔'和'宇宙飞船'，获得40金币（三种物品只计算一次）,combo_bonus,"{""comboSymbols"": [""外星头盔"", ""宇宙飞船""], ""bonus"": 40, ""onceOnly"": true}",ray_gun
+72,alien_helmet,symbol_72.png,normal,alien;classic tale,2,8,1000,如果本次挖出中同时有'光线枪'和'宇宙飞船'，获得40金币（三种物品只计算一次）,combo_bonus,"{""comboSymbols"": [""光线枪"", ""宇宙飞船""], ""bonus"": 40, ""onceOnly"": true}",alien_helmet
+73,spaceship,symbol_73.png,rare,alien;classic tale,3,8,800,如果本次挖出中同时有'外星头盔'和'光线枪'，获得40金币（三种物品只计算一次）,combo_bonus,"{""comboSymbols"": [""外星头盔"", ""光线枪""], ""bonus"": 40, ""onceOnly"": true}",spaceship
+74,mind_controller,symbol_74.png,rare,alien;tool,3,8,800,随机转化符号池的一个符号为type1='material'的符号（变成完全是另一个符号）,convert_symbol_type,{"targetType": "material"},mind_controller
+75,meteorite,symbol_75.png,epic,alien;classic tale,5,,300,如果符号池里有'哥莫拉'，从符号池消除'哥莫拉'，获得30金币,conditional_target_eliminate,"{""targetSymbol"": ""哥莫拉"", ""bonus"": 30}",meteorite
+76,dice,symbol_76.png,epic,dice;tool,5,,300,永久增加1个骰子（骰子数量+1）。被挖出后从符号池移除（消除自身）,dice_bonus,{"diceBonus": 1},dice
+77,magic_bag,symbol_77.png,epic,material;classic tale,5,,0,随机生成3~5个随机符号到符号池,spawn_random_multiple,"{""minCount"": 3, ""maxCount"": 5}",magic_bag
+78,artwork,symbol_78.png,epic,material;tool,50,,0,生成5个商人,spawn_multiple,"{""symbol"": ""merchant"", ""count"": 5}",artwork

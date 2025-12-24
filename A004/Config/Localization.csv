@@ -1,0 +1,427 @@
+key,en,zh
+app.name,Goblin Hero,Goblin Hero
+app.subtitle,Mine Cave Adventure,矿洞探险游戏
+home.personal_records,🏆 Personal Records,🏆 个人记录
+home.best_round,Best Round,最佳进度
+home.total_coins,Total Coins,历史最多金币
+home.start_game,Start Game,开始游戏
+home.stamina_insufficient,Insufficient Stamina,体力不足
+stores.paid_store,Paid Store,付费商城
+stores.diamond_store,Diamond Store,钻石商城
+stores.daily_sign_in,Daily Sign In,七日签到
+store.tabs.goblins,Goblins,哥布林
+store.tabs.stamina,Stamina,体力
+store.tabs.diamonds,Diamonds,钻石
+store.goblins.all_unlocked,All goblins are unlocked!,所有哥布林已解锁！
+store.goblins.unlock_title,Unlock Goblin,解锁哥布林
+store.goblins.unlock_message,Spend {price} 💎 to unlock {name}?,是否花费 {price} 💎 解锁 {name}？
+store.goblins.insufficient_diamonds,"Insufficient diamonds! Need {price} 💎, currently have {current} 💎.",钻石不足！需要 {price} 💎，当前只有 {current} 💎。
+store.stamina.current,Current Stamina,当前体力
+store.stamina.purchase_title,Purchase Stamina,购买体力
+store.stamina.purchase_message,Spend {diamonds} 💎 to purchase {stamina} stamina?,是否花费 {diamonds} 💎 购买 {stamina} 体力？
+store.stamina.insufficient_diamonds,"Insufficient diamonds! Need {diamonds} 💎, currently have {current} 💎.",钻石不足！需要 {diamonds} 💎，当前只有 {current} 💎。
+store.stamina.buy,Buy,购买
+store.diamonds.current,Current Diamonds,当前钻石
+store.diamonds.coming_soon,Coming Soon,功能开发中
+store.diamonds.description,Diamond purchase feature will be available soon!,钻石购买功能即将上线！
+store.diamonds.free,FREE,免费
+store.diamonds.claim,Claim,领取
+store.diamonds.claimed,Claimed Today,今日已领取
+store.diamonds.buy,Buy,购买
+store.diamonds.purchase,Purchase,购买
+store.diamonds.purchase_title,Purchase Diamonds,购买钻石
+store.diamonds.purchase_message,Purchase {diamonds} 💎 for ${price}?,是否花费 ${price} 购买 {diamonds} 💎？
+store.diamonds.free_daily_message,Claim {diamonds} 💎 for free today?,是否领取今日免费 {diamonds} 💎？
+settings.title,⚙️ Settings,⚙️ 设置
+settings.difficulty_settings,Difficulty Settings,难度设置
+settings.current,Current,当前
+settings.language,Language,语言
+settings.exit_game,Exit Game,退出游戏
+settings.back_to_home,Back to Home,返回首页
+settings.close,Close,关闭
+settings.music,Music,音乐
+settings.music_description,Enable background music,开启背景音乐
+settings.sound_effects,Sound Effects,音效
+settings.sound_effects_description,Enable game sound effects,开启游戏音效
+settings.privacy_policy,Privacy Policy,隐私政策
+settings.privacy_policy_description,View our privacy policy,查看我们的隐私政策
+settings.privacy_policy_content,"Privacy Policy
+
+Last Updated: [Date]
+
+1. Information We Collect
+We collect information you provide directly to us, such as when you create an account, make a purchase, or contact us for support.
+
+2. How We Use Your Information
+We use the information we collect to provide, maintain, and improve our services, process transactions, and communicate with you.
+
+3. Information Sharing
+We do not sell, trade, or otherwise transfer your personal information to third parties without your consent.
+
+4. Data Security
+We implement appropriate security measures to protect your personal information.
+
+5. Your Rights
+You have the right to access, update, or delete your personal information at any time.
+
+6. Contact Us
+If you have any questions about this Privacy Policy, please contact us at support@example.com.","隐私政策
+
+最后更新：[日期]
+
+1. 我们收集的信息
+我们收集您直接提供给我们的信息，例如当您创建账户、进行购买或联系我们寻求支持时。
+
+2. 我们如何使用您的信息
+我们使用收集的信息来提供、维护和改进我们的服务，处理交易，并与您沟通。
+
+3. 信息共享
+未经您同意，我们不会向第三方出售、交易或以其他方式转让您的个人信息。
+
+4. 数据安全
+我们实施适当的安全措施来保护您的个人信息。
+
+5. 您的权利
+您有权随时访问、更新或删除您的个人信息。
+
+6. 联系我们
+如果您对此隐私政策有任何疑问，请通过 support@example.com 联系我们。"
+settings.contact_us,Contact Us,联系我们
+settings.contact_us_description,Get in touch with us,与我们取得联系
+settings.contact_us_content,"We'd love to hear from you!
+
+If you have any questions, feedback, or need support, please reach out to us via email.","我们很乐意听到您的声音！
+
+如果您有任何问题、反馈或需要支持，请通过电子邮件与我们联系。"
+difficulty.select_title,🎮 Select Difficulty,🎮 选择难度
+difficulty.select_hint,Choose a challenge difficulty that suits you,选择适合你的挑战难度
+difficulty.initial_rent,Initial Rent,初始房租
+difficulty.increase,Increase,递增
+difficulty.easy,Easy,简单
+difficulty.normal,Normal,普通
+difficulty.hard,Hard,困难
+difficulty.extreme,Extreme,极限
+rarity.common,Common,普通
+rarity.rare,Rare,稀有
+rarity.epic,Epic,史诗
+rarity.legendary,Legendary,传说
+symbol_type.fruit,Fruit,水果
+symbol_type.coin,Coin,金币
+symbol_type.animal,Animal,动物
+symbol_type.special,Special,特殊
+symbol_type.gem,Gem,宝石
+symbol_type.magic,Magic,魔法
+game.start,Start,开始
+game.spin,Spin,旋转
+game.round,Round,回合
+game.remaining,Remaining,剩余
+game.times,Times,次
+game.coins,Coins,金币
+game.stamina,Stamina,体力
+game.rent,🏠 Rent,🏠 房租
+game.ore,🪨 Ore,🪨 矿石
+game.empty,Empty,空
+game.roll_dice,Roll Dice,掷骰子
+game.roll_single_dice,Roll Dice (1-6),掷骰子 (1-6)
+game.roll_multiple_dice,Roll {count} Dice,掷{count}个骰子
+game.my_symbol_pool,My Symbol Pool ({count}),我的符号池 ({count})
+game.active_bonds,Active Bonds,激活羁绊
+game.select_first_symbol,🎯 Select Your First Symbol,🎯 选择你的第一个符号
+game.select_symbol,🎯 Select a Symbol,🎯 选择一个符号
+game.first_round_hint,Select symbol to start your first round,选择符号开始你的第一回合
+game.symbol_hint,Select symbol to increase its appearance probability,选择符号将增加它在老虎机中出现的概率
+game.symbol_value,💰 {value} Coins,💰 {value} 金币
+game.debug_panel,🔍 Debug Panel,🔍 调试面板
+game.settlement_logs,Settlement Logs,结算日志
+game.board_status,Board Status,棋盘状态
+game.no_logs,"No settlement logs yet
+Logs will appear after rolling dice","暂无结算日志
+掷骰子后会显示结算过程"
+game.hide,Hide,隐藏
+game.show,Show,透视
+game.copy,Copy,复制
+game.difficulty.easy,Easy,简单
+game.difficulty.normal,Normal,普通
+game.difficulty.hard,Hard,困难
+game.difficulty.extreme,Extreme,极限
+goblin.select_title,🎭 Select Your Goblin,🎭 选择你的哥布林
+goblin.swipe_hint,Swipe left/right to view different goblins,左右滑动查看不同哥布林
+goblin.select,Select,选择
+goblin.unlock,Unlock,解锁
+goblin.unlock_price,Unlock Price,解锁价格
+goblin.free,Free,免费
+goblin.price_suffix,Coins,金币
+goblin.special_ability,Special Ability,特殊能力
+goblin.unlock_confirm,Spend,是否花费
+goblin.insufficient_coins,Insufficient coins,金币不足
+goblin.need,Need,需要
+goblin.current,Current,当前只有
+goblin.unlock_goblin,Unlock Goblin,解锁哥布林
+goblin.confirm_unlock,Confirm Unlock,确认解锁
+game_over.title,😢 Game Over,😢 游戏结束
+game_over.survival_rounds,Survival Rounds,存活回合
+game_over.final_coins,Final Coins,最终金币
+game_over.total_coins,Total Coins,累计金币
+game_over.play_again,Play Again!,再来一次！
+confirmations.exit_game,Exit Game,退出游戏
+confirmations.exit_message,Are you sure you want to exit the current game and return to the home screen?,确定要退出当前游戏并返回首页吗？
+confirmations.cancel,Cancel,取消
+confirmations.confirm,Confirm,确定
+confirmations.confirm_exit,Confirm Exit,确定退出
+confirmations.back_to_home,Back to Home,返回首页
+status.coming_soon,Coming Soon...,功能开发中...
+status.recovering,Recovering...,恢复中...
+earnings.coins,Coins,金币
+earnings.round_start,Round Start,回合开始
+earnings.next_round_bonus,Next Round Bonus,下回合奖励
+launch.loading,Loading...,正在加载...
+story.skip,Skip,跳过
+story.next,Next,下一步
+story.previous,Previous,上一步
+story.start,Start,开始游戏
+story.page1.title,Welcome to the Goblin World,欢迎来到哥布林世界
+story.page1.content,"Long ago, the various civilized forces in the world had been entangled in conflicts for hundreds of years, never ceasing.",在很久以前，世界上各方文明势力已经缠斗数百年，从未停止
+story.page2.title,Mine and Collect,挖掘与收集
+story.page2.content,"But one day, an alien civilization invaded this world. They ruthlessly wiped out the civilizations that had existed for thousands of years, leaving nothing behind.",可有一天，外星文明入侵了这个世界。它们所到之处，寸草不生。把存在数千年的文明无情地摧毁的一干二净。
+story.page3.title,Survive and Thrive,生存与繁荣
+story.page3.content,All races were also turned into symbols by alien rays and buried deep underground.,各个种族还被外星射线变成了符号，被深埋在了地底
+story.page4.title,Bonds and Synergies,羁绊与协同
+story.page4.content,"After the war, the goblins living in the caves escaped the disaster. By the time they realized what had happened, they were the only remaining race in the world.",战争结束后，居住在洞穴里的哥布林逃过了一劫。等到他们发觉时，世界上只剩下了哥布林这一个族群
+story.page5.title,Begin Your Journey,开始你的旅程
+story.page5.content,All hope rests on the goblins. They have decided to dig up all the symbols from underground to save the living beings and gain more gold coins to rebuild civilization.,所有的希望都寄托在了哥布林身上，哥布林们决定要把所有符号都从地底挖出，拯救生灵。以及获取更多金币重建文明。
+tutorial.skip,Skip,跳过
+tutorial.next,Next,下一步
+tutorial.previous,Previous,上一步
+tutorial.complete,Got it!,知道了！
+tutorial.step1.title,Start Game,开始游戏
+tutorial.step1.description,"Click here to take control of the goblins for digging expeditions—unearth more symbols, form more bonds, and earn more gold coins!",点击这里开始控制哥布林进行挖掘探险，挖出更多符号，组成更多羁绊，赚取更多金币！
+tutorial.step2.title,Explore the Shop,逛逛商店
+tutorial.step2.description,Click here to browse the diverse array of goods. You can get plenty of useful items for your digging endeavors!,点击这里可以探索琳琅满目的商店。你可以在这里获取很多对挖掘有用的东西！
+tutorial.step3.title,7-Day sign-in,七日签到
+tutorial.step3.description,Click here to log in and check in daily. A huge number of rewards will be given to you for free!,点击这里可以进行每日登录签到。会有大量奖励免费赠送给你！
+sign_in.title,7-Day Sign In,七日签到
+sign_in.subtitle,Sign in daily to claim amazing rewards!,每日签到领取丰厚奖励！
+sign_in.day,Day,第
+sign_in.button.sign_in,Sign In,立即签到
+sign_in.button.signed,Already Signed In,今日已签到
+sign_in.hint.can_sign,Tap to claim today's reward,点击领取今日奖励
+sign_in.hint.signed,Come back tomorrow for more rewards!,明天再来领取更多奖励！
+sign_in.status.claimed,Claimed,已领取
+sign_in.status.today,Today,今日
+sign_in.reward_type.diamonds,Diamonds,钻石
+sign_in.reward_type.coins,Coins,金币
+sign_in.reward_type.stamina,Stamina,体力
+sign_in.reward_detail,Reward Details,奖励详情
+goblins.warrior_goblin.name,Warrior Goblin,勇者哥布林
+goblins.warrior_goblin.buff,+1 coin for each symbol eliminated,每有一个符号被消除，则+1金币
+goblins.warrior_goblin.description,A brave warrior who earns extra coins for each symbol eliminated,勇猛的战士，每次消除符号都能额外获得金币奖励
+goblins.craftsman_goblin.name,Craftsman Goblin,工匠哥布林
+goblins.craftsman_goblin.buff,Extra symbol choice opportunity each round,每回合增加一次获得符号3选1的机会
+goblins.craftsman_goblin.description,A skilled craftsman who provides extra symbol choice opportunities each round,技艺精湛的工匠，能在每回合提供额外的符号选择机会
+goblins.gambler_goblin.name,Gambler Goblin,赌徒哥布林
+goblins.gambler_goblin.buff,Double dice probability,挖到骰子概率翻倍
+goblins.gambler_goblin.description,A lucky gambler who doubles the probability of finding dice,运气极佳的赌徒，能够提高挖到骰子的概率
+goblins.king_goblin.name,King Goblin,国王哥布林
+goblins.king_goblin.buff,+10 coins for each soldier,每有一个士兵，额外获得10金币
+goblins.king_goblin.description,A noble king whose soldiers create wealth for him,尊贵的国王，麾下每个士兵都能为其创造财富
+goblins.wizard_goblin.name,Wizard Goblin,巫师哥布林
+goblins.wizard_goblin.buff,Randomly fill 1 magic bag before mining each round,每回合挖矿之前随机填充1个魔法袋
+goblins.wizard_goblin.description,A mysterious wizard who fills magic bags before mining each round,神秘的巫师，在挖矿前会施展魔法填充魔法袋
+symbols.child.name,Child,儿童
+symbols.child.description,Obtain 1 <color=#080909>Nun</color>,获得一个<color=#080909>修女</color>
+symbols.merchant.name,Merchant,商人
+symbols.merchant.description,"Remove the symbol with the highest rarity among all <color=#E74875>#Materials</color>, and gain gold coins equal to 10 times its base value",消除稀有度最高的一个<color=#E74875>#材料</color>符号，获得其基础价值10倍的金币
+symbols.barbarian.name,Barbarian,野蛮人
+symbols.barbarian.description,"For each <color=#E74875>#Alien</color> symbol in the symbol pool, lose 5 gold coins; for each <color=#E74875>#Monster</color> symbol, gain 20 gold coins",符号池里每拥有一个<color=#E74875>#外星</color>符号，金币-5，每拥有一个<color=#E74875>#怪物</color>符号，金币+20
+symbols.farmer.name,Farmer,农民
+symbols.farmer.description,Obtain 5 random <color=#E74875>#Tools</color> symbols,获得5个随机<color=#E74875>#工具</color>符号
+symbols.soldier.name,Soldier,士兵
+symbols.soldier.description,"If a <color=#AA2ABB>Paladin</color> is about to be removed by other symbols, remove yourself to cancel one removal of the <color=#AA2ABB>Paladin</color>",如果<color=#AA2ABB>圣骑士</color>即将被其他符号消除，消除自身取消一次对<color=#AA2ABB>圣骑士</color>的消除
+symbols.village_chief.name,Village Chief,村长
+symbols.village_chief.description,Obtain 5 random <color=#E74875>#Humans</color> symbols and gain 10 gold coins,获得 5 个随机<color=#E74875>#人类</color> 符号，金币+10
+symbols.forest_fairy.name,Forest Sprite,森林妖精
+symbols.forest_fairy.description,Remove all <color=#147ED9>Dark Moon Sprites</color> from the symbol pool; gain 100 gold coins per sprite eliminated,消除符号池的所有<color=#147ED9>暗月妖精</color>，每消灭1个获得100金币
+symbols.dark_moon_fairy.name,Dark Moon Sprite,暗月妖精
+symbols.dark_moon_fairy.description,Remove all <color=#147ED9>Starlight Sprites</color> from the symbol pool; gain 100 gold coins per sprite eliminated,消除符号池里所有<color=#147ED9>星光妖精</color>，每消灭1个获得100金币
+symbols.starlight_fairy.name,Starlight Sprite,星光妖精
+symbols.starlight_fairy.description,Remove all <color=#147ED9>Forest Sprites</color> from the symbol pool; gain 100 gold coins per sprite eliminated,消除符号池里所有<color=#147ED9>森林妖精</color>，每消灭1个获得100金币
+symbols.healer.name,Healer,治疗师
+symbols.healer.description,"Obtain 1 each of <color=#080909>Holy Vial</color>, <color=#080909>Battery</color>, and <color=#080909>Medkit</color>",获得<color=#080909>圣瓶</color>，<color=#080909>电池</color>，<color=#080909>医疗包</color>各一个
+symbols.paladin.name,Paladin,圣骑士
+symbols.paladin.description,Obtain 3 random <color=#E74875>#Human</color> symbols. Remove all <color=#E74875>#Monsters</color> from the symbol pool; gain 100 gold coins per monster eliminated,获得3个随机<color=#E74875>#人类</color>符号。消除符号池里所有<color=#E74875>#怪物</color>，每个获得金币 100
+symbols.nun.name,Nun,修女
+symbols.nun.description,Obtain 1 <color=#080909>Cross</color>,获得1个<color=#080909>十字架</color>
+symbols.ancient_tree_elder.name,Ancient Tree Elder,古树长老
+symbols.ancient_tree_elder.description,Add 1 <color=#080909>Earth Elemental</color> to the symbol pool,生成一个<color=#080909>土元素</color>到符号池
+symbols.thief.name,Thief,盗贼
+symbols.thief.description,Obtain 2 <color=#E74875>#Tools</color> symbols that you do not currently own,获得 2个未拥有的<color=#E74875>#工具</color>符号
+symbols.princess.name,Princess,公主
+symbols.princess.description,"If there are 5 different <color=#E74875>#Humans</color> symbols in the symbol pool, obtain 1 <color=#AA2ABB>Paladin</color>",如果符号池里有5 个不一样的<color=#E74875>#人类</color>符号，获得一个<color=#AA2ABB>圣骑士</color>
+symbols.vampire.name,Vampire,吸血鬼
+symbols.vampire.description,Eliminate 5 <color=#E74875>#Humans</color> from the symbol pool to get 10 random <color=#E74875>#Materials</color> symbols.,消除符号池里5 个<color=#E74875>#人类</color>，获得 10 个任意<color=#E74875>#材料</color>符号
+symbols.hunter.name,Hunter,猎人
+symbols.hunter.description,Get 2 random <color=#E74875>#Equipment</color> symbols. Gain 200 gold coins from the <color=#AA2ABB>Vampires</color> in the symbol pool and yourself.,获得 2个随机<color=#E74875>#装备</color>符号。从消除符号池的<color=#AA2ABB>吸血鬼</color>和自身，获得200金币
+symbols.female_ninja.name,Female Ninja,女忍者
+symbols.female_ninja.description,"Never appears in the mine. If there is a <color=#080909>Male Ninja</color> in the symbol pool, eliminate all <color=#147ED9>Zombies</color> from the symbol pool.",不会出现在矿洞里。如果符号池里同时存在<color=#080909>男忍者</color>，则清除符号池里所有<color=#147ED9>丧尸</color>
+symbols.male_ninja.name,Male Ninja,男忍者
+symbols.male_ninja.description,"Never appears in the mine. If there is a <color=#080909>Female Ninja</color> in the symbol pool, eliminate all <color=#147ED9>Zombies</color> from the symbol pool at the start of each round.",不会出现在矿洞里。如果符号池里同时存在<color=#080909>女忍者</color>，则在每回合开始时清除符号池里所有<color=#147ED9>丧尸</color>
+symbols.god_of_strength.name,God of Strength,力之神
+symbols.god_of_strength.description,+300 gold coins for the next gold gain. Removed from the symbol pool after being dug up (eliminate yourself).,下次金币收益+300。被挖出后从符号池移除（消除自身）
+symbols.god_of_speed.name,God of Speed,速之神
+symbols.god_of_speed.description,Gain an extra chance to select symbols. Removed from the symbol pool after being dug up (eliminate yourself).,增加一次符号选择的机会。被挖出后从符号池移除（消除自身）
+symbols.god_of_harvest.name,God of Harvest,丰收之神
+symbols.god_of_harvest.description,Settle the next gold gain twice (double the profit). Removed from the symbol pool after being dug up (eliminate yourself).,下次金币收益结算2次（收益翻倍）。被挖出后从符号池移除（消除自身）
+symbols.god_of_luck.name,God of Luck,幸运之神
+symbols.god_of_luck.description,Get an extra dice to use for the next roll (temporary +1 dice). Removed from the symbol pool after being dug up (eliminate yourself).,下一转动多一个骰子可用（临时+1骰子）。被挖出后从符号池移除（消除自身）
+symbols.death.name,God of Death,死神
+symbols.death.description,Eliminate half the number of symbols in the symbol pool.,消除符号池的一半数量的符号
+symbols.water_element.name,Water Elemental,水元素
+symbols.water_element.description,Generate a random elemental other than the <color=#080909>Water Elemental</color> into the symbol pool.,生成一个除<color=#080909>水元素</color>之外的随机元素到符号池
+symbols.fire_element.name,Fire Elemental,火元素
+symbols.fire_element.description,Generate a random elemental other than the <color=#080909>Fire Elemental</color> into the symbol pool.,生成一个除<color=#080909>火元素</color>之外的随机元素到符号池。
+symbols.thunder_element.name,Thunder Elemental,雷元素
+symbols.thunder_element.description,Generate a random elemental other than the <color=#080909>Thunder Elemental</color> into the symbol pool.,生成一个除<color=#080909>雷元素</color>之外的随机元素到符号池。
+symbols.ice_element.name,Ice Elemental,冰元素
+symbols.ice_element.description,Generate a random elemental other than the <color=#080909>Ice Elemental</color> into the symbol pool.,生成一个除<color=#080909>冰元素</color>之外的随机元素到符号池。
+symbols.earth_element.name,Earth Elemental,土元素
+symbols.earth_element.description,Generate a random elemental other than the <color=#080909>Earth Elemental</color> into the symbol pool.,生成一个除<color=#080909>土元素</color>之外的随机元素到符号池。
+symbols.rock.name,Stone,石头
+symbols.rock.description,"If there are <color=#E74875>#Tools</color> symbols in the symbol pool, remove yourself from the symbol pool and get 2 random <color=#E74875>#Materials</color> symbols.",如果符号池里有<color=#E74875>#工具</color>符号，从符号池移除自身，获得 2 个随机<color=#E74875>#材料</color>符号
+symbols.cross.name,Cross,十字架
+symbols.cross.description,Get a <color=#080909>Hunter</color>.,获得一个<color=#080909>猎人</color>
+symbols.book_of_the_dead.name,Book of the Dead,死亡之书
+symbols.book_of_the_dead.description,"Remove yourself and 1 <color=#080909>Cross</color> from the symbol pool, and generate a <color=#AA2ABB>God of Death</color> into the symbol pool.",从符号池移除自身和1个<color=#080909>十字架</color>，生成一个<color=#AA2ABB>死神</color>到符号池
+symbols.hypnosis_pendulum.name,Hypnotic Pendulum,催眠摆
+symbols.hypnosis_pendulum.description,"Remove yourself from the symbol pool and randomly generate one of <color=#147ED9>Princess</color>, <color=#080909>Female Ninja</color> or <color=#080909>Nun</color> into the symbol pool.",从符号池移除自身，随机生成<color=#147ED9>公主</color>或<color=#080909>女忍者</color>或<color=#080909>修女</color>中的一个到符号池
+symbols.dragon_fire_gun.name,Dragon Firearm,龙火枪
+symbols.dragon_fire_gun.description,Eliminate a random <color=#E74875>#Monster</color> from the symbol pool to get 50 gold coins.,消灭符号池随机一个<color=#E74875>#怪物</color>，获得 50 金币
+symbols.rune_armor.name,Rune Armor,符文护甲
+symbols.rune_armor.description,Get 2 random <color=#E74875>#Classic Legends</color> symbols.,获得2 个随机<color=#E74875>#经典传说</color>符号
+symbols.dawn_messenger_staff.name,Dawn Messenger Staff,黎明信使法杖
+symbols.dawn_messenger_staff.description,Get a <color=#147ED9>Princess</color>.,获得一个<color=#147ED9>公主</color>
+symbols.holy_bottle.name,Holy Water Bottle,圣水瓶
+symbols.holy_bottle.description,Get a <color=#AA2ABB>Dice</color> symbol.,获得一个<color=#AA2ABB>骰子</color>符号
+symbols.contract_scroll.name,Contract Scroll,契约卷轴
+symbols.contract_scroll.description,"Remove yourself from the symbol pool and randomly generate one of <color=#147ED9>Forest Fairy</color>, <color=#147ED9>Dark Moon Fairy</color> or <color=#147ED9>Starlight Fairy</color> into the symbol pool.",从符号池移除自身，随机生成<color=#147ED9>森林妖精</color>或<color=#147ED9>暗月妖精</color>或<color=#147ED9>星光妖精</color>中的一个到符号池
+symbols.shuriken.name,Shuriken,手里剑
+symbols.shuriken.description,"If there are <color=#080909>Female Ninja</color> or <color=#080909>Male Ninja</color> in the symbol pool, get an extra 30 gold coins.",如果符号池里有<color=#080909>女忍者</color>或<color=#080909>男忍者</color>，额外获得30金币
+symbols.diary.name,Diary,日记
+symbols.diary.description,Remove yourself from the symbol pool and generate a <color=#AA2ABB>Vampire</color> into the symbol pool.,从符号池移除自身，生成一个<color=#AA2ABB>吸血鬼</color>到符号池
+symbols.ring.name,Ring,戒指
+symbols.ring.description,Get 1 random <color=#E74875>#Comfortable Life</color> symbol.,获得1个随机<color=#E74875>#舒适生活</color>符号
+symbols.mobile_phone.name,Mobile Phone,手机
+symbols.mobile_phone.description,Get 1 random <color=#E74875>#Comfortable Life</color> symbol.,获得1个随机<color=#E74875>#舒适生活</color>符号
+symbols.glasses.name,Glasses,眼镜
+symbols.glasses.description,Get 1 random <color=#E74875>#Comfortable Life</color> symbol.,获得1个随机<color=#E74875>#舒适生活</color>符号
+symbols.tie.name,Bow Tie,领结
+symbols.tie.description,Get 1 random <color=#E74875>#Comfortable Life</color> symbol.,获得1个随机<color=#E74875>#舒适生活</color>符号
+symbols.magatama.name,Magatama,勾玉
+symbols.magatama.description,Increase the base value of all future <color=#080909>Symbols</color> by 5.,未来所有<color=#080909>符号</color>基础价值提升 5
+symbols.battery.name,Battery,电池
+symbols.battery.description,Remove yourself from the symbol pool and generate a <color=#147ED9>Spaceship</color> into the symbol pool.,从符号池移除自身，生成一个<color=#147ED9>宇宙飞船</color>到符号池
+symbols.medical_kit.name,Medical Kit,医疗包
+symbols.medical_kit.description,Get a <color=#080909>Healer</color>.,获得一个<color=#080909>治疗师</color>
+symbols.coin.name,Coin,硬币
+symbols.coin.description,Eliminate yourself and get 2 random <color=#E74875>Materials</color> symbols.,消除自身，获得2个随机<color=#E74875>材料</color>符号
+symbols.pillow.name,Pillow,枕头
+symbols.pillow.description,Eliminate 2 symbols other than <color=#E74875>#Comfortable Life</color>.,消除2个除<color=#E74875>#舒适生活</color>之外的符号
+symbols.eye_mask.name,Eye Mask,眼罩
+symbols.eye_mask.description,Eliminate 2 symbols other than <color=#E74875>#Comfortable Life</color>.,消除2个除<color=#E74875>#舒适生活</color>之外的符号
+symbols.talisman_paper.name,Talisman Paper,符纸
+symbols.talisman_paper.description,Eliminate the <color=#080909>Werewolf</color> and yourself to get 100 gold coins.,消除<color=#080909>狼人</color>和自身，获得 100 金币
+symbols.pumpkin_head.name,Pumpkin Head,南瓜头
+symbols.pumpkin_head.description,Get a <color=#080909>Child</color>.,获得一个<color=#080909>儿童</color>
+symbols.snowflake.name,Snowflake,雪花
+symbols.snowflake.description,Get a <color=#080909>Farmer</color>.,获得一个<color=#080909>农民</color>
+symbols.firecracker.name,Firecracker,鞭炮
+symbols.firecracker.description,Get a <color=#AA2ABB>Horn</color>.,获得一个<color=#AA2ABB>号角</color>
+symbols.lantern.name,Lantern,灯笼
+symbols.lantern.description,Get a <color=#080909>Merchant</color>.,获得一个<color=#080909>商人</color>
+symbols.toy_duck.name,Rubber Duck,玩具鸭
+symbols.toy_duck.description,Get 1 random <color=#E74875>#Tools</color> symbol.,获得一个随机<color=#E74875>#工具</color> 符号
+symbols.wine_bottle.name,Wine Bottle,酒瓶
+symbols.wine_bottle.description,Get a <color=#080909>Barbarian</color>.,获得一个<color=#080909>野蛮人</color>
+symbols.briefcase.name,Briefcase,公文包
+symbols.briefcase.description,Get 1 <color=#080909>Village Chief</color>.,获得1 个<color=#080909>村长</color>
+symbols.hoe.name,Axe,斧头
+symbols.hoe.description,"50% chance to generate 1 <color=#080909>Flower Spirit</color> into the symbol pool, 50% chance to generate 1 <color=#147ED9>Zombie</color> into the symbol pool.",50%概率生成1 个<color=#080909>花精</color>到符号池，50%概率生成 1 个<color=#147ED9>丧尸</color>到符号池
+symbols.horn.name,Horn,号角
+symbols.horn.description,Generate 5 <color=#147ED9>Soldiers</color> into the symbol pool.,生成5个<color=#147ED9>士兵</color>到符号池
+symbols.iron_box.name,Iron Chest,铁箱子
+symbols.iron_box.description,Get a <color=#080909>Iron Key</color>.,获得一个<color=#080909>铁钥匙</color>
+symbols.silver_box.name,Silver Chest,银箱子
+symbols.silver_box.description,Get a <color=#147ED9>Silver Key</color>.,获得一个<color=#147ED9>银钥匙</color>
+symbols.iron_key.name,Iron Key,铁钥匙
+symbols.iron_key.description,Eliminate 1 <color=#080909>Iron Chest</color> from the symbol pool to get 50 gold coins.,从符号池消除一个<color=#080909>铁箱子</color>，获得50金币
+symbols.silver_key.name,Silver Key,银钥匙
+symbols.silver_key.description,Eliminate 1 <color=#147ED9>Silver Chest</color> from the symbol pool to get 100 gold coins.,从符号池消除一个<color=#147ED9>银箱子</color>，获得100金币
+symbols.master_key.name,Master Key,万能钥匙
+symbols.master_key.description,Eliminate a higher-level chest from the symbol pool (prioritize <color=#147ED9>Silver Chest</color>) to get double the gold coins of the chest.,从符号池消除一个较高等级的箱子（优先<color=#147ED9>银箱子</color>），获得箱子双倍的金币
+symbols.flower_fairy.name,Flower Spirit,花精
+symbols.flower_fairy.description,Eliminate 3 <color=#080909>Flower Spirits</color> from the symbol pool to get 1 <color=#147ED9>Forest Fairy</color>.,消除符号池里的3个<color=#080909>花精</color>，获得1个<color=#147ED9>森林妖精</color>
+symbols.werewolf.name,Werewolf,狼人
+symbols.werewolf.description,Eliminate 2 <color=#E74875>#Humans</color> from the symbol pool to get 10 random <color=#E74875>#Tools</color> symbols.,消除符号池里2 个<color=#E74875>#人类</color>，获得 10 个任意<color=#E74875>#工具</color>符号
+symbols.zombie.name,Zombie,丧尸
+symbols.zombie.description,Eliminate 1 random <color=#E74875>#Human</color> symbol.,消灭1个随机<color=#E74875>#人类</color>符号
+symbols.one_eyed_monster.name,Cyclops,独眼怪
+symbols.one_eyed_monster.description,"Get 30 gold coins when dug up for the first time, 20 gold coins for the second time, decreasing by 10 each time until it reaches 0.",第一次被挖出获得30金币，第二次20金币，一直递减到0
+symbols.gomorrah.name,Gomora,哥莫拉
+symbols.gomorrah.description,Randomly eliminate 1 symbol other than itself from the symbol pool to get 50 gold coins.,从符号池随机消除一个除自身以外的符号，获得50金币
+symbols.ray_gun.name,Ray Gun,光线枪
+symbols.ray_gun.description,Get 1 random <color=#E74875>#Alien</color> symbol.,获得随机一个<color=#E74875>#外星</color>符号
+symbols.alien_helmet.name,Alien Helmet,外星头盔
+symbols.alien_helmet.description,Get 1 random <color=#E74875>#Alien</color> symbol.,获得随机一个<color=#E74875>#外星</color>符号
+symbols.spaceship.name,Spaceship,宇宙飞船
+symbols.spaceship.description,Get 1 random <color=#E74875>#Alien</color> symbol.,获得随机一个<color=#E74875>#外星</color>符号
+symbols.mind_controller.name,Mind Controller,精神控制器
+symbols.mind_controller.description,Randomly transform 1 symbol in the symbol pool into a <color=#E74875>#Monster</color> symbol.,随机转化符号池的一个符号为一个<color=#E74875>#怪物</color>符号
+symbols.meteorite.name,Meteorite,陨石
+symbols.meteorite.description,"If there is a <color=#AA2ABB>Gomora</color> in the symbol pool, eliminate the <color=#AA2ABB>Gomora</color> from the symbol pool to get 300 gold coins.",如果符号池里有<color=#AA2ABB>哥莫拉</color>，从符号池消除<color=#AA2ABB>哥莫拉</color>，获得300金币
+symbols.dice.name,Dice,骰子
+symbols.dice.description,Permanently increase the number of <color=#AA2ABB>Dice</color> by 1. Removed from the symbol pool after being dug up.,永久增加1个<color=#AA2ABB>骰子</color>（骰子数量+1）。被挖出后从符号池移除。
+symbols.magic_bag.name,Magic Bag,魔法袋
+symbols.magic_bag.description,Randomly generate 3~5 random symbols into the symbol pool.,随机生成3~5个随机符号到符号池
+symbols.artwork.name,Art Work,艺术品
+symbols.artwork.description,Generate 5 <color=#080909>Merchants</color>.,生成5个<color=#080909>商人</color>
+bonds.child_merchant_bond.name,Child & Merchant Bond,儿童与商人羁绊
+bonds.child_merchant_bond.description,"When you have both Child and Merchant symbols, gain +5 coins per turn",同时拥有儿童和商人符号时，每回合额外获得+5金币
+bonds.vampire_curse_bond.name,Vampire's Curse,吸血鬼的诅咒
+bonds.vampire_curse_bond.description,"If Vampire and Tie exist simultaneously in symbol pool, lose 50 coins at the start of each turn (triggers at round start)",如果吸血鬼与领结同时存在于符号池，每回合开始时减少50金币（回合开始时触发）
+bonds.death_blessing_bond.name,Death's Blessing,死神的眷顾
+bonds.death_blessing_bond.description,"Gain 1000 coins for the next 5 turns, but the game will forcefully end after 5 turns",接下来五个回合每回合获得 1000 金币，但是五个回合之后游戏强制结束。
+bonds.wolf_hunter_bond.name,Wolf Hunters,捕狼队
+bonds.wolf_hunter_bond.description,"If Werewolf and Hoe exist simultaneously in symbol pool, lose 20 coins each turn",如果 狼人与锄头同时存在符号池，每回合都会减少20金币.
+bonds.element_master_bond.name,Element Master,元素掌握者
+bonds.element_master_bond.description,"If symbol pool has all five elements, gain 500 coins each turn",如果元素池里拥有全部五种元素，则每回合获得 500 金币
+bonds.justice_bond.name,Justice Prevails,正义必胜
+bonds.justice_bond.description,"If Cross and Nun exist simultaneously in symbol pool, Hunter's spawn probability doubles",如果十字架和修女同时在符号池内，挖出猎人的概率翻倍
+bonds.apocalypse_bond.name,Apocalypse,世界末日
+bonds.apocalypse_bond.description,"If Gomorrah, Zombie, Werewolf, and Vampire exist simultaneously in symbol pool, randomly eliminate half of symbols at the start of next turn and gain 2000 coins",如果哥莫拉，丧尸，狼人，吸血鬼同时在符号池内， 下个回合开始时，随机消灭一半的符号，获得 2000 金币
+bonds.human_extinction_bond.name,Human Extinction,人类灭绝
+bonds.human_extinction_bond.description,"If Ray Gun, Alien Helmet, Spaceship, and Mind Controller exist simultaneously in symbol pool, eliminate one human at the start of next turn and gain 300 coins",如果光线枪，外星头盔，宇宙飞船，精神控制器同时在符号池内， 下个回合开始时，消灭一个人类，获得 300 金币
+bonds.raccoon_city_bond.name,raccoon-city,浣熊市
+bonds.raccoon_city_bond.description,Infect one human into a zombie before each mining. Gain +5 coins for each zombie,每次挖矿前感染一个人类变成丧尸。每有一个丧尸，额外金币增加5
+bonds.human_3_bond.name,human-3,人类·三人组
+bonds.human_3_bond.description,Gain 1 random Human each round.,每回合获得1个随机人类
+bonds.human_5_bond.name,human-5,人类·五人组
+bonds.human_5_bond.description,All Human symbols gain +10 base value.,人类符号基础价值+10
+bonds.human_10_bond.name,human-10,人类·十人团
+bonds.human_10_bond.description,+50 coins per Human in pool on each spin.,符号池每有1个人类，每次转动额外获得50金币
+bonds.material_2_bond.name,material-2,材料·二合一
+bonds.material_2_bond.description,Each round auto-fuse 2 normal materials into 1 rare.,每回合自动熔合2个普通材料为稀有材料
+bonds.material_4_bond.name,material-4,材料·升华
+bonds.material_4_bond.description,Each round auto-fuse 2 rare materials into 1 epic.,每回合自动熔合2个稀有材料为史诗材料
+bonds.cozylife_3_bond.name,cozylife-3,舒适生活·温馨
+bonds.cozylife_3_bond.description,Empty tiles gain +5 coins.,每个空格子收益+5
+bonds.cozylife_6_bond.name,cozylife-6,舒适生活·奢享
+bonds.cozylife_6_bond.description,Empty tiles gain +25 coins.,每个空格子收益+25
+bonds.tools_2_bond.name,tools-2,工具·敏捷
+bonds.tools_2_bond.description,"If any die shows 1, gain an extra roll.",掷出1时，额外再转一次
+bonds.tools_4_bond.name,tools-4,工具·全开
+bonds.tools_4_bond.description,"If any die shows 6, auto-mine all unopened tiles.",掷出6时，自动挖开所有未翻矿石
+bonds.classictale_2_bond.name,classictale-2,经典传说·奇遇
+bonds.classictale_2_bond.description,Mark a random tile as special; its earnings are doubled.,随机一处生成特殊格子，其收益翻倍
+bonds.classictale_4_bond.name,classictale-4,经典传说·角落宝藏
+bonds.classictale_4_bond.description,Mining any corner grants +200 coins.,挖到四个角之一，奖励200金币
+bonds.classictale_6_bond.name,classictale-6,经典传说·中心秘宝
+bonds.classictale_6_bond.description,Mining the center tile grants +400 coins.,挖到中心格，奖励400金币

@@ -1,0 +1,21 @@
+{
+  "images" : [
+    {
+      "filename" : "jimeng-2025-12-08-9743-像素艺术风格_一把粗短可爱的矿工镐子_镐头部分呈圆润的尖状_颜色为深灰色或铁色_...-removebg-preview 1.png",
+      "idiom" : "universal",
+      "scale" : "1x"
+    },
+    {
+      "idiom" : "universal",
+      "scale" : "2x"
+    },
+    {
+      "idiom" : "universal",
+      "scale" : "3x"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

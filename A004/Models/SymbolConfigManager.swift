@@ -86,19 +86,46 @@ struct AnyCodable: Codable {
     }
 }
 
+// MARK: - CSV符号配置数据
+struct CSVSymbolConfigData {
+    let id: Int
+    let nameKey: String
+    let icon: String // 图片资源名
+    let rarity: String
+    let types: [String]
+    let baseValue: Int
+    let bondID: String // 可能为空，多个用引号分割
+    let weight: Int
+    let effect: String
+    let effectType: String
+    let effectParams: [String: Any]
+    let descriptionKey: String
+}
+
 // MARK: - 符号配置管理器
 class SymbolConfigManager {
     static let shared = SymbolConfigManager()
     
     private var configFile: SymbolConfigFile?
+    private var csvSymbols: [CSVSymbolConfigData] = []
+    private var symbolIdMap: [String: Int] = [:] // nameKey -> id 映射
     private let configFileName = "SymbolConfig"
+    private var useCSV: Bool = false
     
     private init() {
         loadConfig()
     }
     
-    /// 加载配置文件
+    /// 加载配置文件（优先尝试CSV，失败则使用JSON）
     private func loadConfig() {
+        // 优先尝试加载CSV
+        if loadCSVConfig() {
+            useCSV = true
+            print("✅ [符号配置] 成功从CSV加载配置，共 \(csvSymbols.count) 个符号")
+            return
+        }
+        
+        // 如果CSV加载失败，尝试JSON（向后兼容）
         guard let url = Bundle.main.url(forResource: configFileName, withExtension: "json") else {
             print("❌ [符号配置] 找不到配置文件: \(configFileName).json")
             return
@@ -107,14 +134,151 @@ class SymbolConfigManager {
         do {
             let data = try Data(contentsOf: url)
             configFile = try JSONDecoder().decode(SymbolConfigFile.self, from: data)
-            print("✅ [符号配置] 成功加载配置文件，共 \(configFile?.symbols.count ?? 0) 个符号")
+            useCSV = false
+            print("✅ [符号配置] 成功从JSON加载配置文件，共 \(configFile?.symbols.count ?? 0) 个符号")
         } catch {
-            print("❌ [符号配置] 解析配置文件失败: \(error)")
+            print("❌ [符号配置] 解析JSON配置文件失败: \(error)")
         }
+    }
+    
+    /// 加载CSV配置
+    private func loadCSVConfig() -> Bool {
+        print("🔍 [符号配置] 尝试加载CSV配置文件: \(configFileName).csv")
+        guard let rows = CSVReader.readCSV(fileName: configFileName) else {
+            print("⚠️ [符号配置] CSV文件不存在或读取失败，尝试JSON")
+            return false
+        }
+        
+        print("✅ [符号配置] CSV文件读取成功，共\(rows.count)行数据")
+        
+        csvSymbols = rows.compactMap { row -> CSVSymbolConfigData? in
+            guard let idStr = row["id"],
+                  let id = Int(idStr),
+                  let nameKey = row["nameKey"],
+                  let icon = row["icon"],
+                  let rarity = row["rarity"],
+                  let typesStr = row["types"],
+                  let baseValueStr = row["baseValue"],
+                  let baseValue = Int(baseValueStr),
+                  let weightStr = row["weight"],
+                  let weight = Int(weightStr),
+                  let effect = row["effect"],
+                  let effectType = row["effectType"],
+                  let effectParamsStr = row["effectParams"],
+                  let descriptionKey = row["descriptionKey"] else {
+                print("⚠️ [符号配置] CSV行数据不完整，跳过: \(row)")
+                return nil
+            }
+            
+            // 解析types（用分号分割）
+            let types = typesStr.split(separator: ";").map { String($0.trimmingCharacters(in: .whitespaces)) }
+            
+            // 解析bondID（可能为空，多个用引号分割）
+            let bondID = row["bondID"] ?? ""
+            
+            // 解析effectParams（JSON字符串）
+            var effectParams: [String: Any] = [:]
+            if !effectParamsStr.isEmpty {
+                // 调试：打印原始字符串
+                if nameKey == "death" || nameKey == "merchant" || nameKey == "child" {
+                    print("🔍 [CSV解析] \(nameKey) 原始effectParams字符串: \(effectParamsStr)")
+                }
+                
+                if let data = effectParamsStr.data(using: .utf8),
+                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                    effectParams = json
+                    if nameKey == "death" || nameKey == "merchant" || nameKey == "child" {
+                        print("✅ [CSV解析] \(nameKey) effectParams解析成功: \(effectParams)")
+                        // 特别检查死神的参数
+                        if nameKey == "death" {
+                            print("🔍 [CSV解析] 死神 rounds类型: \(type(of: effectParams["rounds"])), 值: \(effectParams["rounds"] ?? "nil")")
+                            print("🔍 [CSV解析] 死神 bonusPerRound类型: \(type(of: effectParams["bonusPerRound"])), 值: \(effectParams["bonusPerRound"] ?? "nil")")
+                            print("🔍 [CSV解析] 死神 gameOverAfter类型: \(type(of: effectParams["gameOverAfter"])), 值: \(effectParams["gameOverAfter"] ?? "nil")")
+                        }
+                    }
+                } else {
+                    print("⚠️ [CSV解析] \(nameKey) effectParams解析失败: \(effectParamsStr)")
+                    // 尝试打印解析错误
+                    if let data = effectParamsStr.data(using: .utf8) {
+                        if let error = try? JSONSerialization.jsonObject(with: data) {
+                            print("🔍 [CSV解析] 解析结果: \(error)")
+                        } else {
+                            print("🔍 [CSV解析] JSON解析完全失败")
+                        }
+                    }
+                }
+            } else {
+                if nameKey == "death" || nameKey == "merchant" || nameKey == "child" {
+                    print("ℹ️ [CSV解析] \(nameKey) effectParams为空")
+                }
+            }
+            
+            // 建立nameKey到id的映射
+            symbolIdMap[nameKey] = id
+            
+            let configData = CSVSymbolConfigData(
+                id: id,
+                nameKey: nameKey,
+                icon: icon,
+                rarity: rarity,
+                types: types,
+                baseValue: baseValue,
+                bondID: bondID,
+                weight: weight,
+                effect: effect,
+                effectType: effectType,
+                effectParams: effectParams,
+                descriptionKey: descriptionKey
+            )
+            
+            // 调试：打印关键符号的配置
+            if nameKey == "death" || nameKey == "merchant" || nameKey == "child" {
+                print("🔍 [CSV解析] 符号 \(nameKey): effectType=\(effectType), effectParams=\(effectParams)")
+            }
+            
+            return configData
+        }
+        
+        return !csvSymbols.isEmpty
     }
     
     /// 获取所有符号
     func getAllSymbols() -> [Symbol] {
+        if useCSV {
+            print("🔍 [符号配置] 使用CSV配置，共\(csvSymbols.count)个符号")
+            return csvSymbols.map { config in
+                // 解析bondID（多个用引号分割）
+                let bondIDs = CSVReader.parseIDList(config.bondID).map { String($0) }
+                
+                // 调试：检查关键符号
+                if config.nameKey == "death" {
+                    print("🔍 [符号创建] 死神符号: effectType=\(config.effectType), effectParams=\(config.effectParams)")
+                }
+                
+                let symbol = Symbol(
+                    id: UUID(),
+                    nameKey: config.nameKey,
+                    icon: config.icon,
+                    baseValue: config.baseValue,
+                    rarity: mapRarity(config.rarity),
+                    type: mapPrimaryType(config.types),
+                    descriptionKey: config.descriptionKey,
+                    weight: config.weight,
+                    types: config.types,
+                    effectType: config.effectType,
+                    effectParams: config.effectParams,
+                    bondIDs: bondIDs
+                )
+                
+                // 验证符号的effectType是否正确设置
+                if config.nameKey == "death" && symbol.effectType.isEmpty {
+                    print("⚠️ [符号创建] 警告：死神符号的effectType为空！")
+                }
+                
+                return symbol
+            }
+        }
+        
         guard let configFile = configFile else {
             print("⚠️ [符号配置] 配置文件未加载，返回空数组")
             return []
@@ -132,23 +296,78 @@ class SymbolConfigManager {
                 weight: config.weight,
                 types: config.types,
                 effectType: config.effectType,
-                effectParams: config.effectParams.mapValues { $0.value }
+                effectParams: config.effectParams.mapValues { $0.value },
+                bondIDs: [] // JSON格式没有bondID
             )
         }
     }
     
-    /// 根据权重随机选择符号
-    func getRandomSymbol(fromPool pool: [Symbol]) -> Symbol? {
-        let totalWeight = pool.reduce(0) { $0 + $1.weight }
+    /// 根据权重随机选择符号（支持羁绊权重加成和全局权重buff）
+    func getRandomSymbol(fromPool pool: [Symbol], symbolPool: [Symbol] = []) -> Symbol? {
+        var adjustedPool = pool
+        
+        // **新功能1：应用羁绊权重加成（如正义必胜）**
+        let bondBuffs = BondBuffConfigManager.shared.getActiveBondBuffs(symbolPool: symbolPool)
+        let hasJusticeBond = bondBuffs.contains { $0.nameKey.contains("justice_bond") }
+        
+        // **新功能2：应用全局权重buff（如十字架的猎人权重翻倍）**
+        // 检查符号池中是否有十字架（使用nameKey匹配）
+        let hasCross = symbolPool.contains { $0.nameKey == "cross" }
+        
+        if hasJusticeBond || hasCross {
+            // 为猎人符号创建权重翻倍的副本（用于权重计算，使用nameKey匹配）
+            adjustedPool = pool.map { symbol in
+                if symbol.nameKey == "hunter" {
+                    var weightMultiplier = 1.0
+                    
+                    // 正义必胜羁绊：权重×2
+                    if hasJusticeBond {
+                        weightMultiplier *= 2.0
+                    }
+                    
+                    // 十字架全局buff：权重×2
+                    if hasCross {
+                        weightMultiplier *= 2.0
+                    }
+                    
+                    // 创建权重翻倍的副本
+                    return Symbol(
+                        id: symbol.id,
+                        nameKey: symbol.nameKey,
+                        icon: symbol.icon,
+                        baseValue: symbol.baseValue,
+                        rarity: symbol.rarity,
+                        type: symbol.type,
+                        descriptionKey: symbol.descriptionKey,
+                        weight: Int(Double(symbol.weight) * weightMultiplier), // 应用权重倍数
+                        types: symbol.types,
+                        effectType: symbol.effectType,
+                        effectParams: symbol.effectParams,
+                        bondIDs: symbol.bondIDs
+                    )
+                }
+                return symbol
+            }
+            
+            if hasJusticeBond {
+                print("⚖️ [羁绊Buff] 正义必胜：猎人权重翻倍应用于随机选择")
+            }
+            if hasCross {
+                print("⚖️ [全局Buff] 十字架：猎人权重翻倍应用于随机选择")
+            }
+        }
+        
+        let totalWeight = adjustedPool.reduce(0) { $0 + $1.weight }
         guard totalWeight > 0 else { return pool.randomElement() }
         
         let randomValue = Int.random(in: 1...totalWeight)
         var currentWeight = 0
         
-        for symbol in pool {
+        for symbol in adjustedPool {
             currentWeight += symbol.weight
             if randomValue <= currentWeight {
-                return symbol
+                // 返回原始pool中的符号（不是调整后的副本）
+                return pool.first(where: { $0.id == symbol.id }) ?? symbol
             }
         }
         
@@ -158,7 +377,7 @@ class SymbolConfigManager {
     /// 获取随机的起始符号
     func getStartingSymbols() -> [Symbol] {
         let allSymbols = getAllSymbols()
-        let count = configFile?.config.startingSymbolCount ?? 3
+        let count = useCSV ? 3 : (configFile?.config.startingSymbolCount ?? 3)
         
         var selectedSymbols: [Symbol] = []
         for _ in 0..<count {
@@ -176,6 +395,15 @@ class SymbolConfigManager {
         return getAllSymbols().first { $0.name == name || $0.nameKey == name }
     }
     
+    /// 根据nameKey获取符号的配置ID（用于羁绊系统）
+    func getSymbolConfigId(byNameKey nameKey: String) -> Int? {
+        if useCSV {
+            return symbolIdMap[nameKey]
+        }
+        guard let configFile = configFile else { return nil }
+        return configFile.symbols.first(where: { $0.nameKey == nameKey })?.id
+    }
+    
     /// 根据类型过滤符号
     func getSymbols(byType type: String) -> [Symbol] {
         return getAllSymbols().filter { $0.types.contains(type) }
@@ -187,10 +415,10 @@ class SymbolConfigManager {
     }
     
     /// 获取符号选择选项（3选1）
-    func getSymbolChoiceOptions() -> [Symbol] {
+    func getSymbolChoiceOptions(symbolPool: [Symbol] = []) -> [Symbol] {
         // 过滤掉不应该出现在三选一中的符号（死神只能通过死灵之书产出）
         let availableSymbols = getAllSymbols().filter { symbol in
-            symbol.name != "死神"
+            symbol.nameKey != "death" // 使用nameKey匹配更准确
         }
         
         var options: [Symbol] = []
@@ -201,7 +429,7 @@ class SymbolConfigManager {
         let maxAttempts = availableSymbols.count * 2 // 防止无限循环
         
         while options.count < 3 && attempts < maxAttempts {
-            if let symbol = getRandomSymbol(fromPool: availableSymbols) {
+            if let symbol = getRandomSymbol(fromPool: availableSymbols, symbolPool: symbolPool) {
                 // 检查是否已经选择过这个符号
                 if !usedSymbols.contains(symbol.name) {
                     options.append(symbol)
@@ -229,11 +457,28 @@ class SymbolConfigManager {
     
     /// 检查是否启用效果
     func isEffectsEnabled() -> Bool {
+        if useCSV {
+            return true // CSV格式默认启用
+        }
         return configFile?.config.enableEffects ?? true
+    }
+    
+    /// 根据配置ID获取符号
+    func getSymbol(byConfigId configId: Int) -> Symbol? {
+        let allSymbols = getAllSymbols()
+        return allSymbols.first { symbol in
+            if let symbolConfigId = getSymbolConfigId(byNameKey: symbol.nameKey) {
+                return symbolConfigId == configId
+            }
+            return false
+        }
     }
     
     /// 获取符号池最大大小
     func getSymbolPoolMaxSize() -> Int {
+        if useCSV {
+            return 100 // CSV格式默认值
+        }
         return configFile?.config.symbolPoolMaxSize ?? 100
     }
     

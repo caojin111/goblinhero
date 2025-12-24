@@ -11,6 +11,7 @@ struct DailySignInView: View {
     @ObservedObject var viewModel: GameViewModel
     @Binding var isPresented: Bool
     @ObservedObject var localizationManager = LocalizationManager.shared
+    @ObservedObject var audioManager = AudioManager.shared
     
     @State private var showRewardDetail: Bool = false
     @State private var selectedReward: SignInReward?
@@ -42,13 +43,11 @@ struct DailySignInView: View {
                         Text("📅")
                             .font(.system(size: 60))
                         Text(localizationManager.localized("sign_in.title"))
-                            .font(customFont(size: 28))
+                            .font(customFont(size: 33)) // 从 28 增加到 33（+5）
                             .foregroundColor(.white)
-                            .textStroke()
                         Text(localizationManager.localized("sign_in.subtitle"))
                             .font(customFont(size: 14))
                             .foregroundColor(.white.opacity(0.8))
-                            .textStroke()
                     }
                     .padding(.top, 20)
                     .padding(.bottom, 30)
@@ -91,7 +90,6 @@ struct DailySignInView: View {
                                      localizationManager.localized("sign_in.button.sign_in") :
                                      localizationManager.localized("sign_in.button.signed"))
                                     .font(customFont(size: 20))
-                                    .textStroke()
                             }
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
@@ -162,7 +160,6 @@ struct DailySignInView: View {
                              localizationManager.localized("sign_in.hint.signed"))
                             .font(customFont(size: 12))
                             .foregroundColor(.white.opacity(0.7))
-                            .textStroke()
                     }
                     .padding(.horizontal, 30)
                     .padding(.bottom, 30)
@@ -183,6 +180,7 @@ struct DailySignInView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
+                        audioManager.playSoundEffect("click", fileExtension: "wav")
                         isPresented = false
                     }) {
                         Image(systemName: "xmark.circle.fill")
@@ -285,7 +283,6 @@ struct RewardNodeView: View {
                 Text("\(localizationManager.localized("sign_in.day")) \(reward.day)")
                     .font(customFont(size: 12))
                     .foregroundColor(isToday ? .yellow : (isClaimed ? .green : .white.opacity(0.7)))
-                    .textStroke()
                 
                 // 奖励图标和数量
                 ZStack {
@@ -327,7 +324,6 @@ struct RewardNodeView: View {
                         Text("\(reward.amount)")
                             .font(customFont(size: 12))
                             .foregroundColor(.white)
-                            .textStroke()
                     }
                 }
                 
@@ -336,12 +332,10 @@ struct RewardNodeView: View {
                     Text(localizationManager.localized("sign_in.status.claimed"))
                         .font(customFont(size: 10))
                         .foregroundColor(.green)
-                        .textStroke()
                 } else if isToday {
                     Text(localizationManager.localized("sign_in.status.today"))
                         .font(customFont(size: 10))
                         .foregroundColor(.yellow)
-                        .textStroke()
                 }
             }
         }
@@ -357,6 +351,7 @@ struct RewardNodeView: View {
 struct RewardDetailPopup: View {
     let reward: SignInReward
     @ObservedObject var localizationManager: LocalizationManager
+    @ObservedObject var audioManager = AudioManager.shared
     @Binding var isPresented: Bool
     
     // 获取自定义字体
@@ -381,6 +376,7 @@ struct RewardDetailPopup: View {
                 HStack {
                     Spacer()
                     Button(action: {
+                        audioManager.playSoundEffect("click", fileExtension: "wav")
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                             isPresented = false
                         }
@@ -415,7 +411,6 @@ struct RewardDetailPopup: View {
                         Text("\(reward.amount)")
                             .font(customFont(size: 20))
                             .foregroundColor(.white)
-                            .textStroke()
                     }
                 }
                 
@@ -424,17 +419,14 @@ struct RewardDetailPopup: View {
                     Text("\(localizationManager.localized("sign_in.day")) \(reward.day)")
                         .font(customFont(size: 20))
                         .foregroundColor(.white)
-                        .textStroke()
                     
                     Text(reward.description)
                         .font(customFont(size: 17))
                         .foregroundColor(.white.opacity(0.9))
-                        .textStroke()
                     
                     Text(localizationManager.localized("sign_in.reward_type.\(reward.type == .diamonds ? "diamonds" : reward.type == .coins ? "coins" : "stamina")"))
                         .font(customFont(size: 14))
                         .foregroundColor(.white.opacity(0.7))
-                        .textStroke()
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)
                         .background(

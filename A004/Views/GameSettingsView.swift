@@ -12,9 +12,35 @@ struct GameSettingsView: View {
     @ObservedObject var configManager = GameConfigManager.shared
     @ObservedObject var localizationManager = LocalizationManager.shared
     @Binding var isPresented: Bool
-    @State private var showDifficultySelection = false
-    @State private var showExitConfirm = false
     @State private var showLanguageSelection = false
+    
+    // 通用羁绊测试按钮
+    private func BondTestButton(title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack {
+                Image(systemName: "wand.and.stars")
+                    .font(.title2)
+                    .foregroundColor(.purple)
+                
+                Text(title)
+                    .font(.headline)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                    .textStroke()
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .foregroundColor(.white.opacity(0.6))
+            }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.purple.opacity(0.18))
+            )
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
     
     var body: some View {
         ZStack {
@@ -25,15 +51,18 @@ struct GameSettingsView: View {
                     isPresented = false
                 }
             
-            VStack(spacing: 25) {
+            VStack(spacing: 0) {
                 // 标题
                 Text(localizationManager.localized("settings.title"))
                     .font(.title)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
                     .textStroke()
+                    .padding(.top, 20)
+                    .padding(.bottom, 15)
                 
-                // 设置选项
+                // 可滚动的内容区域
+                ScrollView {
                 VStack(spacing: 15) {
                     // 语言选择按钮
                     Button(action: {
@@ -70,23 +99,65 @@ struct GameSettingsView: View {
                     }
                     .buttonStyle(PlainButtonStyle())
 
-                    // 难度选择按钮
+                        // 羁绊测试区域标题
+                        Text("🧪 羁绊测试")
+                            .font(.headline)
+                            .fontWeight(.bold)
+                            .foregroundColor(.purple)
+                            .textStroke()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.top, 10)
+                        
+                        // 羁绊测试按钮（分组显示）
+                        VStack(spacing: 10) {
+                            // 类型羁绊组
+                            Group {
+                                BondTestButton(title: "human-3", action: { viewModel.addSymbolsForBond(nameKey: "human_3_bond") })
+                                BondTestButton(title: "human-5", action: { viewModel.addSymbolsForBond(nameKey: "human_5_bond") })
+                                BondTestButton(title: "human-10", action: { viewModel.addSymbolsForBond(nameKey: "human_10_bond") })
+                                BondTestButton(title: "material-2", action: { viewModel.addSymbolsForBond(nameKey: "material_2_bond") })
+                                BondTestButton(title: "material-4", action: { viewModel.addSymbolsForBond(nameKey: "material_4_bond") })
+                                BondTestButton(title: "cozylife-3", action: { viewModel.addSymbolsForBond(nameKey: "cozylife_3_bond") })
+                                BondTestButton(title: "cozylife-6", action: { viewModel.addSymbolsForBond(nameKey: "cozylife_6_bond") })
+                                BondTestButton(title: "tools-2", action: { viewModel.addSymbolsForBond(nameKey: "tools_2_bond") })
+                                BondTestButton(title: "tools-4", action: { viewModel.addSymbolsForBond(nameKey: "tools_4_bond") })
+                                BondTestButton(title: "classictale-2", action: { viewModel.addSymbolsForBond(nameKey: "classictale_2_bond") })
+                                BondTestButton(title: "classictale-4", action: { viewModel.addSymbolsForBond(nameKey: "classictale_4_bond") })
+                                BondTestButton(title: "classictale-6", action: { viewModel.addSymbolsForBond(nameKey: "classictale_6_bond") })
+                            }
+                            
+                            // 特殊羁绊组
+                            Group {
+                                BondTestButton(title: "merchant-trading", action: { viewModel.addSymbolsForBond(nameKey: "merchant_trading_bond") })
+                                BondTestButton(title: "vampire-curse", action: { viewModel.addSymbolsForBond(nameKey: "vampire_curse_bond") })
+                                BondTestButton(title: "death-blessing", action: { viewModel.addSymbolsForBond(nameKey: "death_blessing_bond") })
+                                BondTestButton(title: "wolf-hunter", action: { viewModel.addSymbolsForBond(nameKey: "wolf_hunter_bond") })
+                                BondTestButton(title: "element-master", action: { viewModel.addSymbolsForBond(nameKey: "element_master_bond") })
+                                BondTestButton(title: "justice", action: { viewModel.addSymbolsForBond(nameKey: "justice_bond") })
+                                BondTestButton(title: "apocalypse", action: { viewModel.addSymbolsForBond(nameKey: "apocalypse_bond") })
+                                BondTestButton(title: "human-extinction", action: { viewModel.addSymbolsForBond(nameKey: "human_extinction_bond") })
+                                BondTestButton(title: "raccoon-city", action: { viewModel.addSymbolsForBond(nameKey: "raccoon_city_bond") })
+                            }
+                        }
+                        
+                        // 测试功能：跳过所有关卡按钮
                     Button(action: {
-                        showDifficultySelection = true
+                            viewModel.skipToLastRound()
+                            isPresented = false
                     }) {
                         HStack {
-                            Image(systemName: "slider.horizontal.3")
+                                Image(systemName: "forward.fill")
                                 .font(.title2)
-                                .foregroundColor(.blue)
+                                    .foregroundColor(.orange)
 
                             VStack(alignment: .leading, spacing: 5) {
-                                Text(localizationManager.localized("settings.difficulty_settings"))
+                                    Text("🧪 跳过所有关卡")
                                     .font(.headline)
                                     .fontWeight(.bold)
                                     .foregroundColor(.white)
                                     .textStroke()
 
-                                Text("\(localizationManager.localized("settings.current")): \(localizationManager.getDifficultyName(configManager.currentDifficulty))")
+                                    Text("测试用：直接跳到第30关")
                                     .font(.caption)
                                     .foregroundColor(.white.opacity(0.8))
                                     .textStroke()
@@ -100,14 +171,16 @@ struct GameSettingsView: View {
                         .padding()
                         .background(
                             RoundedRectangle(cornerRadius: 15)
-                                .fill(Color.white.opacity(0.1))
+                                    .fill(Color.orange.opacity(0.2))
                         )
                     }
                     .buttonStyle(PlainButtonStyle())
+                        .padding(.top, 10)
                     
                     // 退出游戏按钮
                     Button(action: {
-                        showExitConfirm = true
+                        viewModel.exitToHome()
+                        isPresented = false
                     }) {
                         HStack {
                             Image(systemName: "house.fill")
@@ -139,9 +212,12 @@ struct GameSettingsView: View {
                         )
                     }
                     .buttonStyle(PlainButtonStyle())
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 20)
                 }
                 
-                // 关闭按钮
+                // 关闭按钮（固定在底部）
                 Button(localizationManager.localized("settings.close")) {
                     isPresented = false
                 }
@@ -154,20 +230,15 @@ struct GameSettingsView: View {
                     RoundedRectangle(cornerRadius: 20)
                         .fill(Color.white.opacity(0.2))
                 )
+                .padding(.bottom, 20)
             }
-            .padding(30)
+            .frame(maxWidth: 500)
+            .frame(maxHeight: UIScreen.main.bounds.height * 0.85)
             .background(
                 RoundedRectangle(cornerRadius: 25)
                     .fill(Color.black.opacity(0.9))
             )
             .padding(40)
-            
-            // 难度选择弹窗
-            if showDifficultySelection {
-                DifficultySelectionView(isPresented: $showDifficultySelection) { difficulty in
-                    viewModel.restartGame()
-                }
-            }
 
             // 语言选择弹窗
             if showLanguageSelection {
@@ -175,20 +246,6 @@ struct GameSettingsView: View {
             }
         }
         .transition(.scale)
-        // 退出确认弹窗
-        .alert(localizationManager.localized("confirmations.exit_game"), isPresented: $showExitConfirm) {
-            Button(localizationManager.localized("confirmations.cancel"), role: .cancel) { }
-            Button(localizationManager.localized("confirmations.confirm_exit"), role: .destructive) {
-                viewModel.exitToHome()
-                isPresented = false
-            }
-        } message: {
-            Text(localizationManager.localized("confirmations.exit_message"))
-        }
-    }
-    
-    private func getDifficultyName(_ difficulty: String) -> String {
-        return localizationManager.getDifficultyName(difficulty)
     }
 }
 

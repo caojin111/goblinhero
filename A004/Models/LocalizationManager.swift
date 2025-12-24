@@ -13,6 +13,8 @@ class LocalizationManager: ObservableObject {
     @Published var currentLanguage: String = "en" {
         didSet {
             saveLanguage()
+            // 通知签到配置管理器更新语言
+            DailySignInConfigManager.shared.updateLanguage()
         }
     }
     

@@ -1,0 +1,67 @@
+{
+  "rewards": [
+    {
+      "day": 1,
+      "type": "diamonds",
+      "amount": 10,
+      "description": {
+        "en": "10 💎",
+        "zh": "10 💎"
+      }
+    },
+    {
+      "day": 2,
+      "type": "coins",
+      "amount": 50,
+      "description": {
+        "en": "50 💰",
+        "zh": "50 💰"
+      }
+    },
+    {
+      "day": 3,
+      "type": "diamonds",
+      "amount": 20,
+      "description": {
+        "en": "20 💎",
+        "zh": "20 💎"
+      }
+    },
+    {
+      "day": 4,
+      "type": "stamina",
+      "amount": 30,
+      "description": {
+        "en": "30 ⚡",
+        "zh": "30 ⚡"
+      }
+    },
+    {
+      "day": 5,
+      "type": "diamonds",
+      "amount": 30,
+      "description": {
+        "en": "30 💎",
+        "zh": "30 💎"
+      }
+    },
+    {
+      "day": 6,
+      "type": "coins",
+      "amount": 100,
+      "description": {
+        "en": "100 💰",
+        "zh": "100 💰"
+      }
+    },
+    {
+      "day": 7,
+      "type": "diamonds",
+      "amount": 50,
+      "description": {
+        "en": "50 💎",
+        "zh": "50 💎"
+      }
+    }
+  ]
+}

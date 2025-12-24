@@ -37,8 +37,8 @@ struct SymbolLibrary {
     }
     
     // 获取符号选择选项（3选1）
-    static func getSymbolChoiceOptions() -> [Symbol] {
-        return configManager.getSymbolChoiceOptions()
+    static func getSymbolChoiceOptions(symbolPool: [Symbol] = []) -> [Symbol] {
+        return configManager.getSymbolChoiceOptions(symbolPool: symbolPool)
     }
     
     // 随机获取一个符号（基于权重）

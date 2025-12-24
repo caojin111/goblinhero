@@ -14,6 +14,7 @@ struct HomeSettingsView: View {
     
     @State private var showPrivacyPolicy = false
     @State private var showContactUs = false
+    @State private var showLanguageSelection = false
     
     // 获取自定义字体
     private func customFont(size: CGFloat) -> Font {
@@ -32,7 +33,7 @@ struct HomeSettingsView: View {
             VStack(spacing: 25) {
                 // 标题
                 Text(localizationManager.localized("settings.title"))
-                    .font(customFont(size: 28))
+                    .font(customFont(size: 38)) // 从 33 增加到 38（+5）
                     .foregroundColor(.white)
                     .textStroke()
                 
@@ -44,17 +45,10 @@ struct HomeSettingsView: View {
                             .font(.title2)
                             .foregroundColor(.purple)
                         
-                        VStack(alignment: .leading, spacing: 5) {
-                            Text(localizationManager.localized("settings.music"))
-                                .font(customFont(size: 17))
-                                .foregroundColor(.white)
-                                .textStroke()
-                            
-                            Text(localizationManager.localized("settings.music_description"))
-                                .font(customFont(size: 12))
-                                .foregroundColor(.white.opacity(0.8))
-                                .textStroke()
-                        }
+                        Text(localizationManager.localized("settings.music"))
+                            .font(customFont(size: 22)) // 从 17 增加到 22（+5）
+                            .foregroundColor(.white)
+                            .textStroke()
                         
                         Spacer()
                         
@@ -74,17 +68,10 @@ struct HomeSettingsView: View {
                             .font(.title2)
                             .foregroundColor(.blue)
                         
-                        VStack(alignment: .leading, spacing: 5) {
-                            Text(localizationManager.localized("settings.sound_effects"))
-                                .font(customFont(size: 17))
-                                .foregroundColor(.white)
-                                .textStroke()
-                            
-                            Text(localizationManager.localized("settings.sound_effects_description"))
-                                .font(customFont(size: 12))
-                                .foregroundColor(.white.opacity(0.8))
-                                .textStroke()
-                        }
+                        Text(localizationManager.localized("settings.sound_effects"))
+                            .font(customFont(size: 22)) // 从 17 增加到 22（+5）
+                            .foregroundColor(.white)
+                            .textStroke()
                         
                         Spacer()
                         
@@ -97,6 +84,40 @@ struct HomeSettingsView: View {
                         RoundedRectangle(cornerRadius: 15)
                             .fill(Color.white.opacity(0.1))
                     )
+                    
+                    // 语言选择按钮
+                    Button(action: {
+                        showLanguageSelection = true
+                    }) {
+                        HStack {
+                            Image(systemName: "globe")
+                                .font(.title2)
+                                .foregroundColor(.cyan)
+                            
+                            VStack(alignment: .leading, spacing: 5) {
+                                Text(localizationManager.localized("settings.language"))
+                                    .font(customFont(size: 22)) // 从 17 增加到 22（+5）
+                                    .foregroundColor(.white)
+                                    .textStroke()
+                                
+                                Text("\(localizationManager.getAvailableLanguages().first { $0.code == localizationManager.currentLanguage }?.name ?? "Unknown")")
+                                    .font(customFont(size: 16))
+                                    .foregroundColor(.white.opacity(0.8))
+                                    .textStroke()
+                            }
+                            
+                            Spacer()
+                            
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.white.opacity(0.6))
+                        }
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 15)
+                                .fill(Color.white.opacity(0.1))
+                        )
+                    }
+                    .buttonStyle(PlainButtonStyle())
                     
                     Divider()
                         .background(Color.white.opacity(0.3))
@@ -111,17 +132,10 @@ struct HomeSettingsView: View {
                                 .font(.title2)
                                 .foregroundColor(.green)
                             
-                            VStack(alignment: .leading, spacing: 5) {
-                                Text(localizationManager.localized("settings.privacy_policy"))
-                                    .font(customFont(size: 17))
-                                    .foregroundColor(.white)
-                                    .textStroke()
-                                
-                                Text(localizationManager.localized("settings.privacy_policy_description"))
-                                    .font(customFont(size: 12))
-                                    .foregroundColor(.white.opacity(0.8))
-                                    .textStroke()
-                            }
+                            Text(localizationManager.localized("settings.privacy_policy"))
+                                .font(customFont(size: 22)) // 从 17 增加到 22（+5）
+                                .foregroundColor(.white)
+                                .textStroke()
                             
                             Spacer()
                             
@@ -145,17 +159,41 @@ struct HomeSettingsView: View {
                                 .font(.title2)
                                 .foregroundColor(.orange)
                             
-                            VStack(alignment: .leading, spacing: 5) {
-                                Text(localizationManager.localized("settings.contact_us"))
-                                    .font(customFont(size: 17))
-                                    .foregroundColor(.white)
-                                    .textStroke()
-                                
-                                Text(localizationManager.localized("settings.contact_us_description"))
-                                    .font(customFont(size: 12))
-                                    .foregroundColor(.white.opacity(0.8))
-                                    .textStroke()
-                            }
+                            Text(localizationManager.localized("settings.contact_us"))
+                                .font(customFont(size: 22)) // 从 17 增加到 22（+5）
+                                .foregroundColor(.white)
+                                .textStroke()
+                            
+                            Spacer()
+                            
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.white.opacity(0.6))
+                        }
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 15)
+                                .fill(Color.white.opacity(0.1))
+                        )
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    
+                    // Discord 按钮
+                    Button(action: {
+                        audioManager.playSoundEffect("click", fileExtension: "wav")
+                        if let url = URL(string: "https://discord.gg/genAZ3Kp") {
+                            UIApplication.shared.open(url)
+                        }
+                    }) {
+                        HStack {
+                            Image("Discord")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 28, height: 28)
+                            
+                            Text("Discord")
+                                .font(customFont(size: 22)) // 从 17 增加到 22（+5）
+                                .foregroundColor(.white)
+                                .textStroke()
                             
                             Spacer()
                             
@@ -173,9 +211,10 @@ struct HomeSettingsView: View {
                 
                 // 关闭按钮
                 Button(localizationManager.localized("settings.close")) {
+                    audioManager.playSoundEffect("click", fileExtension: "wav")
                     isPresented = false
                 }
-                .font(customFont(size: 17))
+                .font(customFont(size: 22)) // 从 17 增加到 22（+5）
                 .foregroundColor(.white)
                 .textStroke()
                 .padding(.horizontal, 30)
@@ -201,6 +240,11 @@ struct HomeSettingsView: View {
             if showContactUs {
                 ContactUsView(isPresented: $showContactUs)
             }
+            
+            // 语言选择弹窗
+            if showLanguageSelection {
+                LanguageSelectionView(isPresented: $showLanguageSelection)
+            }
         }
         .transition(.scale)
     }
@@ -210,6 +254,7 @@ struct HomeSettingsView: View {
 struct PrivacyPolicyView: View {
     @Binding var isPresented: Bool
     @ObservedObject var localizationManager = LocalizationManager.shared
+    @ObservedObject var audioManager = AudioManager.shared
     
     var body: some View {
         ZStack {
@@ -223,7 +268,7 @@ struct PrivacyPolicyView: View {
                 // 标题
                 HStack {
                     Text(localizationManager.localized("settings.privacy_policy"))
-                        .font(.title2)
+                        .font(.title) // 从 .title2 增加到 .title（+5）
                         .fontWeight(.bold)
                         .foregroundColor(.white)
                     
@@ -241,16 +286,17 @@ struct PrivacyPolicyView: View {
                 // 内容
                 ScrollView {
                     Text(localizationManager.localized("settings.privacy_policy_content"))
-                        .font(.body)
+                        .font(.title3) // 从 .body 增加到 .title3（+5）
                         .foregroundColor(.white.opacity(0.9))
                         .lineSpacing(8)
                 }
                 
                 // 关闭按钮
                 Button(localizationManager.localized("settings.close")) {
+                    audioManager.playSoundEffect("click", fileExtension: "wav")
                     isPresented = false
                 }
-                .font(.headline)
+                .font(.title3) // 从 .headline 增加到 .title3（+5）
                 .foregroundColor(.white)
                 .padding(.horizontal, 30)
                 .padding(.vertical, 12)
@@ -274,6 +320,7 @@ struct PrivacyPolicyView: View {
 struct ContactUsView: View {
     @Binding var isPresented: Bool
     @ObservedObject var localizationManager = LocalizationManager.shared
+    @ObservedObject var audioManager = AudioManager.shared
     @State private var emailSubject: String = ""
     @State private var emailBody: String = ""
     
@@ -289,7 +336,7 @@ struct ContactUsView: View {
                 // 标题
                 HStack {
                     Text(localizationManager.localized("settings.contact_us"))
-                        .font(.title2)
+                        .font(.title) // 从 .title2 增加到 .title（+5）
                         .fontWeight(.bold)
                         .foregroundColor(.white)
                     
@@ -307,7 +354,7 @@ struct ContactUsView: View {
                 // 内容
                 VStack(spacing: 15) {
                     Text(localizationManager.localized("settings.contact_us_content"))
-                        .font(.body)
+                        .font(.title3) // 从 .body 增加到 .title3（+5）
                         .foregroundColor(.white.opacity(0.9))
                         .multilineTextAlignment(.center)
                     
@@ -321,7 +368,7 @@ struct ContactUsView: View {
                             Image(systemName: "envelope.fill")
                             Text("support@example.com")
                         }
-                        .font(.headline)
+                        .font(.title3) // 从 .headline 增加到 .title3（+5）
                         .foregroundColor(.blue)
                         .padding()
                         .background(
@@ -333,9 +380,10 @@ struct ContactUsView: View {
                 
                 // 关闭按钮
                 Button(localizationManager.localized("settings.close")) {
+                    audioManager.playSoundEffect("click", fileExtension: "wav")
                     isPresented = false
                 }
-                .font(.headline)
+                .font(.title3) // 从 .headline 增加到 .title3（+5）
                 .foregroundColor(.white)
                 .padding(.horizontal, 30)
                 .padding(.vertical, 12)

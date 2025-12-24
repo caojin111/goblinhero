@@ -13,6 +13,12 @@
       "home": {
         "personal_records": "🏆 Personal Records",
         "best_round": "Best Round",
+        "best_level": "best level:",
+        "goblin": "[Goblin]",
+        "start": "Start",
+        "shop": "shop",
+        "settings": "settings",
+        "sign_in": "sign-in",
         "total_coins": "Total Coins",
         "start_game": "Start Game",
         "stamina_insufficient": "Insufficient Stamina"
@@ -91,12 +97,32 @@
         "legendary": "Legendary"
       },
       "symbol_type": {
-        "fruit": "Fruit",
-        "coin": "Coin",
-        "animal": "Animal",
-        "special": "Special",
-        "gem": "Gem",
-        "magic": "Magic"
+        "human": "Human",
+        "childish": "Childish",
+        "trading": "Trading",
+        "worship": "Worship",
+        "classic tale": "Classic Tale",
+        "elf": "Elf",
+        "forest": "Forest",
+        "live or dead": "Live or Dead",
+        "vampire note": "Vampire Note",
+        "monster": "Monster",
+        "god": "God",
+        "element": "Element",
+        "made a wish": "Made a Wish",
+        "material": "Material",
+        "tool": "Tool",
+        "equipment": "Equipment",
+        "cozy life": "Cozy Life",
+        "box": "Box",
+        "alien": "Alien",
+        "fantasy": "Fantasy",
+        "fantacy": "Fantasy",
+        "weapon": "Weapon",
+        "ninja": "Ninja",
+        "first aid": "First Aid",
+        "extinction": "Extinction",
+        "Extinction": "Extinction"
       },
       "game": {
         "start": "Start",
@@ -110,18 +136,22 @@
         "ore": "🪨 Ore",
         "empty": "Empty",
         "roll_dice": "Roll Dice",
+        "roll": "ROLL",
         "roll_single_dice": "Roll Dice (1-6)",
         "roll_multiple_dice": "Roll {count} Dice",
-        "my_symbol_pool": "My Symbol Pool ({count} types)",
-        "select_first_symbol": "🎯 Select Your First Symbol",
-        "select_symbol": "🎯 Select a Symbol",
-        "first_round_hint": "Select symbol to start your first round",
-        "symbol_hint": "Select symbol to increase its appearance probability",
+        "my_symbol_pool": "My Symbol Pool ({count})",
+        "active_bonds": "Active Bonds",
+        "select_first_symbol": "Select Your First Symbol",
+        "select_symbol": "Select a Symbol",
+        "first_round_hint": "Choose a symbol to add to your symbol pool",
+        "symbol_hint": "Choose a symbol to add to your symbol pool",
         "symbol_value": "💰 {value} Coins",
         "debug_panel": "🔍 Debug Panel",
         "settlement_logs": "Settlement Logs",
         "board_status": "Board Status",
         "no_logs": "No settlement logs yet\nLogs will appear after rolling dice",
+        "tap_to_accelerate": "Tap here to accelerate",
+        "next_goal": "next goal",
         "hide": "Hide",
         "show": "Show",
         "copy": "Copy",
@@ -150,6 +180,8 @@
       },
       "game_over": {
         "title": "😢 Game Over",
+        "you_win": "You win!",
+        "victory_message": "Congratulations! You successfully completed all 30 rounds!",
         "survival_rounds": "Survival Rounds",
         "final_coins": "Final Coins",
         "total_coins": "Total Coins",
@@ -160,7 +192,8 @@
         "exit_message": "Are you sure you want to exit the current game and return to the home screen?",
         "cancel": "Cancel",
         "confirm": "Confirm",
-        "confirm_exit": "Confirm Exit"
+        "confirm_exit": "Confirm Exit",
+        "back_to_home": "Back to Home"
       },
       "status": {
         "coming_soon": "Coming Soon...",
@@ -181,15 +214,23 @@
         "start": "Start",
         "page1": {
           "title": "Welcome to the Goblin World",
-          "content": "In a mysterious underground cave, brave goblins mine for treasures. You are their leader, guiding them through endless adventures!"
+          "content": "Long ago, the various civilized forces in the world had been entangled in conflicts for hundreds of years, never ceasing."
         },
         "page2": {
           "title": "Mine and Collect",
-          "content": "Use dice to mine ore, collect symbols, and earn coins. Each symbol has unique value. Strategically choose your symbols to maximize your earnings!"
+          "content": "But one day, an alien civilization invaded this world. They ruthlessly wiped out the civilizations that had existed for thousands of years, leaving nothing behind."
         },
         "page3": {
           "title": "Survive and Thrive",
-          "content": "Pay rent each round to continue your adventure. The deeper you go, the greater the challenges and rewards. Can you reach the ultimate depths?"
+          "content": "All races were also turned into symbols by alien rays and buried deep underground."
+        },
+        "page4": {
+          "title": "Bonds and Synergies",
+          "content": "After the war, the goblins living in the caves escaped the disaster. By the time they realized what had happened, they were the only remaining race in the world."
+        },
+        "page5": {
+          "title": "Begin Your Journey",
+          "content": "All hope rests on the goblins. They have decided to dig up all the symbols from underground to save the living beings and gain more gold coins to rebuild civilization."
         }
       },
       "tutorial": {
@@ -198,16 +239,16 @@
         "previous": "Previous",
         "complete": "Got it!",
         "step1": {
-          "title": "Start Your Adventure",
-          "description": "Tap the Start Game button to begin your mining adventure. Make sure you have enough stamina!"
+          "title": "Start Game",
+          "description": "Click here to take control of the goblins for digging expeditions—unearth more symbols, form more bonds, and earn more gold coins!"
         },
         "step2": {
-          "title": "Manage Your Resources",
-          "description": "Keep an eye on your diamonds and stamina at the top right. Tap the + button to purchase more resources."
+          "title": "Explore the Shop",
+          "description": "Click here to browse the diverse array of goods. You can get plenty of useful items for your digging endeavors!"
         },
         "step3": {
-          "title": "Visit the Store",
-          "description": "Check out the store to unlock new goblins, purchase stamina, and claim daily rewards!"
+          "title": "7-Day sign-in",
+          "description": "Click here to log in and check in daily. A huge number of rewards will be given to you for free!"
         }
       },
       "sign_in": {
@@ -263,311 +304,405 @@
       "symbols": {
         "child": {
           "name": "Child",
-          "description": "child"
+          "description": "Obtain 1 <color=#080909>Nun</color>"
         },
         "merchant": {
           "name": "Merchant",
-          "description": "merchant"
+          "description": "Remove the symbol with the highest rarity among all <color=#E74875>#Materials</color>, and gain gold coins equal to 10 times its base value"
         },
         "barbarian": {
           "name": "Barbarian",
-          "description": "barbarian"
+          "description": "For each <color=#E74875>#Alien</color> symbol in the symbol pool, lose 5 gold coins; for each <color=#E74875>#Monster</color> symbol, gain 20 gold coins"
         },
         "farmer": {
           "name": "Farmer",
-          "description": "farmer"
+          "description": "Obtain 5 random <color=#E74875>#Tools</color> symbols"
         },
         "soldier": {
           "name": "Soldier",
-          "description": "soldier"
+          "description": "If a <color=#AA2ABB>Paladin</color> is about to be removed by other symbols, remove yourself to cancel one removal of the <color=#AA2ABB>Paladin</color>"
         },
         "village_chief": {
           "name": "Village Chief",
-          "description": "village_chief"
+          "description": "Obtain 5 random <color=#E74875>#Humans</color> symbols and gain 10 gold coins"
         },
         "forest_fairy": {
-          "name": "Forest Fairy",
-          "description": "forest_fairy"
+          "name": "Forest Sprite",
+          "description": "Remove all <color=#147ED9>Dark Moon Sprites</color> from the symbol pool; gain 100 gold coins per sprite eliminated"
         },
         "dark_moon_fairy": {
-          "name": "Dark Moon Fairy",
-          "description": "dark_moon_fairy"
+          "name": "Dark Moon Sprite",
+          "description": "Remove all <color=#147ED9>Starlight Sprites</color> from the symbol pool; gain 100 gold coins per sprite eliminated"
         },
         "starlight_fairy": {
-          "name": "Starlight Fairy",
-          "description": "starlight_fairy"
+          "name": "Starlight Sprite",
+          "description": "Remove all <color=#147ED9>Forest Sprites</color> from the symbol pool; gain 100 gold coins per sprite eliminated"
         },
         "healer": {
           "name": "Healer",
-          "description": "healer"
+          "description": "Obtain 1 each of <color=#080909>Holy Vial</color>, <color=#080909>Battery</color>, and <color=#080909>Medkit</color>"
         },
         "paladin": {
           "name": "Paladin",
-          "description": "paladin"
+          "description": "Obtain 3 random <color=#E74875>#Human</color> symbols. Remove all <color=#E74875>#Monsters</color> from the symbol pool; gain 100 gold coins per monster eliminated"
         },
         "nun": {
           "name": "Nun",
-          "description": "nun"
+          "description": "Obtain 1 <color=#080909>Cross</color>"
         },
         "ancient_tree_elder": {
           "name": "Ancient Tree Elder",
-          "description": "ancient_tree_elder"
+          "description": "Add 1 <color=#080909>Earth Elemental</color> to the symbol pool"
         },
         "thief": {
           "name": "Thief",
-          "description": "thief"
+          "description": "Obtain 2 <color=#E74875>#Tools</color> symbols that you do not currently own"
         },
         "princess": {
           "name": "Princess",
-          "description": "princess"
+          "description": "If there are 5 different <color=#E74875>#Humans</color> symbols in the symbol pool, obtain 1 <color=#AA2ABB>Paladin</color>"
         },
         "vampire": {
           "name": "Vampire",
-          "description": "vampire"
+          "description": "Eliminate 5 <color=#E74875>#Humans</color> from the symbol pool to get 10 random <color=#E74875>#Materials</color> symbols."
         },
         "hunter": {
           "name": "Hunter",
-          "description": "hunter"
+          "description": "Get 2 random <color=#E74875>#Equipment</color> symbols. Gain 200 gold coins from the <color=#AA2ABB>Vampires</color> in the symbol pool and yourself."
         },
         "female_ninja": {
           "name": "Female Ninja",
-          "description": "female_ninja"
+          "description": "Never appears in the mine. If there is a <color=#080909>Male Ninja</color> in the symbol pool, eliminate all <color=#147ED9>Zombies</color> from the symbol pool."
         },
         "male_ninja": {
           "name": "Male Ninja",
-          "description": "male_ninja"
+          "description": "Never appears in the mine. If there is a <color=#080909>Female Ninja</color> in the symbol pool, eliminate all <color=#147ED9>Zombies</color> from the symbol pool at the start of each round."
         },
         "god_of_strength": {
           "name": "God of Strength",
-          "description": "god_of_strength"
+          "description": "+300 gold coins for the next gold gain. Removed from the symbol pool after being dug up (eliminate yourself)."
         },
         "god_of_speed": {
           "name": "God of Speed",
-          "description": "god_of_speed"
+          "description": "Gain an extra chance to select symbols. Removed from the symbol pool after being dug up (eliminate yourself)."
         },
         "god_of_harvest": {
           "name": "God of Harvest",
-          "description": "god_of_harvest"
+          "description": "Settle the next gold gain twice (double the profit). Removed from the symbol pool after being dug up (eliminate yourself)."
         },
         "god_of_luck": {
           "name": "God of Luck",
-          "description": "god_of_luck"
+          "description": "Get an extra dice to use for the next roll (temporary +1 dice). Removed from the symbol pool after being dug up (eliminate yourself)."
         },
         "death": {
-          "name": "Death",
-          "description": "death"
+          "name": "God of Death",
+          "description": "Eliminate half the number of symbols in the symbol pool."
         },
         "water_element": {
-          "name": "Water Element",
-          "description": "Spawn a random element other than 'Water Element' to symbol pool. If symbol pool has all five elements (Water, Fire, Thunder, Ice, Earth), gain 500 coins at round start (triggers at round start)"
+          "name": "Water Elemental",
+          "description": "Generate a random elemental other than the <color=#080909>Water Elemental</color> into the symbol pool."
         },
         "fire_element": {
-          "name": "Fire Element",
-          "description": "Spawn a random element other than 'Fire Element' to symbol pool. If symbol pool has all five elements (Water, Fire, Thunder, Ice, Earth), gain 500 coins at round start (triggers at round start)"
+          "name": "Fire Elemental",
+          "description": "Generate a random elemental other than the <color=#080909>Fire Elemental</color> into the symbol pool."
         },
         "thunder_element": {
-          "name": "Thunder Element",
-          "description": "Spawn a random element other than 'Thunder Element' to symbol pool. If symbol pool has all five elements (Water, Fire, Thunder, Ice, Earth), gain 500 coins at round start (triggers at round start)"
+          "name": "Thunder Elemental",
+          "description": "Generate a random elemental other than the <color=#080909>Thunder Elemental</color> into the symbol pool."
         },
         "ice_element": {
-          "name": "Ice Element",
-          "description": "Spawn a random element other than 'Ice Element' to symbol pool. If symbol pool has all five elements (Water, Fire, Thunder, Ice, Earth), gain 500 coins at round start (triggers at round start)"
+          "name": "Ice Elemental",
+          "description": "Generate a random elemental other than the <color=#080909>Ice Elemental</color> into the symbol pool."
         },
         "earth_element": {
-          "name": "Earth Element",
-          "description": "Spawn a random element other than 'Earth Element' to symbol pool. If symbol pool has all five elements (Water, Fire, Thunder, Ice, Earth), gain 500 coins at round start (triggers at round start)"
+          "name": "Earth Elemental",
+          "description": "Generate a random elemental other than the <color=#080909>Earth Elemental</color> into the symbol pool."
         },
         "rock": {
-          "name": "Rock",
-          "description": "If there is a symbol with 'tool' type in the symbol pool, remove itself and gain 20 coins"
+          "name": "Stone",
+          "description": "If there are <color=#E74875>#Tools</color> symbols in the symbol pool, remove yourself from the symbol pool and get 2 random <color=#E74875>#Materials</color> symbols."
         },
         "cross": {
           "name": "Cross",
-          "description": "If in symbol pool, doubles the weight of 'Hunter' (global permanent buff, only for current game)"
+          "description": "Get a <color=#080909>Hunter</color>."
         },
         "book_of_the_dead": {
           "name": "Book of the Dead",
-          "description": "Remove itself from symbol pool, spawn a 'Death' to symbol pool"
+          "description": "Remove yourself and 1 <color=#080909>Cross</color> from the symbol pool, and generate a <color=#AA2ABB>God of Death</color> into the symbol pool."
         },
         "hypnosis_pendulum": {
-          "name": "Hypnosis Pendulum",
-          "description": "Remove itself from symbol pool, randomly spawn one of 'Princess', 'Female Ninja', or 'Nun' to symbol pool"
+          "name": "Hypnotic Pendulum",
+          "description": "Remove yourself from the symbol pool and randomly generate one of <color=#147ED9>Princess</color>, <color=#080909>Female Ninja</color> or <color=#080909>Nun</color> into the symbol pool."
         },
         "dragon_fire_gun": {
-          "name": "Dragon Fire Gun",
-          "description": "If 'Soldier' is mined this time, gain 5 extra coins"
+          "name": "Dragon Firearm",
+          "description": "Eliminate a random <color=#E74875>#Monster</color> from the symbol pool to get 50 gold coins."
         },
         "rune_armor": {
           "name": "Rune Armor",
-          "description": "If 'Paladin' is mined this time, gain 10 extra coins"
+          "description": "Get 2 random <color=#E74875>#Classic Legends</color> symbols."
         },
         "dawn_messenger_staff": {
           "name": "Dawn Messenger Staff",
-          "description": "If 'Princess' is mined this time, gain 20 extra coins"
+          "description": "Get a <color=#147ED9>Princess</color>."
         },
         "holy_bottle": {
-          "name": "Holy Bottle",
-          "description": "If 'Nun' is mined this time, remove itself and spawn a 'Water Element' to symbol pool"
+          "name": "Holy Water Bottle",
+          "description": "Get a <color=#AA2ABB>Dice</color> symbol."
         },
         "contract_scroll": {
           "name": "Contract Scroll",
-          "description": "Remove itself from symbol pool, randomly spawn one of 'Forest Fairy', 'Dark Moon Fairy', or 'Starlight Fairy' to symbol pool"
+          "description": "Remove yourself from the symbol pool and randomly generate one of <color=#147ED9>Forest Fairy</color>, <color=#147ED9>Dark Moon Fairy</color> or <color=#147ED9>Starlight Fairy</color> into the symbol pool."
         },
         "shuriken": {
           "name": "Shuriken",
-          "description": "If there is 'Female Ninja' or 'Male Ninja' in symbol pool, gain 10 extra coins"
+          "description": "If there are <color=#080909>Female Ninja</color> or <color=#080909>Male Ninja</color> in the symbol pool, get an extra 30 gold coins."
         },
         "diary": {
           "name": "Diary",
-          "description": "If 'Vampire' is mined this time, remove itself and spawn a 'Vampire' to symbol pool"
+          "description": "Remove yourself from the symbol pool and generate a <color=#AA2ABB>Vampire</color> into the symbol pool."
         },
         "ring": {
           "name": "Ring",
-          "description": "If 'Mobile Phone' is mined this time, spawn a 'Thunder Element' to symbol pool"
+          "description": "Get 1 random <color=#E74875>#Cozy Life</color> symbol."
         },
         "mobile_phone": {
           "name": "Mobile Phone",
-          "description": "If 'Ring' is mined this time, spawn a 'Thunder Element' to symbol pool"
+          "description": "Get 1 random <color=#E74875>#Cozy Life</color> symbol."
         },
         "glasses": {
           "name": "Glasses",
-          "description": "If 'Tie' is mined this time, spawn a 'Fire Element' to symbol pool"
+          "description": "Get 1 random <color=#E74875>#Cozy Life</color> symbol."
         },
         "tie": {
-          "name": "Tie",
-          "description": "If 'Glasses' is mined this time, spawn a 'Fire Element' to symbol pool"
+          "name": "Bow Tie",
+          "description": "Get 1 random <color=#E74875>#Cozy Life</color> symbol."
         },
         "magatama": {
           "name": "Magatama",
-          "description": "No effect (base coin value affected by Merchant buff)"
+          "description": "Increase the base value of all <color=#080909>Normal</color> rarity symbols by 5."
         },
         "battery": {
           "name": "Battery",
-          "description": "Remove itself from symbol pool, spawn a 'Spaceship' to symbol pool"
+          "description": "Remove yourself from the symbol pool and generate a <color=#147ED9>Spaceship</color> into the symbol pool."
         },
         "medical_kit": {
           "name": "Medical Kit",
-          "description": "If 'Healer' is mined this time, spawn a 'Wind Element' to symbol pool (Note: if Wind Element doesn't exist, spawn other element or ignore)"
+          "description": "Get a <color=#080909>Healer</color>."
         },
         "coin": {
           "name": "Coin",
-          "description": "No effect (base coin value affected by Merchant buff)"
+          "description": "Eliminate yourself and get 2 random <color=#E74875>Materials</color> symbols."
         },
         "pillow": {
           "name": "Pillow",
-          "description": "If 'Child' is mined this time, remove itself and gain 20 coins"
+          "description": "Eliminate 2 symbols other than <color=#E74875>#Cozy Life</color>."
         },
         "eye_mask": {
           "name": "Eye Mask",
-          "description": "If 'Child' is mined this time, remove itself and gain 10 coins"
+          "description": "Eliminate 2 symbols other than <color=#E74875>#Cozy Life</color>."
         },
         "talisman_paper": {
           "name": "Talisman Paper",
-          "description": "If 'Werewolf' is mined this time, eliminate 'Werewolf' and itself from symbol pool, gain 100 coins"
+          "description": "Eliminate the <color=#080909>Werewolf</color> and yourself to get 100 gold coins."
         },
         "pumpkin_head": {
           "name": "Pumpkin Head",
-          "description": "No effect"
+          "description": "Get a <color=#080909>Child</color>."
         },
         "snowflake": {
           "name": "Snowflake",
-          "description": "For each 'Farmer' in symbol pool, gain 5 extra coins"
+          "description": "Get a <color=#080909>Farmer</color>."
         },
         "firecracker": {
           "name": "Firecracker",
-          "description": "For each 'Farmer' in symbol pool, gain 10 extra coins"
+          "description": "Get a <color=#AA2ABB>Horn</color>."
         },
         "lantern": {
           "name": "Lantern",
-          "description": "No effect"
+          "description": "Get a <color=#080909>Merchant</color>."
         },
         "toy_duck": {
-          "name": "Toy Duck",
-          "description": "No effect"
+          "name": "Rubber Duck",
+          "description": "Get 1 random <color=#E74875>#Tools</color> symbol."
         },
         "wine_bottle": {
           "name": "Wine Bottle",
-          "description": "If 'Barbarian' is mined this time, gain 20 extra coins"
+          "description": "Get a <color=#080909>Barbarian</color>."
         },
         "briefcase": {
           "name": "Briefcase",
-          "description": "If 'Merchant' is mined this time, remove itself and gain 20 coins"
+          "description": "Get 1 <color=#080909>Village Chief</color>."
         },
         "hoe": {
-          "name": "Hoe",
-          "description": "50% chance to spawn 'Flower Fairy' to symbol pool, 50% chance to spawn 'Zombie' to symbol pool"
+          "name": "Axe",
+          "description": "50% chance to generate 1 <color=#080909>Flower Spirit</color> into the symbol pool, 50% chance to generate 1 <color=#147ED9>Zombie</color> into the symbol pool."
         },
         "horn": {
           "name": "Horn",
-          "description": "Spawn 5 'Soldiers' to symbol pool"
+          "description": "Generate 5 <color=#147ED9>Soldiers</color> into the symbol pool."
         },
         "iron_box": {
-          "name": "Iron Box",
-          "description": "No effect"
+          "name": "Iron Chest",
+          "description": "Get a <color=#080909>Iron Key</color>."
         },
         "silver_box": {
-          "name": "Silver Box",
-          "description": "No effect"
+          "name": "Silver Chest",
+          "description": "Get a <color=#147ED9>Silver Key</color>."
         },
         "iron_key": {
           "name": "Iron Key",
-          "description": "Eliminate an 'Iron Box' from symbol pool, gain 10 coins"
+          "description": "Eliminate 1 <color=#080909>Iron Chest</color> from the symbol pool to get 50 gold coins."
         },
         "silver_key": {
           "name": "Silver Key",
-          "description": "Eliminate a 'Silver Box' from symbol pool, gain 20 coins"
+          "description": "Eliminate 1 <color=#147ED9>Silver Chest</color> from the symbol pool to get 100 gold coins."
         },
         "master_key": {
           "name": "Master Key",
-          "description": "Eliminate a higher level box (prefer Silver Box) from symbol pool, gain box baseValue × 2 coins"
+          "description": "Eliminate a higher-level chest from the symbol pool (prioritize <color=#147ED9>Silver Chest</color>) to get double the gold coins of the chest."
         },
         "flower_fairy": {
-          "name": "Flower Fairy",
-          "description": "No effect (At round start: every 3 'Flower Fairies' in symbol pool automatically combine into 1 'Forest Fairy', remove 3 'Flower Fairies')"
+          "name": "Flower Spirit",
+          "description": "Eliminate 3 <color=#080909>Flower Spirits</color> from the symbol pool to get 1 <color=#147ED9>Forest Fairy</color>."
         },
         "werewolf": {
           "name": "Werewolf",
-          "description": "If exists in symbol pool, reduce 20 coins at round start (triggers at round start)"
+          "description": "Eliminate 2 <color=#E74875>#Humans</color> from the symbol pool to get 10 random <color=#E74875>#Tools</color> symbols."
         },
         "zombie": {
           "name": "Zombie",
-          "description": "Infect a symbol with type1 or type2 containing 'human' in symbol pool to become 'Zombie'. For each 'Zombie' in symbol pool, coins +5"
+          "description": "Eliminate 1 random <color=#E74875>#Human</color> symbol."
         },
         "one_eyed_monster": {
-          "name": "One-Eyed Monster",
-          "description": "First time mined: 6 coins, second time: 5 coins, decreasing to 0 (counter resets each round)"
+          "name": "Cyclops",
+          "description": "Get 30 gold coins when dug up for the first time, 20 gold coins for the second time, decreasing by 10 each time until it reaches 0."
         },
         "gomorrah": {
-          "name": "Gomorrah",
-          "description": "Randomly eliminate a symbol other than itself from symbol pool, gain 30 coins"
+          "name": "Gomora",
+          "description": "Randomly eliminate 1 symbol other than itself from the symbol pool to get 50 gold coins."
         },
         "ray_gun": {
           "name": "Ray Gun",
-          "description": "If 'Alien Helmet' and 'Spaceship' are both mined this time, gain 40 coins (three items counted only once)"
+          "description": "Get 1 random <color=#E74875>#Alien</color> symbol."
         },
         "alien_helmet": {
           "name": "Alien Helmet",
-          "description": "If 'Ray Gun' and 'Spaceship' are both mined this time, gain 40 coins (three items counted only once)"
+          "description": "Get 1 random <color=#E74875>#Alien</color> symbol."
         },
         "spaceship": {
           "name": "Spaceship",
-          "description": "If 'Alien Helmet' and 'Ray Gun' are both mined this time, gain 40 coins (three items counted only once)"
+          "description": "Get 1 random <color=#E74875>#Alien</color> symbol."
         },
         "mind_controller": {
           "name": "Mind Controller",
-          "description": "Randomly convert a symbol in symbol pool to type1='material' (keep original name and icon, only change types)"
+          "description": "Randomly transform 1 symbol in the symbol pool into a <color=#E74875>#Monster</color> symbol."
         },
         "meteorite": {
           "name": "Meteorite",
-          "description": "If there is 'Gomorrah' in symbol pool, eliminate 'Gomorrah' from symbol pool, gain 30 coins"
+          "description": "If there is a <color=#AA2ABB>Gomora</color> in the symbol pool, eliminate the <color=#AA2ABB>Gomora</color> from the symbol pool to get 300 gold coins."
         },
         "dice": {
           "name": "Dice",
-          "description": "Permanently increase dice count by 1. Remove itself from symbol pool after being mined"
+          "description": "Permanently increase the number of <color=#AA2ABB>Dice</color> by 1. Removed from the symbol pool after being dug up."
         },
         "magic_bag": {
           "name": "Magic Bag",
-          "description": "Randomly spawn 3~5 random symbols to symbol pool"
+          "description": "Randomly generate 3~5 random symbols into the symbol pool."
+        },
+        "artwork": {
+          "name": "Art Work",
+          "description": "Generate 5 <color=#080909>Merchants</color>."
+        }
+      },
+      "bonds": {
+        "child_merchant_bond": {
+          "name": "Child & Merchant Bond",
+          "description": "When you have both Child and Merchant symbols, gain +5 coins per turn"
+        },
+        "merchant_trading_bond": {
+          "name": "Shrewd Merchant",
+          "description": "Magatama and Coin base coin value +20"
+        },
+        "vampire_curse_bond": {
+          "name": "Vampire's Curse",
+          "description": "If Vampire and Tie exist simultaneously in symbol pool, lose 50 coins at the start of each turn (triggers at round start)"
+        },
+        "death_blessing_bond": {
+          "name": "Death's Blessing",
+          "description": "Gain 1000 coins for the next 5 turns, but the game will forcefully end after 5 turns"
+        },
+        "wolf_hunter_bond": {
+          "name": "Wolf Hunters",
+          "description": "If Werewolf and Hoe exist simultaneously in symbol pool, lose 20 coins each turn"
+        },
+        "element_master_bond": {
+          "name": "Element Master",
+          "description": "If symbol pool has all five elements, gain 500 coins each turn"
+        },
+        "justice_bond": {
+          "name": "Justice Prevails",
+          "description": "If Cross and Nun exist simultaneously in symbol pool, Hunter's spawn probability doubles"
+        },
+        "apocalypse_bond": {
+          "name": "Apocalypse",
+          "description": "If Gomorrah, Zombie, Werewolf, and Vampire exist simultaneously in symbol pool, randomly eliminate half of symbols at the start of next turn and gain 2000 coins"
+        },
+        "human_extinction_bond": {
+          "name": "Human Extinction",
+          "description": "If Ray Gun, Alien Helmet, Spaceship, and Mind Controller exist simultaneously in symbol pool, eliminate one human at the start of next turn and gain 300 coins"
+        },
+        "raccoon_city_bond": {
+          "name": "raccoon-city",
+          "description": "Infect one human into a zombie before each mining. Gain +5 coins for each zombie"
+        },
+        "human_3_bond": {
+          "name": "human-3",
+          "description": "Gain 1 random Human each round."
+        },
+        "human_5_bond": {
+          "name": "human-5",
+          "description": "All Human symbols gain +10 base value."
+        },
+        "human_10_bond": {
+          "name": "human-10",
+          "description": "+50 coins per Human in pool on each spin."
+        },
+        "material_2_bond": {
+          "name": "material-2",
+          "description": "Each round auto-fuse 2 normal materials into 1 rare."
+        },
+        "material_4_bond": {
+          "name": "material-4",
+          "description": "Each round auto-fuse 2 rare materials into 1 epic."
+        },
+        "cozylife_3_bond": {
+          "name": "cozylife-3",
+          "description": "Empty tiles gain +5 coins."
+        },
+        "cozylife_6_bond": {
+          "name": "cozylife-6",
+          "description": "Empty tiles gain +25 coins."
+        },
+        "tools_2_bond": {
+          "name": "tools-2",
+          "description": "If any die shows 1, gain an extra roll."
+        },
+        "tools_4_bond": {
+          "name": "tools-4",
+          "description": "If any die shows 6, auto-mine all unopened tiles."
+        },
+        "classictale_2_bond": {
+          "name": "classictale-2",
+          "description": "Mark a random tile as special; its earnings are doubled."
+        },
+        "classictale_4_bond": {
+          "name": "classictale-4",
+          "description": "Mining any corner grants +200 coins."
+        },
+        "classictale_6_bond": {
+          "name": "classictale-6",
+          "description": "Mining the center tile grants +400 coins."
         }
       }
     },
@@ -579,6 +714,12 @@
       "home": {
         "personal_records": "🏆 个人记录",
         "best_round": "最佳进度",
+        "best_level": "最佳进度:",
+        "goblin": "[哥布林]",
+        "start": "开始",
+        "shop": "商店",
+        "settings": "设置",
+        "sign_in": "签到",
         "total_coins": "历史最多金币",
         "start_game": "开始游戏",
         "stamina_insufficient": "体力不足"
@@ -657,12 +798,32 @@
         "legendary": "传说"
       },
       "symbol_type": {
-        "fruit": "水果",
-        "coin": "金币",
-        "animal": "动物",
-        "special": "特殊",
-        "gem": "宝石",
-        "magic": "魔法"
+        "human": "人类",
+        "childish": "童年",
+        "trading": "贸易",
+        "worship": "崇拜",
+        "classic tale": "经典传说",
+        "elf": "精灵",
+        "forest": "森林",
+        "live or dead": "生或死",
+        "vampire note": "吸血鬼日记",
+        "monster": "怪物",
+        "god": "神",
+        "element": "元素",
+        "made a wish": "许个愿",
+        "material": "材料",
+        "tool": "工具",
+        "equipment": "装备",
+        "cozy life": "舒适生活",
+        "box": "宝箱",
+        "alien": "外星",
+        "fantasy": "奇幻",
+        "fantacy": "奇幻",
+        "weapon": "武器",
+        "ninja": "忍者",
+        "first aid": "急救",
+        "extinction": "侵略",
+        "Extinction": "侵略"
       },
       "game": {
         "start": "开始",
@@ -676,18 +837,22 @@
         "ore": "🪨 矿石",
         "empty": "空",
         "roll_dice": "掷骰子",
+        "roll": "冲",
         "roll_single_dice": "掷骰子 (1-6)",
         "roll_multiple_dice": "掷{count}个骰子",
-        "my_symbol_pool": "我的符号池 ({count} 种)",
-        "select_first_symbol": "🎯 选择你的第一个符号",
-        "select_symbol": "🎯 选择一个符号",
-        "first_round_hint": "选择符号开始你的第一回合",
-        "symbol_hint": "选择符号将增加它在老虎机中出现的概率",
+        "my_symbol_pool": "我的符号池 ({count})",
+        "active_bonds": "激活羁绊",
+        "select_first_symbol": "选择你的第一个符号",
+        "select_symbol": "选择一个符号",
+        "first_round_hint": "选择一个符号加入你的符号池",
+        "symbol_hint": "选择一个符号加入你的符号池",
         "symbol_value": "💰 {value} 金币",
         "debug_panel": "🔍 调试面板",
         "settlement_logs": "结算日志",
         "board_status": "棋盘状态",
         "no_logs": "暂无结算日志\n掷骰子后会显示结算过程",
+        "tap_to_accelerate": "点击此处加速",
+        "next_goal": "下一个目标",
         "hide": "隐藏",
         "show": "透视",
         "copy": "复制",
@@ -743,6 +908,8 @@
       },
       "game_over": {
         "title": "😢 游戏结束",
+        "you_win": "你赢了！",
+        "victory_message": "恭喜！你成功完成了所有30关！",
         "survival_rounds": "存活回合",
         "final_coins": "最终金币",
         "total_coins": "累计金币",
@@ -753,7 +920,8 @@
         "exit_message": "确定要退出当前游戏并返回首页吗？",
         "cancel": "取消",
         "confirm": "确定",
-        "confirm_exit": "确定退出"
+        "confirm_exit": "确定退出",
+        "back_to_home": "返回首页"
       },
       "status": {
         "coming_soon": "功能开发中...",
@@ -774,15 +942,23 @@
         "start": "开始游戏",
         "page1": {
           "title": "欢迎来到哥布林世界",
-          "content": "在一个神秘的地下洞穴中，勇敢的哥布林们挖掘着宝藏。你是他们的领袖，带领他们经历无尽的冒险！"
+          "content": "在很久以前，世界上各方文明势力已经缠斗数百年，从未停止"
         },
         "page2": {
           "title": "挖掘与收集",
-          "content": "使用骰子挖掘矿石，收集符号，赚取金币。每个符号都有独特的价值。策略性地选择你的符号，最大化你的收益！"
+          "content": "可有一天，外星文明入侵了这个世界。它们所到之处，寸草不生。把存在数千年的文明无情地摧毁的一干二净。"
         },
         "page3": {
           "title": "生存与繁荣",
-          "content": "每回合支付房租以继续你的冒险。越深入，挑战和奖励就越大。你能到达最终的深度吗？"
+          "content": "各个种族还被外星射线变成了符号，被深埋在了地底"
+        },
+        "page4": {
+          "title": "羁绊与协同",
+          "content": "战争结束后，居住在洞穴里的哥布林逃过了一劫。等到他们发觉时，世界上只剩下了哥布林这一个族群"
+        },
+        "page5": {
+          "title": "开始你的旅程",
+          "content": "所有的希望都寄托在了哥布林身上，哥布林们决定要把所有符号都从地底挖出，拯救生灵。以及获取更多金币重建文明。"
         }
       },
       "tutorial": {
@@ -791,16 +967,16 @@
         "previous": "上一步",
         "complete": "知道了！",
         "step1": {
-          "title": "开始你的冒险",
-          "description": "点击开始游戏按钮，开始你的挖掘冒险。确保你有足够的体力！"
+          "title": "开始游戏",
+          "description": "点击这里开始控制哥布林进行挖掘探险，挖出更多符号，组成更多羁绊，赚取更多金币！"
         },
         "step2": {
-          "title": "管理你的资源",
-          "description": "注意右上角的钻石和体力。点击 + 号按钮可以购买更多资源。"
+          "title": "逛逛商店",
+          "description": "点击这里可以探索琳琅满目的商店。你可以在这里获取很多对挖掘有用的东西！"
         },
         "step3": {
-          "title": "访问商城",
-          "description": "访问商城可以解锁新的哥布林、购买体力，以及领取每日奖励！"
+          "title": "七日签到",
+          "description": "点击这里可以进行每日登录签到。会有大量奖励免费赠送给你！"
         }
       },
       "sign_in": {
@@ -829,311 +1005,405 @@
       "symbols": {
         "child": {
           "name": "儿童",
-          "description": "符号池里每有一个玩具，则额外获得金币+2"
+          "description": "获得一个<color=#080909>修女</color>"
         },
         "merchant": {
           "name": "商人",
-          "description": "之后回合的勾玉以及硬币的基础价值永久增加20金币"
+          "description": "消除稀有度最高的一个<color=#E74875>#材料</color>符号，获得其基础价值10倍的金币"
         },
         "barbarian": {
           "name": "野蛮人",
-          "description": "符号池里每拥有一个外星人，金币-1，每拥有一个怪物，金币+1"
+          "description": "符号池里每拥有一个<color=#E74875>#外星</color>符号，金币-5，每拥有一个<color=#E74875>#怪物</color>符号，金币+20"
         },
         "farmer": {
           "name": "农民",
-          "description": "符号池里每拥有一个工具，金币+2"
+          "description": "获得5个随机<color=#E74875>#工具</color>符号"
         },
         "soldier": {
           "name": "士兵",
-          "description": "符号池里每拥有一个人类，金币+1"
+          "description": "如果<color=#AA2ABB>圣骑士</color>即将被其他符号消除，消除自身取消一次对<color=#AA2ABB>圣骑士</color>的消除"
         },
         "village_chief": {
           "name": "村长",
-          "description": "每当支付房租时，金币-5，每当选择符号时，金币+10"
+          "description": "获得 5 个随机<color=#E74875>#人类</color> 符号，金币+10"
         },
         "forest_fairy": {
           "name": "森林妖精",
-          "description": "可以合成森林妖精（需要3个花精）"
+          "description": "消除符号池的所有<color=#147ED9>暗月妖精</color>，每消灭1个获得100金币"
         },
         "dark_moon_fairy": {
           "name": "暗月妖精",
-          "description": "每当有妖精被挖出时，金币+3"
+          "description": "消除符号池里所有<color=#147ED9>星光妖精</color>，每消灭1个获得100金币"
         },
         "starlight_fairy": {
           "name": "星光妖精",
-          "description": "每当有妖精被挖出时，金币+3"
+          "description": "消除符号池里所有<color=#147ED9>森林妖精</color>，每消灭1个获得100金币"
         },
         "healer": {
           "name": "治疗师",
-          "description": "每当有亡灵被挖出时，金币+3"
+          "description": "获得<color=#080909>圣瓶</color>，<color=#080909>电池</color>，<color=#080909>医疗包</color>各一个"
         },
         "paladin": {
           "name": "圣骑士",
-          "description": "每当有亡灵被挖出时，金币+3"
+          "description": "获得3个随机<color=#E74875>#人类</color>符号。消除符号池里所有<color=#E74875>#怪物</color>，每个获得金币 100"
         },
         "nun": {
           "name": "修女",
-          "description": "每当有亡灵被挖出时，金币+3"
+          "description": "获得1个<color=#080909>十字架</color>"
         },
         "ancient_tree_elder": {
           "name": "古树长老",
-          "description": "每当有精灵被挖出时，金币+5"
+          "description": "生成一个<color=#080909>土元素</color>到符号池"
         },
         "thief": {
           "name": "盗贼",
-          "description": "每当支付房租时，金币+5"
+          "description": "获得 2个未拥有的<color=#E74875>#工具</color>符号"
         },
         "princess": {
           "name": "公主",
-          "description": "每当有王子或骑士被挖出时，金币+10"
+          "description": "如果符号池里有5 个不一样的<color=#E74875>#人类</color>符号，获得一个<color=#AA2ABB>圣骑士</color>"
         },
         "vampire": {
           "name": "吸血鬼",
-          "description": "每回合开始时，金币-3，持续3回合后游戏结束"
+          "description": "消除符号池里5 个<color=#E74875>#人类</color>，获得 10 个任意<color=#E74875>#材料</color>符号"
         },
         "hunter": {
           "name": "猎人",
-          "description": "每当有动物被挖出时，金币+2"
+          "description": "获得 2个随机<color=#E74875>#装备</color>符号。从消除符号池的<color=#AA2ABB>吸血鬼</color>和自身，获得200金币"
         },
         "female_ninja": {
           "name": "女忍者",
-          "description": "每回合开始时清除所有丧尸"
+          "description": "不会出现在矿洞里。如果符号池里同时存在<color=#080909>男忍者</color>，则清除符号池里所有<color=#147ED9>丧尸</color>"
         },
         "male_ninja": {
           "name": "男忍者",
-          "description": "每回合开始时清除所有丧尸"
+          "description": "不会出现在矿洞里。如果符号池里同时存在<color=#080909>女忍者</color>，则在每回合开始时清除符号池里所有<color=#147ED9>丧尸</color>"
         },
         "god_of_strength": {
           "name": "力之神",
-          "description": "增加1个骰子"
+          "description": "下次金币收益+300。被挖出后从符号池移除（消除自身）"
         },
         "god_of_speed": {
           "name": "速之神",
-          "description": "挖矿数量翻倍"
+          "description": "增加一次符号选择的机会。被挖出后从符号池移除（消除自身）"
         },
         "god_of_harvest": {
           "name": "丰收之神",
-          "description": "本轮收益翻倍"
+          "description": "下次金币收益结算2次（收益翻倍）。被挖出后从符号池移除（消除自身）"
         },
         "god_of_luck": {
           "name": "幸运之神",
-          "description": "本轮必定挖到至少1个魔法袋"
+          "description": "下一转动多一个骰子可用（临时+1骰子）。被挖出后从符号池移除（消除自身）"
         },
         "death": {
           "name": "死神",
-          "description": "回合开始时获得金币，但3回合后游戏结束"
+          "description": "消除符号池的一半数量的符号"
         },
         "water_element": {
           "name": "水元素",
-          "description": "收集5种元素可获得500金币"
+          "description": "生成一个除<color=#080909>水元素</color>之外的随机元素到符号池"
         },
         "fire_element": {
           "name": "火元素",
-          "description": "收集5种元素可获得500金币"
+          "description": "生成一个除<color=#080909>火元素</color>之外的随机元素到符号池。"
         },
         "thunder_element": {
           "name": "雷元素",
-          "description": "收集5种元素可获得500金币"
+          "description": "生成一个除<color=#080909>雷元素</color>之外的随机元素到符号池。"
         },
         "ice_element": {
           "name": "冰元素",
-          "description": "收集5种元素可获得500金币"
+          "description": "生成一个除<color=#080909>冰元素</color>之外的随机元素到符号池。"
         },
         "earth_element": {
           "name": "土元素",
-          "description": "收集5种元素可获得500金币"
+          "description": "生成一个除<color=#080909>土元素</color>之外的随机元素到符号池。"
         },
         "rock": {
           "name": "石头",
-          "description": "如果符号池里有type1或type2包含'tool'的符号，从符号池移除自身，获得20金币"
+          "description": "如果符号池里有<color=#E74875>#工具</color>符号，从符号池移除自身，获得 2 个随机<color=#E74875>#材料</color>符号"
         },
         "cross": {
           "name": "十字架",
-          "description": "如果在符号池内，'猎人'的权重翻倍（全局永久buff，只针对当前局游戏）"
+          "description": "获得一个<color=#080909>猎人</color>"
         },
         "book_of_the_dead": {
           "name": "死亡之书",
-          "description": "从符号池移除自身，生成一个'死神'到符号池"
+          "description": "从符号池移除自身和1个<color=#080909>十字架</color>，生成一个<color=#AA2ABB>死神</color>到符号池"
         },
         "hypnosis_pendulum": {
           "name": "催眠摆",
-          "description": "从符号池移除自身，随机生成'公主'或'女忍者'或'修女'中的一个到符号池"
+          "description": "从符号池移除自身，随机生成<color=#147ED9>公主</color>或<color=#080909>女忍者</color>或<color=#080909>修女</color>中的一个到符号池"
         },
         "dragon_fire_gun": {
           "name": "龙火枪",
-          "description": "如果本次挖出中有'士兵'，额外获得5金币"
+          "description": "消灭符号池随机一个<color=#E74875>#怪物</color>，获得 50 金币"
         },
         "rune_armor": {
           "name": "符文护甲",
-          "description": "如果本次挖出中有'圣骑士'，额外获得10金币"
+          "description": "获得2 个随机<color=#E74875>#经典传说</color>符号"
         },
         "dawn_messenger_staff": {
           "name": "黎明信使法杖",
-          "description": "如果本次挖出中有'公主'，额外获得20金币"
+          "description": "获得一个<color=#147ED9>公主</color>"
         },
         "holy_bottle": {
           "name": "圣水瓶",
-          "description": "如果本次挖出中有'修女'，从符号池移除自身，生成一个'水元素'到符号池"
+          "description": "获得一个<color=#AA2ABB>骰子</color>符号"
         },
         "contract_scroll": {
           "name": "契约卷轴",
-          "description": "从符号池移除自身，随机生成'森林妖精'或'暗月妖精'或'星光妖精'中的一个到符号池"
+          "description": "从符号池移除自身，随机生成<color=#147ED9>森林妖精</color>或<color=#147ED9>暗月妖精</color>或<color=#147ED9>星光妖精</color>中的一个到符号池"
         },
         "shuriken": {
           "name": "手里剑",
-          "description": "如果符号池里有'女忍者'或'男忍者'，额外获得10金币"
+          "description": "如果符号池里有<color=#080909>女忍者</color>或<color=#080909>男忍者</color>，额外获得30金币"
         },
         "diary": {
           "name": "日记",
-          "description": "如果本次挖出中有'吸血鬼'，从符号池移除自身，生成一个'吸血鬼'到符号池"
+          "description": "从符号池移除自身，生成一个<color=#AA2ABB>吸血鬼</color>到符号池"
         },
         "ring": {
           "name": "戒指",
-          "description": "如果本次挖出中有'手机'，生成一个'雷元素'到符号池"
+          "description": "获得1个随机<color=#E74875>#舒适生活</color>符号"
         },
         "mobile_phone": {
           "name": "手机",
-          "description": "如果本次挖出中有'戒指'，生成一个'雷元素'到符号池"
+          "description": "获得1个随机<color=#E74875>#舒适生活</color>符号"
         },
         "glasses": {
           "name": "眼镜",
-          "description": "如果本次挖出中有'领结'，生成一个'火元素'到符号池"
+          "description": "获得1个随机<color=#E74875>#舒适生活</color>符号"
         },
         "tie": {
           "name": "领结",
-          "description": "如果本次挖出中有'眼镜'，生成一个'火元素'到符号池"
+          "description": "获得1个随机<color=#E74875>#舒适生活</color>符号"
         },
         "magatama": {
           "name": "勾玉",
-          "description": "无效果（基础金币值受商人buff影响）"
+          "description": "所有<color=#080909>普通</color>稀有度符号基础价值+5"
         },
         "battery": {
           "name": "电池",
-          "description": "从符号池移除自身，生成一个'宇宙飞船'到符号池"
+          "description": "从符号池移除自身，生成一个<color=#147ED9>宇宙飞船</color>到符号池"
         },
         "medical_kit": {
           "name": "医疗包",
-          "description": "如果本次挖出中有'治疗师'，生成一个'风元素'到符号池（注：如果风元素不存在，可生成其他元素或忽略）"
+          "description": "获得一个<color=#080909>治疗师</color>"
         },
         "coin": {
           "name": "硬币",
-          "description": "无效果（基础金币值受商人buff影响）"
+          "description": "消除自身，获得2个随机<color=#E74875>材料</color>符号"
         },
         "pillow": {
           "name": "枕头",
-          "description": "如果本次挖出中有'儿童'，从符号池移除自身，获得20金币"
+          "description": "消除2个除<color=#E74875>#舒适生活</color>之外的符号"
         },
         "eye_mask": {
           "name": "眼罩",
-          "description": "如果本次挖出中有'儿童'，从符号池移除自身，获得10金币"
+          "description": "消除2个除<color=#E74875>#舒适生活</color>之外的符号"
         },
         "talisman_paper": {
           "name": "符纸",
-          "description": "如果本次挖出中有'狼人'，从符号池消除'狼人'和自身，获得100金币"
+          "description": "消除<color=#080909>狼人</color>和自身，获得 100 金币"
         },
         "pumpkin_head": {
           "name": "南瓜头",
-          "description": "无效果"
+          "description": "获得一个<color=#080909>儿童</color>"
         },
         "snowflake": {
           "name": "雪花",
-          "description": "符号池里每有一个'农民'，额外获得5金币"
+          "description": "获得一个<color=#080909>农民</color>"
         },
         "firecracker": {
           "name": "鞭炮",
-          "description": "符号池里每有一个'农民'，额外获得10金币"
+          "description": "获得一个<color=#AA2ABB>号角</color>"
         },
         "lantern": {
           "name": "灯笼",
-          "description": "无效果"
+          "description": "获得一个<color=#080909>商人</color>"
         },
         "toy_duck": {
           "name": "玩具鸭",
-          "description": "无效果"
+          "description": "获得一个随机<color=#E74875>#工具</color> 符号"
         },
         "wine_bottle": {
           "name": "酒瓶",
-          "description": "如果本次挖出中有'野蛮人'，额外获得20金币"
+          "description": "获得一个<color=#080909>野蛮人</color>"
         },
         "briefcase": {
           "name": "公文包",
-          "description": "如果本次挖出中有'商人'，从符号池移除自身，获得20金币"
+          "description": "获得1 个<color=#080909>村长</color>"
         },
         "hoe": {
           "name": "斧头",
-          "description": "50%概率生成'花精'到符号池，50%概率生成'丧尸'到符号池"
+          "description": "50%概率生成1 个<color=#080909>花精</color>到符号池，50%概率生成 1 个<color=#147ED9>丧尸</color>到符号池"
         },
         "horn": {
           "name": "号角",
-          "description": "生成5个'士兵'到符号池"
+          "description": "生成5个<color=#147ED9>士兵</color>到符号池"
         },
         "iron_box": {
           "name": "铁箱子",
-          "description": "无效果"
+          "description": "获得一个<color=#080909>铁钥匙</color>"
         },
         "silver_box": {
           "name": "银箱子",
-          "description": "无效果"
+          "description": "获得一个<color=#147ED9>银钥匙</color>"
         },
         "iron_key": {
           "name": "铁钥匙",
-          "description": "从符号池消除一个'铁箱子'，获得10金币"
+          "description": "从符号池消除一个<color=#080909>铁箱子</color>，获得50金币"
         },
         "silver_key": {
           "name": "银钥匙",
-          "description": "从符号池消除一个'银箱子'，获得20金币"
+          "description": "从符号池消除一个<color=#147ED9>银箱子</color>，获得100金币"
         },
         "master_key": {
           "name": "万能钥匙",
-          "description": "从符号池消除一个较高等级的箱子（优先银箱子），获得箱子baseValue×2的金币"
+          "description": "从符号池消除一个较高等级的箱子（优先<color=#147ED9>银箱子</color>），获得箱子双倍的金币"
         },
         "flower_fairy": {
           "name": "花精",
-          "description": "无效果（每回合开始时检查：符号池里每存在3个'花精'，自动合成1个'森林妖精'，移除3个'花精'）"
+          "description": "消除符号池里的3个<color=#080909>花精</color>，获得1个<color=#147ED9>森林妖精</color>"
         },
         "werewolf": {
           "name": "狼人",
-          "description": "如果存在于符号池，每回合开始时减少20金币（回合开始时触发）"
+          "description": "消除符号池里2 个<color=#E74875>#人类</color>，获得 10 个任意<color=#E74875>#工具</color>符号"
         },
         "zombie": {
           "name": "丧尸",
-          "description": "感染符号池里一个type1或type2包含'human'的符号变成'丧尸'。符号池里每有一个'丧尸'，金币+5"
+          "description": "消灭1个随机<color=#E74875>#人类</color>符号"
         },
         "one_eyed_monster": {
           "name": "独眼怪",
-          "description": "第一次被挖出6金币，第二次5金币，一直递减到0（每回合重置计数器）"
+          "description": "第一次被挖出获得30金币，第二次20金币，一直递减到0"
         },
         "gomorrah": {
           "name": "哥莫拉",
-          "description": "从符号池随机消除一个除自身以外的符号，获得30金币"
+          "description": "从符号池随机消除一个除自身以外的符号，获得50金币"
         },
         "ray_gun": {
           "name": "光线枪",
-          "description": "如果本次挖出中同时有'外星头盔'和'宇宙飞船'，获得40金币（三种物品只计算一次）"
+          "description": "获得随机一个<color=#E74875>#外星</color>符号"
         },
         "alien_helmet": {
           "name": "外星头盔",
-          "description": "如果本次挖出中同时有'光线枪'和'宇宙飞船'，获得40金币（三种物品只计算一次）"
+          "description": "获得随机一个<color=#E74875>#外星</color>符号"
         },
         "spaceship": {
           "name": "宇宙飞船",
-          "description": "如果本次挖出中同时有'外星头盔'和'光线枪'，获得40金币（三种物品只计算一次）"
+          "description": "获得随机一个<color=#E74875>#外星</color>符号"
         },
         "mind_controller": {
           "name": "精神控制器",
-          "description": "随机转化符号池的一个符号为type1='material'的符号（保持原名称和icon，只改变types）"
+          "description": "随机转化符号池的一个符号为一个<color=#E74875>#怪物</color>符号"
         },
         "meteorite": {
           "name": "陨石",
-          "description": "如果符号池里有'哥莫拉'，从符号池消除'哥莫拉'，获得30金币"
+          "description": "如果符号池里有<color=#AA2ABB>哥莫拉</color>，从符号池消除<color=#AA2ABB>哥莫拉</color>，获得300金币"
         },
         "dice": {
           "name": "骰子",
-          "description": "永久增加1个骰子（骰子数量+1）。被挖出后从符号池移除（消除自身）"
+          "description": "永久增加1个<color=#AA2ABB>骰子</color>（骰子数量+1）。被挖出后从符号池移除。"
         },
         "magic_bag": {
           "name": "魔法袋",
           "description": "随机生成3~5个随机符号到符号池"
+        },
+        "artwork": {
+          "name": "艺术品",
+          "description": "生成5个<color=#080909>商人</color>"
+        }
+      },
+      "bonds": {
+        "child_merchant_bond": {
+          "name": "儿童与商人羁绊",
+          "description": "同时拥有儿童和商人符号时，每回合额外获得+5金币"
+        },
+        "merchant_trading_bond": {
+          "name": "奸商",
+          "description": "勾玉和硬币的基础金币价值+20"
+        },
+        "vampire_curse_bond": {
+          "name": "吸血鬼的诅咒",
+          "description": "如果吸血鬼与领结同时存在于符号池，每回合开始时减少50金币（回合开始时触发）"
+        },
+        "death_blessing_bond": {
+          "name": "死神的眷顾",
+          "description": "接下来五个回合每回合获得 1000 金币，但是五个回合之后游戏强制结束。"
+        },
+        "wolf_hunter_bond": {
+          "name": "捕狼队",
+          "description": "如果 狼人与锄头同时存在符号池，每回合都会减少20金币."
+        },
+        "element_master_bond": {
+          "name": "元素掌握者",
+          "description": "如果元素池里拥有全部五种元素，则每回合获得 500 金币"
+        },
+        "justice_bond": {
+          "name": "正义必胜",
+          "description": "如果十字架和修女同时在符号池内，挖出猎人的概率翻倍"
+        },
+        "apocalypse_bond": {
+          "name": "世界末日",
+          "description": "如果哥莫拉，丧尸，狼人，吸血鬼同时在符号池内， 下个回合开始时，随机消灭一半的符号，获得 2000 金币"
+        },
+        "human_extinction_bond": {
+          "name": "人类灭绝",
+          "description": "如果光线枪，外星头盔，宇宙飞船，精神控制器同时在符号池内， 下个回合开始时，消灭一个人类，获得 300 金币"
+        },
+        "raccoon_city_bond": {
+          "name": "raccoon-city",
+          "description": "每次挖矿前感染一个人类变成丧尸。每有一个丧尸，额外金币增加5"
+        },
+        "human_3_bond": {
+          "name": "人类·三人组",
+          "description": "每回合获得1个随机人类"
+        },
+        "human_5_bond": {
+          "name": "人类·五人组",
+          "description": "人类符号基础价值+10"
+        },
+        "human_10_bond": {
+          "name": "人类·十人团",
+          "description": "符号池每有1个人类，每次转动额外获得50金币"
+        },
+        "material_2_bond": {
+          "name": "材料·二合一",
+          "description": "每回合自动熔合2个普通材料为稀有材料"
+        },
+        "material_4_bond": {
+          "name": "材料·升华",
+          "description": "每回合自动熔合2个稀有材料为史诗材料"
+        },
+        "cozylife_3_bond": {
+          "name": "舒适生活·温馨",
+          "description": "每个空格子收益+5"
+        },
+        "cozylife_6_bond": {
+          "name": "舒适生活·奢享",
+          "description": "每个空格子收益+25"
+        },
+        "tools_2_bond": {
+          "name": "工具·敏捷",
+          "description": "掷出1时，额外再转一次"
+        },
+        "tools_4_bond": {
+          "name": "工具·全开",
+          "description": "掷出6时，自动挖开所有未翻矿石"
+        },
+        "classictale_2_bond": {
+          "name": "经典传说·奇遇",
+          "description": "随机一处生成特殊格子，其收益翻倍"
+        },
+        "classictale_4_bond": {
+          "name": "经典传说·角落宝藏",
+          "description": "挖到四个角之一，奖励200金币"
+        },
+        "classictale_6_bond": {
+          "name": "经典传说·中心秘宝",
+          "description": "挖到中心格，奖励400金币"
         }
       }
     }

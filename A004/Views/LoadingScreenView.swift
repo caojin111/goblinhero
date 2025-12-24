@@ -10,6 +10,7 @@ import SwiftUI
 struct LoadingScreenView: View {
     @State private var progress: Double = 0.0
     @State private var logoScale: CGFloat = 1.0 // Logo 缩放动画
+    @ObservedObject var audioManager = AudioManager.shared
     let onComplete: () -> Void // Loading 完成后的回调
     
     // Figma 设计参数
@@ -70,15 +71,24 @@ struct LoadingScreenView: View {
         }
         .ignoresSafeArea()
         .onAppear {
+            print("⏳ [LoadingScreen] 视图出现，准备播放首页背景音乐")
+            // 播放首页背景音乐
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                audioManager.playBackgroundMusic(fileName: "homepage", fileExtension: "mp3")
+            }
             startLoading()
             startLogoAnimation()
+        }
+        .onDisappear {
+            print("⏳ [LoadingScreen] 视图消失")
+            // Loading界面消失时不停止音乐，因为会转到首页继续播放
         }
     }
     
     private func startLoading() {
-        // 模拟加载过程（5秒内完成）
+        // 模拟加载过程（2秒内完成）
         let totalSteps = 100
-        let duration = 5.0 // 5 秒完成
+        let duration = 2.0 // 2 秒完成
         let stepDuration = duration / Double(totalSteps)
 
         for step in 1...totalSteps {
@@ -87,7 +97,7 @@ struct LoadingScreenView: View {
             }
         }
         
-        // 5 秒后调用完成回调
+        // 2 秒后调用完成回调
         DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
             print("✅ [LoadingScreen] Loading 完成，跳转到首页")
             onComplete()

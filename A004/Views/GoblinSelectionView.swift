@@ -14,61 +14,147 @@ struct GoblinSelectionView: View {
     @Binding var currentCoins: Int // 当前金币用于解锁
     @ObservedObject var viewModel: GameViewModel // 用于访问钻石
     @ObservedObject var localizationManager = LocalizationManager.shared
+    @ObservedObject var audioManager = AudioManager.shared
+    
+    var onNavigateToStore: (() -> Void)? = nil // 跳转到商店的回调
     
     @State private var currentIndex: Int = 0
     @State private var dragOffset: CGFloat = 0
     @State private var showUnlockAlert: Bool = false
     @State private var goblinToUnlock: Goblin?
     
-    let goblins = Goblin.allGoblins
+    // Figma设计尺寸：1203x1369
+    private let designWidth: CGFloat = 1204
+    private let designHeight: CGFloat = 1204
     
     // 获取自定义字体
     private func customFont(size: CGFloat) -> Font {
         return FontManager.shared.customFont(size: size)
     }
     
+    // 根据设计尺寸计算实际尺寸（窗口内尺寸）
+    private func scaleSize(_ size: CGFloat, windowWidth: CGFloat) -> CGFloat {
+        return size * (windowWidth / designWidth)
+    }
+    
+    // 根据设计尺寸计算实际高度（窗口内尺寸）
+    private func scaleHeight(_ height: CGFloat, windowHeight: CGFloat) -> CGFloat {
+        return height * (windowHeight / designHeight)
+    }
+    
+    // 获取哥布林对应的图片名称
+    private func getGoblinImageName(for goblin: Goblin) -> String? {
+        switch goblin.nameKey {
+        case "warrior_goblin":
+            return "brave_goblin"
+        case "king_goblin":
+            return "king_goblin"
+        case "wizard_goblin":
+            return "wazard_goblin" // 注意拼写
+        default:
+            return nil
+        }
+    }
+    
+    // 过滤出有图片的哥布林
+    private var displayGoblins: [Goblin] {
+        return Goblin.allGoblins.filter { getGoblinImageName(for: $0) != nil }
+    }
+    
     var body: some View {
-        ZStack {
-            // 背景
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.green.opacity(0.6),
-                    Color.blue.opacity(0.4)
-                ]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+        GeometryReader { geometry in
+            let screenWidth = geometry.size.width
+            let screenHeight = geometry.size.height
+            let windowWidth = min(screenWidth * 0.9, screenHeight * 0.9 * (designWidth / designHeight))
+            let windowHeight = windowWidth * (designHeight / designWidth)
             
-            VStack(spacing: 30) {
-                // 标题
-                VStack(spacing: 10) {
-                    Text(localizationManager.localized("goblin.select_title"))
-                        .font(customFont(size: 34))
-                        .foregroundColor(.white)
-                        .textStroke()
-
-                    Text(localizationManager.localized("goblin.swipe_hint"))
-                        .font(customFont(size: 14))
-                        .foregroundColor(.white.opacity(0.8))
-                        .textStroke()
-                }
-                .padding(.top, 40)
+            ZStack {
+                // 半透明背景遮罩
+                Color.black.opacity(0.5)
+            .ignoresSafeArea()
+                    .onTapGesture {
+                        print("🎭 [哥布林选择] 点击背景关闭界面")
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                            isPresented = false
+                        }
+                    }
                 
-                // 哥布林卡片轮播
+                // 窗口内容（居中显示，占屏幕一半大小）
+                VStack(spacing: 0) {
+                    Spacer()
+                    
+                    // 窗口
+                    HStack {
+                        Spacer()
+                        ZStack {
+                            // 背景图（尽量还原原尺寸）
+                            Image("goblin_select_bg")
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: windowWidth, height: windowHeight)
+                                .clipped()
+                            
+                            VStack(spacing: 0) {
+                            Spacer()
+                            
+                            // 哥布林显示区域
+                            ZStack {
+                                // 当前显示的哥布林
+                                if currentIndex < displayGoblins.count {
+                                    let goblin = displayGoblins[currentIndex]
+                                    let isUnlocked = goblin.isFree || unlockedGoblinIds.contains(goblin.id)
+                                    
+                                    VStack(spacing: scaleHeight(40, windowHeight: windowHeight)) {
+                                        // 哥布林图片
+                                        if let imageName = getGoblinImageName(for: goblin) {
                 ZStack {
-                    ForEach(Array(goblins.enumerated()), id: \.element.id) { index, goblin in
-                        if index == currentIndex {
-                            GoblinCardView(
-                                goblin: goblin,
-                                isUnlocked: goblin.isFree || unlockedGoblinIds.contains(goblin.id),
-                                currentCoins: currentCoins,
-                                currentDiamonds: viewModel.diamonds
-                            )
-                            .transition(.asymmetric(
-                                insertion: .move(edge: dragOffset > 0 ? .leading : .trailing).combined(with: .opacity),
-                                removal: .move(edge: dragOffset > 0 ? .trailing : .leading).combined(with: .opacity)
-                            ))
+                                                // 锁定遮罩
+                                                if !isUnlocked {
+                                                    Color.black.opacity(0.5)
+                                                        .frame(width: scaleSize(400, windowWidth: windowWidth), height: scaleSize(600, windowWidth: windowWidth))
+                                                        .cornerRadius(scaleSize(20, windowWidth: windowWidth))
+                                                }
+                                                
+                                                Image(imageName)
+                                                    .resizable()
+                                                    .scaledToFit()
+                                                    .frame(width: scaleSize(400, windowWidth: windowWidth), height: scaleSize(600, windowWidth: windowWidth))
+                                                    .opacity(isUnlocked ? 1.0 : 0.5)
+                                                
+                                                // 锁定图标（只保留系统图标锁）
+                                                if !isUnlocked {
+                                                    Image(systemName: "lock.fill")
+                                                        .font(.system(size: scaleSize(60, windowWidth: windowWidth)))
+                                                        .foregroundColor(.white)
+                                                }
+                                            }
+                                        }
+                                        
+                                        // 哥布林名称（字号增加5）
+                                        Text(goblin.name)
+                                            .font(customFont(size: scaleSize(48, windowWidth: windowWidth) + 5))
+                                            .foregroundColor(.white)
+                                        
+                                        // Buff描述（扩大1.5倍，去掉标题和星星，字号增加5，扩展上下各一行）
+                                        VStack(alignment: .leading, spacing: scaleHeight(15, windowHeight: windowHeight) * 1.5) {
+                                            Text(goblin.buff)
+                                                .font(customFont(size: scaleSize(24, windowWidth: windowWidth) * 1.5 + 5))
+                                                .foregroundColor(.white)
+                                                .multilineTextAlignment(.leading)
+                                                .lineSpacing(scaleHeight(8, windowHeight: windowHeight) * 1.5)
+                                                .lineLimit(nil)
+                                                .fixedSize(horizontal: false, vertical: true)
+                                        }
+                                        .padding(.top, scaleSize(30, windowWidth: windowWidth) * 1.5 + (scaleSize(24, windowWidth: windowWidth) * 1.5 + 5) * 1.2) // 向上扩展一行
+                                        .padding(.bottom, scaleSize(30, windowWidth: windowWidth) * 1.5 + (scaleSize(24, windowWidth: windowWidth) * 1.5 + 5) * 1.2) // 向下扩展一行
+                                        .padding(.horizontal, scaleSize(30, windowWidth: windowWidth) * 1.5)
+                                        .frame(maxWidth: scaleSize(600, windowWidth: windowWidth) * 1.5)
+                                        .frame(minHeight: (scaleSize(24, windowWidth: windowWidth) * 1.5 + 5) * 1.2 * 3) // 至少能展示三行文本
+                                        .background(
+                                            RoundedRectangle(cornerRadius: scaleSize(20, windowWidth: windowWidth) * 1.5)
+                                                .fill(Color.black.opacity(0.3))
+                                        )
+                                    }
                             .offset(x: dragOffset)
                             .gesture(
                                 DragGesture()
@@ -76,17 +162,17 @@ struct GoblinSelectionView: View {
                                         dragOffset = value.translation.width
                                     }
                                     .onEnded { value in
-                                        let threshold: CGFloat = 50
+                                                let threshold: CGFloat = scaleSize(50, windowWidth: windowWidth)
                                         if value.translation.width > threshold {
                                             // 向右滑，显示上一个（循环）
                                             withAnimation(.spring()) {
-                                                currentIndex = (currentIndex - 1 + goblins.count) % goblins.count
+                                                        currentIndex = (currentIndex - 1 + displayGoblins.count) % displayGoblins.count
                                                 dragOffset = 0
                                             }
                                         } else if value.translation.width < -threshold {
                                             // 向左滑，显示下一个（循环）
                                             withAnimation(.spring()) {
-                                                currentIndex = (currentIndex + 1) % goblins.count
+                                                        currentIndex = (currentIndex + 1) % displayGoblins.count
                                                 dragOffset = 0
                                             }
                                         } else {
@@ -98,72 +184,124 @@ struct GoblinSelectionView: View {
                                     }
                             )
                         }
+                                
+                                // 左箭头按钮
+                                if displayGoblins.count > 1 {
+                                    HStack {
+                                        Button(action: {
+                                            print("🎭 [哥布林选择] 向左翻页")
+                                            withAnimation(.spring()) {
+                                                currentIndex = (currentIndex - 1 + displayGoblins.count) % displayGoblins.count
+                                            }
+                                        }) {
+                                            Image("arrow")
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: scaleSize(60, windowWidth: windowWidth) * 3, height: scaleSize(60, windowWidth: windowWidth) * 3)
+                                                .rotationEffect(.degrees(180))
+                                        }
+                                        .padding(.leading, scaleSize(40, windowWidth: windowWidth))
+                                        
+                                        Spacer()
                     }
                 }
-                .frame(height: 450)
                 
-                // 指示器
-                HStack(spacing: 12) {
-                    ForEach(0..<goblins.count, id: \.self) { index in
-                        Circle()
-                            .fill(index == currentIndex ? Color.white : Color.white.opacity(0.3))
-                            .frame(width: index == currentIndex ? 12 : 8, height: index == currentIndex ? 12 : 8)
-                            .animation(.spring(), value: currentIndex)
-                    }
-                }
-                
+                                // 右箭头按钮
+                                if displayGoblins.count > 1 {
+                                    HStack {
                 Spacer()
                 
-                // 确认按钮
                 Button(action: {
-                    let goblin = goblins[currentIndex]
+                                            print("🎭 [哥布林选择] 向右翻页")
+                                            withAnimation(.spring()) {
+                                                currentIndex = (currentIndex + 1) % displayGoblins.count
+                                            }
+                                        }) {
+                                            Image("arrow")
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: scaleSize(60, windowWidth: windowWidth) * 3, height: scaleSize(60, windowWidth: windowWidth) * 3)
+                                        }
+                                        .padding(.trailing, scaleSize(40, windowWidth: windowWidth))
+                                    }
+                                }
+                            }
+                            .frame(height: scaleHeight(800, windowHeight: windowHeight))
+                            
+                            Spacer()
+                            }
+                        }
+                        .frame(width: windowWidth, height: windowHeight)
+                        .cornerRadius(scaleSize(20, windowWidth: windowWidth))
+                        .shadow(color: .black.opacity(0.5), radius: 20, x: 0, y: 10)
+                        .transition(.scale.combined(with: .opacity))
+                        Spacer()
+                    }
+                    
+                    // 底部确认按钮（移到弹窗之外，下移50像素，使用confirm图片）
+                    if currentIndex < displayGoblins.count {
+                        let currentGoblin = displayGoblins[currentIndex]
+                        let isUnlocked = currentGoblin.isFree || unlockedGoblinIds.contains(currentGoblin.id)
+                        
+                        HStack {
+                            Spacer()
+                            Button(action: {
+                                let goblin = displayGoblins[currentIndex]
                     print("🎭 [哥布林选择] 玩家选择了: \(goblin.name)")
                     
                     // 检查是否已解锁
                     if goblin.isFree || unlockedGoblinIds.contains(goblin.id) {
-                        // 免费或已解锁，直接选择
+                        // 免费或已解锁，播放开始音效并选择
+                        audioManager.playSoundEffect("start", fileExtension: "wav")
                         selectedGoblin = goblin
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                         isPresented = false
+                                    }
                     } else {
-                        // 需要解锁
-                        goblinToUnlock = goblin
-                        showUnlockAlert = true
-                    }
-                }) {
-                    let currentGoblin = goblins[currentIndex]
-                    let isUnlocked = currentGoblin.isFree || unlockedGoblinIds.contains(currentGoblin.id)
-                    let currencyIcon = currentGoblin.unlockCurrency == "diamonds" ? "💎" : "💰"
-                    let currencyAmount = currentGoblin.unlockCurrency == "diamonds" ? viewModel.diamonds : currentCoins
-                    let canUnlock = isUnlocked || (currentGoblin.unlockCurrency == "diamonds" ? viewModel.diamonds >= currentGoblin.unlockPrice : currentCoins >= currentGoblin.unlockPrice)
-
-                    HStack(spacing: 12) {
-                        Image(systemName: isUnlocked ? "checkmark.circle.fill" : "lock.fill")
-                            .font(.title2)
-
-                        Text(isUnlocked ?
-                             "\(localizationManager.localized("goblin.select")) \(currentGoblin.name)" :
-                             "\(localizationManager.localized("goblin.unlock")) \(currentGoblin.name) (\(currentGoblin.unlockPrice) \(currencyIcon))")
-                            .font(customFont(size: 20))
-                            .textStroke()
-                    }
+                                    // 未拥有状态，跳转到商店-哥布林分页
+                                    print("🎭 [哥布林选择] 哥布林未拥有，跳转到商店")
+                                    print("🎭 [哥布林选择] onNavigateToStore回调是否存在: \(onNavigateToStore != nil)")
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                        isPresented = false
+                                    }
+                                    // 延迟一点执行，确保弹窗关闭动画完成
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                        print("🎭 [哥布林选择] 执行跳转到商店回调")
+                                        onNavigateToStore?()
+                                    }
+                                }
+                            }) {
+                                ZStack {
+                                    // 使用confirm图片作为背景（扩大2倍）
+                                    Image("confirm")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: scaleSize(600, windowWidth: windowWidth) * 2, height: scaleSize(120, windowWidth: windowWidth) * 2)
+                                    
+                                    // 文本内容：start + 30 体力 + fruit图标（扩大2倍）
+                                    HStack(spacing: scaleSize(15, windowWidth: windowWidth) * 2) {
+                                        Text(localizationManager.localized("game.start"))
+                                            .font(customFont(size: scaleSize(32, windowWidth: windowWidth) * 2))
+                                            .foregroundColor(.white)
+                                        
+                                        Text("30")
+                                            .font(customFont(size: scaleSize(28, windowWidth: windowWidth) * 2))
                     .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(
-                        LinearGradient(
-                            gradient: Gradient(colors: isUnlocked ? 
-                                [Color.green, Color.blue] : 
-                                (canUnlock ? [Color.orange, Color.red] : [Color.gray, Color.gray.opacity(0.7)])),
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .disabled(!isUnlocked && !canUnlock)
-                    .cornerRadius(20)
-                    .shadow(color: .black.opacity(0.3), radius: 10, x: 0, y: 5)
+                                        
+                                        Image("fruit")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: scaleSize(30, windowWidth: windowWidth) * 2, height: scaleSize(30, windowWidth: windowWidth) * 2)
+                                    }
+                                }
                 }
-                .padding(.horizontal, 30)
-                .padding(.bottom, 40)
+                            .padding(.top, -40) // 向上移动40像素
+                            Spacer()
+                        }
+                    }
+                    
+                    Spacer()
+                }
             }
         }
         .alert(localizationManager.localized("goblin.unlock_goblin"), isPresented: $showUnlockAlert) {
@@ -211,141 +349,14 @@ struct GoblinSelectionView: View {
                 }
             }
         }
-    }
-}
-
-// MARK: - 哥布林卡片视图
-struct GoblinCardView: View {
-    @ObservedObject var localizationManager = LocalizationManager.shared
-    let goblin: Goblin
-    let isUnlocked: Bool
-    let currentCoins: Int
-    let currentDiamonds: Int
-    
-    // 获取自定义字体
-    private func customFont(size: CGFloat) -> Font {
-        return FontManager.shared.customFont(size: size)
-    }
-    
-    var body: some View {
-        VStack(spacing: 25) {
-            // 哥布林图标
-            ZStack {
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            gradient: Gradient(colors: [
-                                Color.white.opacity(0.3),
-                                Color.white.opacity(0.1)
-                            ]),
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 160, height: 160)
-                    .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
-                
-                if isUnlocked {
-                    Text(goblin.icon)
-                        .font(.system(size: 100))
-                } else {
-                    // 锁定状态显示锁图标
-                    VStack(spacing: 10) {
-                        Text("🔒")
-                            .font(.system(size: 60))
-                        Text(goblin.icon)
-                            .font(.system(size: 50))
-                            .opacity(0.3)
-                    }
-                }
+        .onAppear {
+            // 初始化时设置为0（第一个）
+            currentIndex = 0
+            print("🎭 [哥布林选择] 界面显示，当前索引: \(currentIndex)，共 \(displayGoblins.count) 个哥布林")
+            if !displayGoblins.isEmpty {
+                print("🎭 [哥布林选择] 当前显示: \(displayGoblins[currentIndex].name)")
             }
-            
-            // 哥布林名称
-            HStack(spacing: 10) {
-                Text(goblin.name)
-                    .font(customFont(size: 28))
-                    .foregroundColor(.white)
-                    .textStroke()
-                
-                if !isUnlocked {
-                    Text("🔒")
-                        .font(.title3)
-                }
-            }
-            
-            // 免费/付费标签
-            if goblin.isFree {
-                Text(localizationManager.localized("goblin.free"))
-                    .font(customFont(size: 12))
-                    .foregroundColor(.white)
-                    .textStroke()
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 6)
-                    .background(
-                        Capsule()
-                            .fill(Color.green)
-                    )
-            } else {
-                let currencyIcon = goblin.unlockCurrency == "diamonds" ? "💎" : "💰"
-                let hasEnough = goblin.unlockCurrency == "diamonds" ? 
-                    currentDiamonds >= goblin.unlockPrice : 
-                    currentCoins >= goblin.unlockPrice
-                
-                HStack(spacing: 5) {
-                    Text("\(goblin.unlockPrice)")
-                        .font(customFont(size: 12))
-                        .textStroke()
-                    Text(currencyIcon)
-                        .font(.caption)
-                }
-                .foregroundColor(.white)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 6)
-                .background(
-                    Capsule()
-                        .fill(isUnlocked ? Color.blue : (hasEnough ? Color.orange : Color.gray))
-                )
-            }
-            
-            // buff描述（增加显示区域）
-            VStack(spacing: 15) {
-                HStack {
-                    Text("⭐ \(localizationManager.localized("goblin.special_ability"))")
-                        .font(customFont(size: 17))
-                        .foregroundColor(.yellow)
-                        .textStroke()
-                    Spacer()
-                }
-                
-                Text(goblin.buff)
-                    .font(customFont(size: 20))
-                    .foregroundColor(.white)
-                    .multilineTextAlignment(.leading)
-                    .lineSpacing(6)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.horizontal, 5)
-                    .textStroke()
-            }
-            .padding(20)
-            .frame(maxWidth: .infinity, minHeight: 100)
-            .background(
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(Color.black.opacity(0.3))
-            )
         }
-        .padding(30)
-        .frame(maxWidth: .infinity)
-        .background(
-            RoundedRectangle(cornerRadius: 30)
-                .fill(Color.white.opacity(0.15))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 30)
-                        .stroke(Color.white.opacity(0.3), lineWidth: 2)
-                )
-                .shadow(color: .black.opacity(0.3), radius: 20, x: 0, y: 10)
-        )
-        .padding(.horizontal, 40)
     }
 }
 
