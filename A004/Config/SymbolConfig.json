@@ -991,8 +991,8 @@
       "icon": "🎃",
       "rarity": "normal",
       "types": [
-        "toy",
-        "festival"
+        "tool",
+        "trading"
       ],
       "baseValue": 2,
       "weight": 1000,

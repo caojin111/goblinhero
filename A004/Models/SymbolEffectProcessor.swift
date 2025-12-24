@@ -147,14 +147,7 @@ class SymbolEffectProcessor {
             }
         }
         
-        // **新功能：检查羁绊全局buff（如正义必胜）**
-        let bondBuffs = BondBuffConfigManager.shared.getActiveBondBuffs(symbolPool: symbolPool)
-        for bondBuff in bondBuffs {
-            if bondBuff.nameKey.contains("justice_bond") && symbolNameKey == "hunter" {
-                totalMultiplier *= 2.0
-                print("⚖️ [羁绊Buff] 正义必胜：猎人权重翻倍")
-            }
-        }
+        // 注意：正义必胜羁绊效果已改为获得龙之火铳，不再影响猎人权重
         
         return totalMultiplier
     }
@@ -771,12 +764,24 @@ class SymbolEffectProcessor {
             logCallback?("   ✓ 儿童：生成修女")
             return 0
         case "merchant":
-            // 消除稀有度最高的一个材料符号，获得其基础价值10倍
+            // 消除稀有度最高的一个材料符号，基础奖励：基础价值+50
             let materials = symbolPool.enumerated().filter { $0.element.types.contains("material") }
             if let target = materials.max(by: { rarityRank($0.element.rarity) < rarityRank($1.element.rarity) || ($0.element.rarity == $1.element.rarity && $0.element.baseValue < $1.element.baseValue) }) {
                 symbolPool.remove(at: target.offset)
-                let reward = target.element.baseValue * 10
-                logCallback?("   ✓ 商人：消除材料 \(target.element.name) 稀有度\(target.element.rarity) 基础\(target.element.baseValue) → 奖励 \(reward)")
+                let baseReward = target.element.baseValue + 50
+                var reward = baseReward
+                
+                // 检查奸商羁绊是否激活（商人+硬币+勾玉）
+                let bondBuffs = BondBuffConfigManager.shared.getActiveBondBuffs(symbolPool: symbolPool)
+                let hasMerchantBond = bondBuffs.contains { $0.nameKey == "merchant_trading_bond" }
+                
+                if hasMerchantBond {
+                    let bondReward = target.element.baseValue * 5
+                    reward += bondReward
+                    logCallback?("   ✓ 商人：消除材料 \(target.element.name) 稀有度\(target.element.rarity) 基础\(target.element.baseValue) → 基础奖励 \(baseReward) + 羁绊奖励 \(bondReward) = 总奖励 \(reward)")
+                } else {
+                    logCallback?("   ✓ 商人：消除材料 \(target.element.name) 稀有度\(target.element.rarity) 基础\(target.element.baseValue) → 奖励 \(reward)")
+                }
                 return reward
             } else {
                 logCallback?("   ⚠️ 商人：未找到材料符号，未获得奖励")
@@ -815,6 +820,11 @@ class SymbolEffectProcessor {
         case "nun":
             spawnSpecific("cross", symbolPool: &symbolPool, count: 1, logCallback: logCallback)
             logCallback?("   ✓ 修女：生成十字架")
+            return 0
+        case "soldier":
+            // 获得一个符文铠甲或外星头盔（随机）
+            spawnOneOf(["rune_armor", "alien_helmet"], symbolPool: &symbolPool, logCallback: logCallback)
+            logCallback?("   ✓ 士兵：获得一个符文铠甲或外星头盔")
             return 0
         case "thief":
             spawnMissingByType("tool", count: 2, symbolPool: &symbolPool, logCallback: logCallback)
@@ -1028,6 +1038,9 @@ class SymbolEffectProcessor {
     private func spawnOneOf(_ nameKeys: [String], symbolPool: inout [Symbol], logCallback: ((String) -> Void)?) {
         if let pick = nameKeys.randomElement(), let sym = SymbolLibrary.getSymbol(byName: pick) {
             symbolPool.append(sym)
+            let msg = "   🎁 生成: \(sym.icon) \(sym.name)"
+            print(msg)
+            logCallback?(msg)
         }
     }
     

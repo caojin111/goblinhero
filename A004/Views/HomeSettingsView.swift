@@ -15,6 +15,7 @@ struct HomeSettingsView: View {
     @State private var showPrivacyPolicy = false
     @State private var showContactUs = false
     @State private var showLanguageSelection = false
+    @State private var showSymbolBook = false
     
     // 获取自定义字体
     private func customFont(size: CGFloat) -> Font {
@@ -105,6 +106,34 @@ struct HomeSettingsView: View {
                                     .foregroundColor(.white.opacity(0.8))
                                     .textStroke()
                             }
+                            
+                            Spacer()
+                            
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.white.opacity(0.6))
+                        }
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 15)
+                                .fill(Color.white.opacity(0.1))
+                        )
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    
+                    // 图鉴按钮
+                    Button(action: {
+                        audioManager.playSoundEffect("click", fileExtension: "wav")
+                        showSymbolBook = true
+                    }) {
+                        HStack {
+                            Image(systemName: "book.fill")
+                                .font(.title2)
+                                .foregroundColor(.blue)
+                            
+                            Text(localizationManager.localized("settings.book"))
+                                .font(customFont(size: 22))
+                                .foregroundColor(.white)
+                                .textStroke()
                             
                             Spacer()
                             
@@ -244,6 +273,11 @@ struct HomeSettingsView: View {
             // 语言选择弹窗
             if showLanguageSelection {
                 LanguageSelectionView(isPresented: $showLanguageSelection)
+            }
+            
+            // 图鉴弹窗
+            if showSymbolBook {
+                SymbolBookView(isPresented: $showSymbolBook, viewModel: nil)
             }
         }
         .transition(.scale)

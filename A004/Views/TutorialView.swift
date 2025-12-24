@@ -110,38 +110,7 @@ struct TutorialView: View {
                     )
                 }
             }
-            
-            // 顶部 Skip 按钮
-            VStack {
-                HStack {
-                    Spacer()
-                    Button(action: {
-                        skipTutorial()
-                    }) {
-                        Text(localizationManager.localized("tutorial.skip"))
-                            .font(customFont(size: 16))
-                            .foregroundColor(.white.opacity(0.8))
-                            .textStroke()
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 10)
-                            .background(
-                                RoundedRectangle(cornerRadius: 20)
-                                    .fill(Color.black.opacity(0.5))
-                            )
-                    }
-                    .padding(.top, 20)
-                    .padding(.trailing, 20)
-                }
-                Spacer()
-            }
         }
-    }
-    
-    /// 跳过教程
-    private func skipTutorial() {
-        print("📚 [新手教程] 用户跳过教程")
-        markTutorialCompleted()
-        isPresented = false
     }
     
     /// 完成教程

@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import GameKit
 
 class GameViewModel: ObservableObject {
     // MARK: - 配置管理器
@@ -137,6 +138,8 @@ class GameViewModel: ObservableObject {
     // MARK: - UI状态
     @Published var isSpinning: Bool = false
     @Published var showSymbolSelection: Bool = false
+    @Published var showGameTutorial: Bool = false // 显示游戏内新手引导
+    private var hasCompletedFirstSymbolSelection: Bool = false // 是否完成了第一次符号选择
     @Published var showGameOver: Bool = false
     @Published var gameOverMessage: String = ""
     @Published private var extraSymbolChoicesPending: Int = 0
@@ -290,6 +293,9 @@ class GameViewModel: ObservableObject {
     func startNewGame() {
         print("🎮 [新游戏] 初始化游戏状态")
         
+        // 重置第一次符号选择标记
+        hasCompletedFirstSymbolSelection = false
+        
         // 清空羁绊状态（特别是 classic tale）
         BondBuffRuntime.shared.activeTypeBonds.removeAll()
         print("🔄 [新游戏] 已清空羁绊状态")
@@ -387,6 +393,15 @@ class GameViewModel: ObservableObject {
         individualDiceResults = results // 保存每个骰子的结果
         currentDiceCount = diceCount // 更新UI显示
         print("🎲 [掷骰子] 总点数: \(diceResult) (骰子数量: \(diceCount), 各骰子点数: \(individualDiceResults))")
+        
+        // 检查成就：第一次投掷到 6 点
+        if results.contains(6) {
+            let hasCompletedAchievement1 = UserDefaults.standard.bool(forKey: "achievement_achivement_1")
+            if !hasCompletedAchievement1 {
+                GameCenterManager.shared.unlockAchievement("achivement_1")
+                print("🏆 [成就] 检测到第一次投掷到 6 点，解锁成就 achivement_1")
+            }
+        }
         
         // 激活的羁绊（用于掷骰/挖矿相关效果）
         let activeBondKeys = BondBuffConfigManager.shared.getActiveBondBuffs(symbolPool: symbolPool).map { $0.nameKey }
@@ -1166,6 +1181,16 @@ class GameViewModel: ObservableObject {
                 // 支付成功
                 currentCoins -= rentAmount
                 totalRentPaid += rentAmount // 累计已支付的房租
+                
+                // 检查成就：第一次通过 15-3（在进入第16关之前检查）
+                if currentRound == 15 && displayedSpinInRound == 3 {
+                    let hasCompletedAchievement2 = UserDefaults.standard.bool(forKey: "achievement_achivement_2")
+                    if !hasCompletedAchievement2 {
+                        GameCenterManager.shared.unlockAchievement("achivement_2")
+                        print("🏆 [成就] 检测到第一次通过 15-3，解锁成就 achivement_2")
+                    }
+                }
+                
                 currentRound += 1
                 spinsRemaining = configManager.getGameSettings().spinsPerRound
                 rentAmount = configManager.getRentAmount(for: currentRound)
@@ -1324,6 +1349,24 @@ class GameViewModel: ObservableObject {
         symbolPool.append(symbol)
         showSymbolSelection = false
         
+        // 检测是否是第一次符号选择完成
+        // 起始符号池有3个符号，第一次选择后应该有4个
+        let startingSymbolCount = SymbolLibrary.startingSymbols.count
+        if !hasCompletedFirstSymbolSelection && currentRound == 1 && symbolPool.count == startingSymbolCount + 1 {
+            hasCompletedFirstSymbolSelection = true
+            // 检查是否已经完成过游戏内新手引导
+            let hasCompletedGameTutorial = UserDefaults.standard.bool(forKey: "hasCompletedGameTutorial")
+            if !hasCompletedGameTutorial {
+                // 延迟一点显示引导，确保UI已经更新
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    self.showGameTutorial = true
+                    print("📚 [游戏内引导] 第一次符号选择完成（符号池: \(self.symbolPool.count)），显示游戏内新手引导")
+                }
+            } else {
+                print("📚 [游戏内引导] 第一次符号选择完成，但用户已完成过引导，跳过")
+            }
+        }
+        
         // 若有额外符号选择次数，继续显示下一次选择
         if extraSymbolChoicesPending > 0 {
             extraSymbolChoicesPending -= 1
@@ -1352,6 +1395,13 @@ class GameViewModel: ObservableObject {
         // 骰子可转动时，更新显示的转动次数
         updateDisplayedSpinInRoundIfCanRoll()
         print("🎮 [调试] 设置后状态 - spinsRemaining: \(spinsRemaining), isSpinning: \(isSpinning), gamePhase: \(gamePhase)")
+    }
+    
+    /// 完成游戏内新手引导
+    func completeGameTutorial() {
+        print("📚 [游戏内引导] 用户完成游戏内新手引导")
+        UserDefaults.standard.set(true, forKey: "hasCompletedGameTutorial")
+        showGameTutorial = false
     }
     
     /// 测试功能：一键添加所有触发羁绊的符号
@@ -1536,14 +1586,14 @@ class GameViewModel: ObservableObject {
         let bondBuffs = BondBuffConfigManager.shared.getActiveBondBuffs(symbolPool: symbolPool)
         
         for bondBuff in bondBuffs {
-            // 浣熊市：每有一个丧尸，额外金币增加5
+            // 浣熊市：每有一个丧尸，额外金币增加20
             if bondBuff.nameKey.contains("raccoon_city_bond") {
                 // 使用 nameKey 来匹配，因为 name 可能是本地化的
                 let zombieCount = symbolPool.filter { $0.nameKey == "zombie" }.count
                 if zombieCount > 0 {
-                    bonus += zombieCount * 5
-                    print("🧟 [羁绊Buff] 浣熊市：符号池有\(zombieCount)个丧尸，额外+\(zombieCount * 5)金币")
-                    settlementLogs.append("🧟 [羁绊Buff] 浣熊市：符号池有\(zombieCount)个丧尸，额外+\(zombieCount * 5)金币")
+                    bonus += zombieCount * 20
+                    print("🧟 [羁绊Buff] 浣熊市：符号池有\(zombieCount)个丧尸，额外+\(zombieCount * 20)金币")
+                    settlementLogs.append("🧟 [羁绊Buff] 浣熊市：符号池有\(zombieCount)个丧尸，额外+\(zombieCount * 20)金币")
                 }
             }
         }
@@ -1584,6 +1634,13 @@ class GameViewModel: ObservableObject {
             bestCoins = totalCoins
             print("💰 [新记录] 历史最多金币更新: \(bestCoins)")
         }
+        
+        // 提交单局最高金币数到Game Center排行榜
+        // 注意：这里使用accumulatedCoins（累计金币 = 当前金币 + 已支付的房租）
+        // 这代表玩家在这局游戏中获得的总金币数
+        let singleGameCoins = totalCoins
+        print("🎮 [Game Center] 准备提交单局最高金币数: \(singleGameCoins)")
+        GameCenterManager.shared.submitScore(Int64(singleGameCoins))
 
         gamePhase = .gameOver
         gameOverMessage = message

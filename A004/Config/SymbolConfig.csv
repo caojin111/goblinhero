@@ -1,9 +1,9 @@
 id,nameKey,icon,rarity,types,baseValue,bondID,weight,effect,effectType,effectParams,descriptionKey
 1,child,symbol_01.png,normal,human;childish,2,,1000,获得一个修女。,count_bonus,"{""""countType"""": """"childish"""", """"bonusPerCount"""": 2, """"excludeSelf"""": true}",child
-2,merchant,symbol_02.png,normal,human;trading,2,,1000,消除稀有度最高的一个材料符号，获得其基础价值10倍的金币,eliminate_trading_symbol_bonus,"{""""targetSymbols"""": [""""勾玉"""", """"硬币""""], """"bonus"""": 30}",merchant
+2,merchant,symbol_02.png,normal,human;trading,2,,1000,消除稀有度最高的一个材料符号，获得其基础价值+50的金币,eliminate_trading_symbol_bonus,"{""""targetSymbols"""": [""""勾玉"""", """"硬币""""], """"bonus"""": 30}",merchant
 3,barbarian,symbol_03.png,rare,human;worship,3,,800,符号池里每拥有一个类型为#alien的符号，金币-5，每拥有一个类型为#monster的符号，金币+20,mixed_count_bonus,"{""""bonuses"""": [{""""countType"""": """"alien"""", """"bonusPerCount"""": -1}, {""""countType"""": """"monster"""", """"bonusPerCount"""": 1}]}",barbarian
 4,farmer,symbol_04.png,rare,human;classic tale,3,,800,获得5个类型为#tool的随机符号,count_bonus,"{""""countType"""": """"tool"""", """"bonusPerCount"""": 2}",farmer
-5,soldier,symbol_05.png,rare,human;classic tale,5,,300,如果'圣骑士'即将被其他符号消除，自动消除自身取消一次对'圣骑士'符号的消除,protect_symbol,{""protectSymbol"": ""圣骑士""},soldier
+5,soldier,symbol_05.png,rare,human;classic tale,5,,300,获得一个符文铠甲或外星头盔,spawn_random_from_list,"{""""symbols"""": [""""符文铠甲"""", """"外星头盔""""]}",soldier
 6,village_chief,symbol_06.png,normal,human;worship,2,,1000,获得 5 个随机#human符号，金币+10,count_bonus,"{""""countType"""": """"human"""", """"bonusPerCount"""": 1}",village_chief
 7,forest_fairy,symbol_07.png,rare,elf;forest,3,,800,消除符号池的所有'暗月妖精'，每消灭1个获得100金币,eliminate_multiple,"{""""targetSymbols"""": [""""暗月妖精""""], """"bonus"""": 100}",forest_fairy
 8,dark_moon_fairy,symbol_08.png,rare,elf;forest,3,,800,消除符号池里所有'星光妖精'，每消灭1个获得100金币,eliminate_multiple,"{""""targetSymbols"""": [""""星光妖精""""], """"bonus"""": 100}",dark_moon_fairy
@@ -50,7 +50,7 @@ id,nameKey,icon,rarity,types,baseValue,bondID,weight,effect,effectType,effectPar
 49,pillow,symbol_49.png,normal,material;cozy life,2,,1000,消除两个除#cozy life之外的符号,conditional_bonus_eliminate,"{""""triggerSymbol"""": """"儿童"""", """"bonus"""": 20}",pillow
 50,eye_mask,symbol_50.png,normal,material;cozy life,2,,1000,消除两个除#cozy life之外的符号,conditional_bonus_eliminate,"{""""triggerSymbol"""": """"儿童"""", """"bonus"""": 10}",eye_mask
 51,talisman_paper,symbol_51.png,normal,material;vampire note,2,,1000,消除狼人和自身，获得 100 金币,eliminate_pair_bonus,"{""""targetSymbol"""": """"狼人"""", """"bonus"""": 100}",talisman_paper
-52,pumpkin_head,symbol_52.png,normal,toy;festival,2,,1000,获得一个儿童,none,{},pumpkin_head
+52,pumpkin_head,symbol_52.png,normal,tool;trading,2,,1000,无效果,none,{},pumpkin_head
 53,snowflake,symbol_53.png,normal,material;festival,2,,1000,获得一个农民,count_bonus,"{""""countType"""": """"human"""", """"bonusPerCount"""": 5, """"nameFilter"""": """"农民""""}",snowflake
 54,firecracker,symbol_54.png,normal,material;festival,2,,1000,获得一个号角,count_bonus,"{""""countType"""": """"human"""", """"bonusPerCount"""": 10, """"nameFilter"""": """"农民""""}",firecracker
 55,lantern,symbol_55.png,normal,material;childish,1,,1000,获得一个商人,none,{},lantern

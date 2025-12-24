@@ -93,6 +93,11 @@ struct ContentView: View {
             }
 
         }
+        .onAppear {
+            // 初始化Game Center认证
+            _ = GameCenterManager.shared
+            print("🎮 [Game Center] 初始化Game Center管理器")
+        }
         .animation(.easeInOut(duration: 0.3), value: showLaunchScreen)
         .animation(.easeInOut(duration: 0.3), value: showStoryIntro)
         .animation(.easeInOut(duration: 0.3), value: showLoadingScreen)

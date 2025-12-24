@@ -21,7 +21,9 @@
         "sign_in": "sign-in",
         "total_coins": "Total Coins",
         "start_game": "Start Game",
-        "stamina_insufficient": "Insufficient Stamina"
+        "stamina_insufficient": "Insufficient Stamina",
+        "rank": "Rank",
+        "achievement": "Achievement"
       },
       "stores": {
         "paid_store": "Paid Store",
@@ -78,7 +80,25 @@
         "privacy_policy_content": "Privacy Policy\n\nLast Updated: [Date]\n\n1. Information We Collect\nWe collect information you provide directly to us, such as when you create an account, make a purchase, or contact us for support.\n\n2. How We Use Your Information\nWe use the information we collect to provide, maintain, and improve our services, process transactions, and communicate with you.\n\n3. Information Sharing\nWe do not sell, trade, or otherwise transfer your personal information to third parties without your consent.\n\n4. Data Security\nWe implement appropriate security measures to protect your personal information.\n\n5. Your Rights\nYou have the right to access, update, or delete your personal information at any time.\n\n6. Contact Us\nIf you have any questions about this Privacy Policy, please contact us at support@example.com.",
         "contact_us": "Contact Us",
         "contact_us_description": "Get in touch with us",
-        "contact_us_content": "We'd love to hear from you!\n\nIf you have any questions, feedback, or need support, please reach out to us via email."
+        "contact_us_content": "We'd love to hear from you!\n\nIf you have any questions, feedback, or need support, please reach out to us via email.",
+        "book": "Book"
+      },
+      "book": {
+        "title": "📚 Book",
+        "symbols": "Symbols",
+        "bonds": "Bonds",
+        "any_different": "Any different",
+        "member": "member"
+      },
+      "game_tutorial": {
+        "step1_title": "Symbol Pool",
+        "step1_description": "All symbols you choose will appear here.",
+        "step2_title": "Mine Board",
+        "step2_description": "Symbols from your pool may appear in the mines. Dig them out to trigger their effects!",
+        "step3_title": "Game Info",
+        "step3_description": "This shows your current coins, level, and the coin goal for the current level.",
+        "step4_title": "Roll Dice",
+        "step4_description": "Now start your first dice roll!"
       },
       "difficulty": {
         "select_title": "🎮 Select Difficulty",
@@ -308,7 +328,7 @@
         },
         "merchant": {
           "name": "Merchant",
-          "description": "Remove the symbol with the highest rarity among all <color=#E74875>#Materials</color>, and gain gold coins equal to 10 times its base value"
+          "description": "Remove the symbol with the highest rarity among all <color=#E74875>#Materials</color>, and gain gold coins equal to its base value + 50"
         },
         "barbarian": {
           "name": "Barbarian",
@@ -320,7 +340,7 @@
         },
         "soldier": {
           "name": "Soldier",
-          "description": "If a <color=#AA2ABB>Paladin</color> is about to be removed by other symbols, remove yourself to cancel one removal of the <color=#AA2ABB>Paladin</color>"
+          "description": "Get a <color=#080909>Rune Armor</color> or <color=#080909>Alien Helmet</color>"
         },
         "village_chief": {
           "name": "Village Chief",
@@ -622,7 +642,7 @@
         },
         "merchant_trading_bond": {
           "name": "Shrewd Merchant",
-          "description": "Magatama and Coin base coin value +20"
+          "description": "Symbols eliminated by Merchant gain coins equal to 5 times their base value"
         },
         "vampire_curse_bond": {
           "name": "Vampire's Curse",
@@ -638,11 +658,11 @@
         },
         "element_master_bond": {
           "name": "Element Master",
-          "description": "If symbol pool has all five elements, gain 500 coins each turn"
+          "description": "If symbol pool has all five elements, gain 100 coins each turn"
         },
         "justice_bond": {
           "name": "Justice Prevails",
-          "description": "If Cross and Nun exist simultaneously in symbol pool, Hunter's spawn probability doubles"
+          "description": "If Cross and Nun exist simultaneously in symbol pool, gain a Dragon Firearm (if not owned)"
         },
         "apocalypse_bond": {
           "name": "Apocalypse",
@@ -654,7 +674,7 @@
         },
         "raccoon_city_bond": {
           "name": "raccoon-city",
-          "description": "Infect one human into a zombie before each mining. Gain +5 coins for each zombie"
+          "description": "Infect one human into a zombie before each mining. Gain +20 coins for each zombie"
         },
         "human_3_bond": {
           "name": "human-3",
@@ -722,6 +742,8 @@
         "sign_in": "签到",
         "total_coins": "历史最多金币",
         "start_game": "开始游戏",
+        "rank": "排行榜",
+        "achievement": "成就",
         "stamina_insufficient": "体力不足"
       },
       "stores": {
@@ -779,7 +801,25 @@
         "privacy_policy_content": "隐私政策\n\n最后更新：[日期]\n\n1. 我们收集的信息\n我们收集您直接提供给我们的信息，例如当您创建账户、进行购买或联系我们寻求支持时。\n\n2. 我们如何使用您的信息\n我们使用收集的信息来提供、维护和改进我们的服务，处理交易，并与您沟通。\n\n3. 信息共享\n未经您同意，我们不会向第三方出售、交易或以其他方式转让您的个人信息。\n\n4. 数据安全\n我们实施适当的安全措施来保护您的个人信息。\n\n5. 您的权利\n您有权随时访问、更新或删除您的个人信息。\n\n6. 联系我们\n如果您对此隐私政策有任何疑问，请通过 support@example.com 联系我们。",
         "contact_us": "联系我们",
         "contact_us_description": "与我们取得联系",
-        "contact_us_content": "我们很乐意听到您的声音！\n\n如果您有任何问题、反馈或需要支持，请通过电子邮件与我们联系。"
+        "contact_us_content": "我们很乐意听到您的声音！\n\n如果您有任何问题、反馈或需要支持，请通过电子邮件与我们联系。",
+        "book": "图鉴"
+      },
+      "book": {
+        "title": "📚 图鉴",
+        "symbols": "符号",
+        "bonds": "羁绊",
+        "any_different": "任意不同",
+        "member": "成员"
+      },
+      "game_tutorial": {
+        "step1_title": "符号池",
+        "step1_description": "每次你选择的符号都会出现在这里。",
+        "step2_title": "矿坑棋盘",
+        "step2_description": "符号池的符号有概率出现在矿坑，挖出符号来触发符号的效果！",
+        "step3_title": "游戏信息",
+        "step3_description": "这是你当前金币，关卡，以及当前关卡的金币目标",
+        "step4_title": "投掷骰子",
+        "step4_description": "现在开始你的第一次投掷骰子吧！"
       },
       "difficulty": {
         "select_title": "🎮 选择难度",
@@ -1009,7 +1049,7 @@
         },
         "merchant": {
           "name": "商人",
-          "description": "消除稀有度最高的一个<color=#E74875>#材料</color>符号，获得其基础价值10倍的金币"
+          "description": "消除稀有度最高的一个<color=#E74875>#材料</color>符号，获得其基础价值+50的金币"
         },
         "barbarian": {
           "name": "野蛮人",
@@ -1021,7 +1061,7 @@
         },
         "soldier": {
           "name": "士兵",
-          "description": "如果<color=#AA2ABB>圣骑士</color>即将被其他符号消除，消除自身取消一次对<color=#AA2ABB>圣骑士</color>的消除"
+          "description": "获得一个<color=#080909>符文铠甲</color>或<color=#080909>外星头盔</color>"
         },
         "village_chief": {
           "name": "村长",
@@ -1323,7 +1363,7 @@
         },
         "merchant_trading_bond": {
           "name": "奸商",
-          "description": "勾玉和硬币的基础金币价值+20"
+          "description": "被商人消除的符号获得其基础价值*5的金币"
         },
         "vampire_curse_bond": {
           "name": "吸血鬼的诅咒",
@@ -1339,11 +1379,11 @@
         },
         "element_master_bond": {
           "name": "元素掌握者",
-          "description": "如果元素池里拥有全部五种元素，则每回合获得 500 金币"
+          "description": "如果元素池里拥有全部五种元素，则每回合获得 100 金币"
         },
         "justice_bond": {
           "name": "正义必胜",
-          "description": "如果十字架和修女同时在符号池内，挖出猎人的概率翻倍"
+          "description": "如果十字架和修女同时在符号池内，获得一个龙之火铳（如果未拥有）"
         },
         "apocalypse_bond": {
           "name": "世界末日",
@@ -1354,8 +1394,8 @@
           "description": "如果光线枪，外星头盔，宇宙飞船，精神控制器同时在符号池内， 下个回合开始时，消灭一个人类，获得 300 金币"
         },
         "raccoon_city_bond": {
-          "name": "raccoon-city",
-          "description": "每次挖矿前感染一个人类变成丧尸。每有一个丧尸，额外金币增加5"
+          "name": "浣熊市",
+          "description": "每次挖矿前感染一个人类变成丧尸。每有一个丧尸，额外金币增加20"
         },
         "human_3_bond": {
           "name": "人类·三人组",

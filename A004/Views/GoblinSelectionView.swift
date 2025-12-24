@@ -134,6 +134,7 @@ struct GoblinSelectionView: View {
                                         Text(goblin.name)
                                             .font(customFont(size: scaleSize(48, windowWidth: windowWidth) + 5))
                                             .foregroundColor(.white)
+                                            .textStroke() // 添加黑色描边
                                         
                                         // Buff描述（扩大1.5倍，去掉标题和星星，字号增加5，扩展上下各一行）
                                         VStack(alignment: .leading, spacing: scaleHeight(15, windowHeight: windowHeight) * 1.5) {

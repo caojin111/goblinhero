@@ -66,7 +66,11 @@ class BondEffectProcessor {
             return (0, false) // 在掷骰逻辑里统一处理，返回0占位
             
         case "material_2_bond":
-            // 每回合自动熔合2个normal材料为rare
+            // 每回合自动熔合2个normal材料为rare（第一回合不触发）
+            if currentRound == 1 {
+                print("🧪 [羁绊] 材料2：第一回合跳过合成")
+                return (0, false)
+            }
             let normals = symbolPool.enumerated().filter { $0.element.types.contains("material") && $0.element.rarity == .common }
             if normals.count >= 2 {
                 // 移除两个normal
@@ -120,7 +124,7 @@ class BondEffectProcessor {
             print("📜 [羁绊] classic tale 6：中心挖出+400（挖掘时处理）")
             return (0, false)
         case "merchant_trading_bond":
-            // 奸商：勾玉和硬币的基础金币价值+20（全局buff，在计算符号价值时应用）
+            // 奸商：被商人消除的符号获得其基础价值*5的金币（在商人消除符号时处理，这里不需要处理）
             return processMerchantTradingBond()
             
         case "vampire_curse_bond":
@@ -136,12 +140,12 @@ class BondEffectProcessor {
             return processWolfHunterBond(symbolPool: symbolPool)
             
         case "element_master_bond":
-            // 元素掌握者：如果拥有全部五种元素，每回合获得500金币
+            // 元素掌握者：如果拥有全部五种元素，每回合获得100金币
             return processElementMasterBond(symbolPool: symbolPool)
             
         case "justice_bond":
-            // 正义必胜：如果十字架和修女同时存在，挖出猎人的概率翻倍（全局buff）
-            return processJusticeBond()
+            // 正义必胜：如果十字架和修女同时存在，获得一个龙之火铳（如果未拥有）
+            return processJusticeBond(symbolPool: &symbolPool)
             
         case "apocalypse_bond":
             // 世界末日：如果哥莫拉、丧尸、狼人、吸血鬼同时存在，下回合开始时随机消灭一半符号，获得2000金币
@@ -152,7 +156,7 @@ class BondEffectProcessor {
             return processHumanExtinctionBond(symbolPool: &symbolPool)
             
         case "raccoon_city_bond":
-            // 浣熊市：每次挖矿前感染一个人类变成丧尸。每有一个丧尸，额外金币增加5
+            // 浣熊市：每次挖矿前感染一个人类变成丧尸。每有一个丧尸，额外金币增加20
             return processRaccoonCityBond(symbolPool: &symbolPool)
             
         default:
@@ -164,10 +168,9 @@ class BondEffectProcessor {
     // MARK: - 各个羁绊效果实现
     
     private func processMerchantTradingBond() -> (bonus: Int, shouldGameOver: Bool) {
-        // 这个效果是全局buff，需要在SymbolEffectProcessor中应用
-        // 通过effectProcessor.applyGlobalBuff来激活
-        print("💰 [羁绊Buff] 奸商：勾玉和硬币基础价值+20（全局buff）")
-        // 注意：这个buff需要在GameViewModel中通过effectProcessor应用
+        // 奸商羁绊效果：被商人消除的符号获得其基础价值*5的金币
+        // 这个效果在 SymbolEffectProcessor 中商人消除符号时处理，这里不需要额外处理
+        print("💰 [羁绊Buff] 奸商羁绊已激活：被商人消除的符号将获得其基础价值*5的金币")
         return (bonus: 0, shouldGameOver: false)
     }
     
@@ -214,18 +217,28 @@ class BondEffectProcessor {
         let collectedElements = Set(symbolPool.filter { requiredElements.contains($0.name) }.map { $0.name })
         
         if collectedElements.count == 5 && collectedElements == requiredElements {
-            print("✨ [羁绊Buff] 元素掌握者：+500金币")
-            return (bonus: 500, shouldGameOver: false)
+            print("✨ [羁绊Buff] 元素掌握者：+100金币")
+            return (bonus: 100, shouldGameOver: false)
         }
         return (bonus: 0, shouldGameOver: false)
     }
     
-    private func processJusticeBond() -> (bonus: Int, shouldGameOver: Bool) {
-        // 这个效果是全局buff，影响猎人权重
-        // 需要在生成符号时应用权重倍数
-        // 实际逻辑需要在SymbolConfigManager.getRandomSymbol或相关方法中应用
-        print("⚖️ [羁绊Buff] 正义必胜：猎人权重翻倍（全局buff）")
-        // 注意：这个buff需要在符号生成时应用权重倍数
+    private func processJusticeBond(symbolPool: inout [Symbol]) -> (bonus: Int, shouldGameOver: Bool) {
+        // 检查是否已拥有龙之火铳
+        let hasDragonFireGun = symbolPool.contains { $0.nameKey == "dragon_fire_gun" }
+        
+        if !hasDragonFireGun {
+            // 如果未拥有，则添加一个龙之火铳
+            if let dragonFireGun = SymbolLibrary.getSymbol(byName: "dragon_fire_gun") {
+                symbolPool.append(dragonFireGun)
+                print("⚖️ [羁绊Buff] 正义必胜：获得龙之火铳")
+            } else {
+                print("⚠️ [羁绊Buff] 正义必胜：无法找到龙之火铳符号")
+            }
+        } else {
+            print("⚖️ [羁绊Buff] 正义必胜：已拥有龙之火铳，无需添加")
+        }
+        
         return (bonus: 0, shouldGameOver: false)
     }
     
@@ -290,7 +303,7 @@ class BondEffectProcessor {
     private func processRaccoonCityBond(symbolPool: inout [Symbol]) -> (bonus: Int, shouldGameOver: Bool) {
         // 每次挖矿前感染一个人类变成丧尸
         // 这个效果应该在挖矿前触发，不是在回合开始时
-        // 每有一个丧尸，额外金币增加5（这个在计算收益时应用）
+        // 每有一个丧尸，额外金币增加20（这个在计算收益时应用）
         
         // 感染一个人类
         if let humanIndex = symbolPool.firstIndex(where: { $0.types.contains("human") }) {

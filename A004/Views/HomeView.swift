@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 // 用于标识要打开的商城标签页
 struct StoreTabIdentifier: Identifiable {
@@ -137,6 +138,21 @@ struct HomeView: View {
                     .position(
                         x: geometry.size.width - (figmaWidth - 894 - 288/2) * scaleX,
                         y: (89 + 127/2) * scaleY + 60
+                    )
+                    
+                    // Rank 和 Achievement 按钮（钻石条正下方，并排显示）
+                    HStack(spacing: 20 * scaleX) {
+                        // Rank 按钮
+                        RankButtonView()
+                            .frame(width: 140 * scaleX, height: 100 * scaleY)
+                        
+                        // Achievement 按钮
+                        AchievementButtonView()
+                            .frame(width: 140 * scaleX, height: 100 * scaleY)
+                    }
+                    .position(
+                        x: geometry.size.width - (figmaWidth - 894 - 288/2) * scaleX - 40 * scaleX - 20 * scaleX, // 再左移 20 像素
+                        y: (89 + 127 + 50) * scaleY + 60 + 10 * scaleY // 再下移 10 像素
                     )
                     
                     // 中间：哥布林的家（Figma: x: 50, y: 609, 1102 x 1121）
@@ -541,7 +557,8 @@ struct StaminaBarView: View {
                     .foregroundColor(.white)
                     .textStroke()
                     .lineLimit(1)
-                    .frame(width: 165 * scaleX, alignment: .leading)
+                    .fixedSize(horizontal: true, vertical: false) // 防止省略号，水平方向自适应
+                    .frame(minWidth: 175 * scaleX, alignment: .leading) // 向右扩展10像素（165+10=175）
                     .offset(x: (677 - 591) * scaleX, y: (124 - 90) * scaleY)
                 
                 // 体力倒计时（Figma: x: 684, y: 216）
@@ -643,6 +660,97 @@ struct DiamondBarView: View {
             }
         }
     }
+}
+
+// MARK: - Rank 按钮视图
+struct RankButtonView: View {
+    @ObservedObject var localizationManager = LocalizationManager.shared
+    
+    // 获取自定义字体
+    private func customFont(size: CGFloat) -> Font {
+        return FontManager.shared.customFont(size: size)
+    }
+    
+    var body: some View {
+        GeometryReader { geometry in
+            let scaleX = geometry.size.width / 288
+            let scaleY = geometry.size.height / 100
+            
+            Button(action: {
+                audioManager.playSoundEffect("click", fileExtension: "wav")
+                // 直接显示 Game Center 界面，不使用 sheet
+                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                   let rootViewController = windowScene.windows.first?.rootViewController {
+                    GameCenterManager.shared.showLeaderboard(from: rootViewController)
+                }
+            }) {
+                VStack(spacing: 8 * scaleY) {
+                    // Rank 图标（放大 2 倍）
+                    Image("rank")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 300 * min(scaleX, scaleY), height: 300 * min(scaleX, scaleY))
+                    
+                    // Rank 文字标题（放大 2 倍，使用多语言）
+                    Text(localizationManager.localized("home.rank"))
+                        .font(customFont(size: 100 * scaleX))
+                        .foregroundColor(.white)
+                        .textStroke()
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+            .buttonStyle(ScaleButtonStyle())
+        }
+    }
+    
+    @ObservedObject private var audioManager = AudioManager.shared
+}
+
+// MARK: - Achievement 按钮视图
+struct AchievementButtonView: View {
+    @ObservedObject var localizationManager = LocalizationManager.shared
+    
+    // 获取自定义字体
+    private func customFont(size: CGFloat) -> Font {
+        return FontManager.shared.customFont(size: size)
+    }
+    
+    var body: some View {
+        GeometryReader { geometry in
+            let scaleX = geometry.size.width / 140
+            let scaleY = geometry.size.height / 100
+            
+            Button(action: {
+                audioManager.playSoundEffect("click", fileExtension: "wav")
+                // 直接显示 Game Center 成就界面
+                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                   let rootViewController = windowScene.windows.first?.rootViewController {
+                    GameCenterManager.shared.showAchievements(from: rootViewController)
+                }
+            }) {
+                VStack(spacing: 8 * scaleY) {
+                    // Achievement 图标
+                    Image("achievement")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 150 * min(scaleX, scaleY), height: 150 * min(scaleX, scaleY))
+                    
+                    // Achievement 文字标题（使用多语言，向右扩展 10 像素）
+                    Text(localizationManager.localized("home.achievement"))
+                        .font(customFont(size: 50 * scaleX))
+                        .foregroundColor(.white)
+                        .textStroke()
+                        .lineLimit(1)
+                        .fixedSize(horizontal: true, vertical: false) // 防止省略号，水平方向自适应
+                        .frame(minWidth: (geometry.size.width + 10 * scaleX), alignment: .center) // 向右扩展 10 像素
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+            .buttonStyle(ScaleButtonStyle())
+        }
+    }
+    
+    @ObservedObject private var audioManager = AudioManager.shared
 }
 
 #Preview {

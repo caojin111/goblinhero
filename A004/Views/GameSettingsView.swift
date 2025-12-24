@@ -13,6 +13,7 @@ struct GameSettingsView: View {
     @ObservedObject var localizationManager = LocalizationManager.shared
     @Binding var isPresented: Bool
     @State private var showLanguageSelection = false
+    @State private var showSymbolBook = false
     
     // 通用羁绊测试按钮
     private func BondTestButton(title: String, action: @escaping () -> Void) -> some View {
@@ -88,6 +89,34 @@ struct GameSettingsView: View {
 
                             Spacer()
 
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.white.opacity(0.6))
+                        }
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 15)
+                                .fill(Color.white.opacity(0.1))
+                        )
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    
+                    // 图鉴按钮
+                    Button(action: {
+                        showSymbolBook = true
+                    }) {
+                        HStack {
+                            Image(systemName: "book.fill")
+                                .font(.title2)
+                                .foregroundColor(.blue)
+                            
+                            Text(localizationManager.localized("settings.book"))
+                                .font(.headline)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                                .textStroke()
+                            
+                            Spacer()
+                            
                             Image(systemName: "chevron.right")
                                 .foregroundColor(.white.opacity(0.6))
                         }
@@ -243,6 +272,11 @@ struct GameSettingsView: View {
             // 语言选择弹窗
             if showLanguageSelection {
                 LanguageSelectionView(isPresented: $showLanguageSelection)
+            }
+            
+            // 图鉴弹窗
+            if showSymbolBook {
+                SymbolBookView(isPresented: $showSymbolBook, viewModel: viewModel)
             }
         }
         .transition(.scale)

@@ -16,6 +16,7 @@ struct GameView: View {
     @State private var zoomScale: CGFloat = 1.0 // 缩放比例
     @State private var zoomOffset: CGSize = .zero // 缩放时的偏移量
     @State private var isLongPressing: Bool = false // 是否正在长按
+    @State private var tutorialViewFrames: [String: CGRect] = [:] // 用于传递位置信息给新手引导
     
     /// 播放点击音效
     private func playClickSound() {
@@ -44,6 +45,7 @@ struct GameView: View {
                         .offset(zoomOffset)
                         .animation(.easeInOut(duration: 0.3 / viewModel.settlementAnimationSpeed), value: zoomScale)
                         .animation(.easeInOut(duration: 0.3 / viewModel.settlementAnimationSpeed), value: zoomOffset)
+                        .viewFrame(name: "slotMachine") // 用于获取矿坑棋盘位置
                     
                     // 控制按钮区域（zoom in 时隐藏）
                     ControlPanel(viewModel: viewModel)
@@ -51,6 +53,7 @@ struct GameView: View {
                         .padding(.bottom, 8)
                         .opacity(zoomScale > 1.0 ? 0 : 1)
                         .animation(.easeInOut(duration: 0.3 / viewModel.settlementAnimationSpeed), value: zoomScale)
+                        .viewFrame(name: "controlPanel") // 用于获取控制面板位置
                     
                     // 使用固定布局，避免结算结束时界面跳动
                     Color.clear
@@ -62,6 +65,7 @@ struct GameView: View {
                         .padding(.horizontal)
                         .padding(.top, 10)
                         .allowsHitTesting(true) // 确保可以交互
+                        .viewFrame(name: "topInfoBar") // 用于获取顶部信息栏位置
                 }
             
             // 符号选择弹窗
@@ -185,6 +189,20 @@ struct GameView: View {
                     .padding(.bottom, 50)
                 }
             }
+            
+            // 游戏内新手引导
+            if viewModel.showGameTutorial {
+                GameTutorialView(
+                    isPresented: $viewModel.showGameTutorial,
+                    viewModel: viewModel,
+                    viewFrames: tutorialViewFrames
+                )
+            }
+        }
+        .coordinateSpace(name: "gameView")
+        .onPreferenceChange(ViewFramePreferenceKey.self) { frames in
+            // 收集所有子视图的位置信息，传递给新手引导
+            tutorialViewFrames = frames
         }
         // 移除长按手势，改用点击加速按钮
         .onChange(of: viewModel.showEarningsTip) { isShowing in
@@ -665,16 +683,18 @@ struct SlotCellView: View {
                     .frame(width: 60, height: 60)
                     .zIndex(5) // 确保在符号之上但在金币数字之下
             }
-            
-            // 金币数字放在最上层，确保盖在未挖出的矿格之上
-            if isSettling {
-                CoinFloatView(earnings: viewModel.currentSettlingCellEarnings)
-                    .zIndex(10) // 提高zIndex，确保在最上层
-            }
         }
         .scaleEffect(scale * settlingScale * 1.2) // 整体放大1.1倍
         .rotationEffect(.degrees(isSettling ? sin(rotation / 10) * 3 : 0)) // 结算时轻微摇摆
         .offset(shakeOffset) // 抖动偏移
+        .overlay(
+            // 金币数字放在最上层overlay，确保盖在所有内容之上（包括未挖开的icon）
+            Group {
+                if isSettling {
+                    CoinFloatView(earnings: viewModel.currentSettlingCellEarnings)
+                }
+            }
+        )
         .onTapGesture {
             // 点击已挖开且有符号的格子，显示符号信息
             if cell.isMined, let symbol = cell.symbol {
@@ -805,9 +825,11 @@ struct ControlPanel: View {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(Color.white.opacity(0.15))
             )
+            .viewFrame(name: "symbolPool") // 用于获取符号池位置
             
             // 羁绊展示区域
             ActiveBondsView(viewModel: viewModel)
+                .viewFrame(name: "bonds") // 用于获取羁绊区域位置
             
             // 间距：羁绊区域和ROLL按钮之间只隔15像素
             Spacer()
@@ -836,6 +858,7 @@ struct ControlPanel: View {
                     .opacity(viewModel.spinsRemaining > 0 && !viewModel.isSpinning && viewModel.gamePhase == .result ? 1.0 : 0.6)
                 }
                 .disabled(viewModel.spinsRemaining <= 0 || viewModel.isSpinning || viewModel.gamePhase != .result)
+                .viewFrame(name: "rollButton") // 用于获取Roll按钮位置
                 
                 // 按钮下方：骰子图标和数量展示
                 HStack(spacing: 4) {
@@ -847,7 +870,10 @@ struct ControlPanel: View {
                     DiceCountAnimationView(diceCount: viewModel.currentDiceCount)
                 }
             }
-            .offset(y: viewModel.activeBonds.isEmpty ? 20 : -20) // 没有触发羁绊的情况下，整体向下移动20像素；有羁绊时向上移动20像素
+            .offset(y: {
+                let isEmpty = viewModel.activeBonds.isEmpty
+                return isEmpty ? 20 : -20
+            }()) // 没有触发羁绊的情况下，整体向下移动20像素；有羁绊时向上移动20像素
         }
     }
 }
@@ -1980,6 +2006,8 @@ struct CoinFloatView: View {
         Text("+\(earnings)")
             .font(.system(size: 32, weight: .bold))
             .foregroundColor(.yellow)
+            .lineLimit(1) // 防止换行
+            .fixedSize(horizontal: true, vertical: false) // 水平方向自适应，垂直方向不换行
             .shadow(color: .orange, radius: 3, x: 0, y: 0)
             .shadow(color: .black.opacity(0.6), radius: 5, x: 0, y: 2)
             .scaleEffect(scale)
@@ -2000,6 +2028,317 @@ struct CoinFloatView: View {
                     }
                 }
             }
+    }
+}
+
+// MARK: - View Frame Preference Key
+struct ViewFramePreferenceKey: PreferenceKey {
+    static var defaultValue: [String: CGRect] = [:]
+    static func reduce(value: inout [String: CGRect], nextValue: () -> [String: CGRect]) {
+        value.merge(nextValue(), uniquingKeysWith: { _, new in new })
+    }
+}
+
+// MARK: - View Frame Reader
+struct ViewFrameReader: ViewModifier {
+    let name: String
+    func body(content: Content) -> some View {
+        content
+            .background(
+                GeometryReader { geometry in
+                    Color.clear.preference(
+                        key: ViewFramePreferenceKey.self,
+                        value: [name: geometry.frame(in: .named("gameView"))]
+                    )
+                }
+            )
+    }
+}
+
+extension View {
+    func viewFrame(name: String) -> some View {
+        modifier(ViewFrameReader(name: name))
+    }
+}
+
+// MARK: - 游戏内新手引导视图
+struct GameTutorialView: View {
+    @Binding var isPresented: Bool
+    @ObservedObject var viewModel: GameViewModel
+    let viewFrames: [String: CGRect] // 从父视图传递的位置信息
+    @ObservedObject var localizationManager = LocalizationManager.shared
+    @State private var currentStep: Int = 0
+    @State private var symbolPoolFrame: CGRect = .zero
+    @State private var slotMachineFrame: CGRect = .zero
+    @State private var topInfoBarFrame: CGRect = .zero
+    @State private var rollButtonFrame: CGRect = .zero
+    
+    // 获取自定义字体
+    private func customFont(size: CGFloat) -> Font {
+        return FontManager.shared.customFont(size: size)
+    }
+    
+    // 获取引导步骤
+    private func getSteps() -> [TutorialStep] {
+        [
+            TutorialStep(
+                title: localizationManager.localized("game_tutorial.step1_title"),
+                description: localizationManager.localized("game_tutorial.step1_description"),
+                highlightFrame: symbolPoolFrame,
+                highlightCornerRadius: 12,
+                arrowPosition: nil,
+                arrowDirection: .down,
+                arrowOffset: 0
+            ),
+            TutorialStep(
+                title: localizationManager.localized("game_tutorial.step2_title"),
+                description: localizationManager.localized("game_tutorial.step2_description"),
+                highlightFrame: slotMachineFrame,
+                highlightCornerRadius: 0,
+                arrowPosition: nil,
+                arrowDirection: .down,
+                arrowOffset: 0
+            ),
+            TutorialStep(
+                title: localizationManager.localized("game_tutorial.step3_title"),
+                description: localizationManager.localized("game_tutorial.step3_description"),
+                highlightFrame: topInfoBarFrame,
+                highlightCornerRadius: 0,
+                arrowPosition: nil,
+                arrowDirection: .down,
+                arrowOffset: 0
+            ),
+            TutorialStep(
+                title: localizationManager.localized("game_tutorial.step4_title"),
+                description: localizationManager.localized("game_tutorial.step4_description"),
+                highlightFrame: rollButtonFrame,
+                highlightCornerRadius: 20,
+                arrowPosition: nil,
+                arrowDirection: .up,
+                arrowOffset: 0
+            )
+        ]
+    }
+    
+    var body: some View {
+        GeometryReader { geometry in
+            let steps = getSteps()
+            ZStack {
+                // 高亮区域（通过遮罩挖洞实现）
+                if !steps.isEmpty && currentStep < steps.count {
+                    let step = steps[currentStep]
+                    TutorialHighlightView(
+                        highlightFrame: step.highlightFrame,
+                        highlightCornerRadius: step.highlightCornerRadius
+                    )
+                } else if steps.isEmpty {
+                    Color.black.opacity(0.7)
+                        .ignoresSafeArea()
+                }
+                
+                // 阻止点击穿透到底层（除了按钮区域）
+                Color.clear
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        // 点击遮罩区域不关闭教程，阻止事件穿透
+                    }
+                
+                // 提示内容区域
+                if !steps.isEmpty && currentStep < steps.count {
+                    let step = steps[currentStep]
+                    // 对话框位置：第一步和第四步在上方，第二步和第三步在下方
+                    let spacing: CGFloat = 30 // 对话框与聚焦区域的间距
+                    let dialogContentHeight: CGFloat = 300 // 对话框内容总高度（头像120 + 卡片 + 按钮 + 间距）
+                    
+                    // 计算对话框中心位置
+                    // 第一步和第四步：对话框在聚焦区域上方；第二步和第三步：对话框在聚焦区域下方
+                    // 第二步：仅对话区域向上移动10像素
+                    let tipCardY: CGFloat = {
+                        let baseY = (currentStep == 0 || currentStep == 3) 
+                            ? step.highlightFrame.minY - spacing - dialogContentHeight / 2
+                            : step.highlightFrame.maxY + spacing + dialogContentHeight / 2
+                        // 第二步：仅对话区域向上移动10像素
+                        return currentStep == 1 ? baseY - 10 : baseY
+                    }()
+                    
+                    VStack(spacing: 0) {
+                        // 头像图片
+                        Image("tutorial_avatar")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 120, height: 120)
+                            .padding(.bottom, 0)
+                        
+                        // 提示卡片
+                        TutorialTipCard(
+                            title: step.title,
+                            description: step.description,
+                            localizationManager: localizationManager
+                        )
+                        .padding(.horizontal, 30)
+                        .frame(maxWidth: .infinity)
+                        
+                        // 下一步/完成按钮
+                        Button(action: {
+                            if currentStep < steps.count - 1 {
+                                withAnimation {
+                                    currentStep += 1
+                                }
+                            } else {
+                                // 最后一步，完成教程
+                                viewModel.completeGameTutorial()
+                            }
+                        }) {
+                            HStack(spacing: 8) {
+                                Text(currentStep < steps.count - 1 ?
+                                     localizationManager.localized("tutorial.next") :
+                                     localizationManager.localized("tutorial.complete"))
+                                if currentStep < steps.count - 1 {
+                                    Image(systemName: "chevron.right")
+                                }
+                            }
+                            .font(customFont(size: 16))
+                            .foregroundColor(.white)
+                            .textStroke()
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 12)
+                            .background(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [Color.blue, Color.purple]),
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .cornerRadius(25)
+                            .shadow(color: .black.opacity(0.3), radius: 5, x: 0, y: 3)
+                        }
+                        .padding(.top, 20)
+                    }
+                    .frame(width: geometry.size.width)
+                    .position(
+                        x: geometry.size.width / 2,
+                        y: tipCardY
+                    )
+                    .onAppear {
+                        // 打印调试信息
+                        print("📚 [游戏内引导] 步骤\(currentStep + 1): 聚焦区域 maxY=\(step.highlightFrame.maxY), 对话框Y=\(tipCardY)")
+                    }
+                }
+            }
+            .onAppear {
+                // 使用传递过来的位置信息更新聚焦区域
+                updateFramesFromPreferences(frames: viewFrames, geometry: geometry)
+            }
+            .onChange(of: viewFrames) { frames in
+                // 当位置信息更新时，重新计算聚焦区域
+                updateFramesFromPreferences(frames: frames, geometry: geometry)
+            }
+        }
+    }
+    
+    private func updateFramesFromPreferences(frames: [String: CGRect], geometry: GeometryProxy) {
+        // 第一步：符号池位置（如果当时有羁绊，则连同符号池一同做相应的位置偏移）
+        if let symbolPoolFrame = frames["symbolPool"] {
+            // 检查是否有羁绊区域
+            if let bondsFrame = frames["bonds"], !bondsFrame.isEmpty {
+                // 如果有羁绊，聚焦区域包含符号池和羁绊区域
+                let minY = min(symbolPoolFrame.minY, bondsFrame.minY)
+                let maxY = max(symbolPoolFrame.maxY, bondsFrame.maxY)
+                let minX = min(symbolPoolFrame.minX, bondsFrame.minX)
+                let maxX = max(symbolPoolFrame.maxX, bondsFrame.maxX)
+                self.symbolPoolFrame = CGRect(
+                    x: minX,
+                    y: minY,
+                    width: maxX - minX,
+                    height: maxY - minY
+                )
+                print("📚 [游戏内引导] 符号池+羁绊区域: 符号池\(symbolPoolFrame), 羁绊\(bondsFrame), 合并后\(self.symbolPoolFrame)")
+            } else {
+                // 没有羁绊，只聚焦符号池
+                self.symbolPoolFrame = symbolPoolFrame
+                print("📚 [游戏内引导] 符号池位置（无羁绊）: \(self.symbolPoolFrame)")
+            }
+        } else {
+            print("⚠️ [游戏内引导] 未找到符号池位置")
+        }
+        
+        // 第二步：矿坑棋盘位置
+        if let slotMachineFrame = frames["slotMachine"], !slotMachineFrame.isEmpty {
+            self.slotMachineFrame = slotMachineFrame
+            print("📚 [游戏内引导] 矿坑棋盘位置: \(self.slotMachineFrame)")
+        } else {
+            print("⚠️ [游戏内引导] 未找到矿坑棋盘位置")
+        }
+        
+        // 第三步：顶部信息栏位置（金币/关卡/next goal整块区域）
+        // 向上缩短80像素的高度，并向上移动50像素
+        if let topInfoBarFrame = frames["topInfoBar"], !topInfoBarFrame.isEmpty {
+            self.topInfoBarFrame = CGRect(
+                x: topInfoBarFrame.minX,
+                y: topInfoBarFrame.minY, // 向上移动130像素（80+50）
+                width: topInfoBarFrame.width,
+                height: topInfoBarFrame.height - 60 // 高度减少80像素
+            )
+            print("📚 [游戏内引导] 顶部信息栏位置（调整后）: \(self.topInfoBarFrame)")
+        } else {
+            print("⚠️ [游戏内引导] 未找到顶部信息栏位置")
+        }
+        
+        // 第四步：Roll按钮位置
+        // 再扩大1.2倍（总共扩大1.44倍：1.2*1.2）
+        if let rollButtonFrame = frames["rollButton"], !rollButtonFrame.isEmpty {
+            let centerX = rollButtonFrame.midX
+            let centerY = rollButtonFrame.midY
+            let newWidth = rollButtonFrame.width * 1.44 // 1.2 * 1.2 = 1.44
+            let newHeight = rollButtonFrame.height * 1.44 // 1.2 * 1.2 = 1.44
+            self.rollButtonFrame = CGRect(
+                x: centerX - newWidth / 2, // 保持中心对齐
+                y: centerY - newHeight / 2, // 保持中心对齐
+                width: newWidth,
+                height: newHeight
+            )
+            print("📚 [游戏内引导] Roll按钮位置（调整后）: \(self.rollButtonFrame)")
+        } else {
+            print("⚠️ [游戏内引导] 未找到Roll按钮位置")
+        }
+    }
+    
+    private func updateFrames(geometry: GeometryProxy) {
+        // 备用方案：如果无法获取实际位置，使用估算值
+        // 第一步：符号池位置
+        let symbolPoolY = geometry.size.height - 200
+        symbolPoolFrame = CGRect(
+            x: geometry.size.width * 0.1,
+            y: symbolPoolY,
+            width: geometry.size.width * 0.8,
+            height: 100
+        )
+        
+        // 第二步：矿坑棋盘位置
+        let slotMachineY = geometry.size.height * 0.4
+        slotMachineFrame = CGRect(
+            x: geometry.size.width * 0.1,
+            y: slotMachineY,
+            width: geometry.size.width * 0.8,
+            height: geometry.size.height * 0.35
+        )
+        
+        // 第三步：顶部信息栏位置
+        topInfoBarFrame = CGRect(
+            x: geometry.size.width * 0.05,
+            y: 10,
+            width: geometry.size.width * 0.9,
+            height: 80
+        )
+        
+        // 第四步：Roll按钮位置
+        let rollButtonY = geometry.size.height - 80
+        rollButtonFrame = CGRect(
+            x: geometry.size.width / 2 - 60,
+            y: rollButtonY,
+            width: 120,
+            height: 60
+        )
     }
 }
 

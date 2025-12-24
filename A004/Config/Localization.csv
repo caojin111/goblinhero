@@ -230,13 +230,13 @@ goblins.wizard_goblin.description,A mysterious wizard who fills magic bags befor
 symbols.child.name,Child,儿童
 symbols.child.description,Obtain 1 <color=#080909>Nun</color>,获得一个<color=#080909>修女</color>
 symbols.merchant.name,Merchant,商人
-symbols.merchant.description,"Remove the symbol with the highest rarity among all <color=#E74875>#Materials</color>, and gain gold coins equal to 10 times its base value",消除稀有度最高的一个<color=#E74875>#材料</color>符号，获得其基础价值10倍的金币
+symbols.merchant.description,"Remove the symbol with the highest rarity among all <color=#E74875>#Materials</color>, and gain gold coins equal to its base value + 50",消除稀有度最高的一个<color=#E74875>#材料</color>符号，获得其基础价值+50的金币
 symbols.barbarian.name,Barbarian,野蛮人
 symbols.barbarian.description,"For each <color=#E74875>#Alien</color> symbol in the symbol pool, lose 5 gold coins; for each <color=#E74875>#Monster</color> symbol, gain 20 gold coins",符号池里每拥有一个<color=#E74875>#外星</color>符号，金币-5，每拥有一个<color=#E74875>#怪物</color>符号，金币+20
 symbols.farmer.name,Farmer,农民
 symbols.farmer.description,Obtain 5 random <color=#E74875>#Tools</color> symbols,获得5个随机<color=#E74875>#工具</color>符号
 symbols.soldier.name,Soldier,士兵
-symbols.soldier.description,"If a <color=#AA2ABB>Paladin</color> is about to be removed by other symbols, remove yourself to cancel one removal of the <color=#AA2ABB>Paladin</color>",如果<color=#AA2ABB>圣骑士</color>即将被其他符号消除，消除自身取消一次对<color=#AA2ABB>圣骑士</color>的消除
+symbols.soldier.description,"Get a <color=#080909>Rune Armor</color> or <color=#080909>Alien Helmet</color>",获得一个<color=#080909>符文铠甲</color>或<color=#080909>外星头盔</color>
 symbols.village_chief.name,Village Chief,村长
 symbols.village_chief.description,Obtain 5 random <color=#E74875>#Humans</color> symbols and gain 10 gold coins,获得 5 个随机<color=#E74875>#人类</color> 符号，金币+10
 symbols.forest_fairy.name,Forest Sprite,森林妖精
@@ -392,15 +392,15 @@ bonds.death_blessing_bond.description,"Gain 1000 coins for the next 5 turns, but
 bonds.wolf_hunter_bond.name,Wolf Hunters,捕狼队
 bonds.wolf_hunter_bond.description,"If Werewolf and Hoe exist simultaneously in symbol pool, lose 20 coins each turn",如果 狼人与锄头同时存在符号池，每回合都会减少20金币.
 bonds.element_master_bond.name,Element Master,元素掌握者
-bonds.element_master_bond.description,"If symbol pool has all five elements, gain 500 coins each turn",如果元素池里拥有全部五种元素，则每回合获得 500 金币
+bonds.element_master_bond.description,"If symbol pool has all five elements, gain 100 coins each turn",如果元素池里拥有全部五种元素，则每回合获得 100 金币
 bonds.justice_bond.name,Justice Prevails,正义必胜
-bonds.justice_bond.description,"If Cross and Nun exist simultaneously in symbol pool, Hunter's spawn probability doubles",如果十字架和修女同时在符号池内，挖出猎人的概率翻倍
+bonds.justice_bond.description,"If Cross and Nun exist simultaneously in symbol pool, gain a Dragon Firearm (if not owned)",如果十字架和修女同时在符号池内，获得一个龙之火铳（如果未拥有）
 bonds.apocalypse_bond.name,Apocalypse,世界末日
 bonds.apocalypse_bond.description,"If Gomorrah, Zombie, Werewolf, and Vampire exist simultaneously in symbol pool, randomly eliminate half of symbols at the start of next turn and gain 2000 coins",如果哥莫拉，丧尸，狼人，吸血鬼同时在符号池内， 下个回合开始时，随机消灭一半的符号，获得 2000 金币
 bonds.human_extinction_bond.name,Human Extinction,人类灭绝
 bonds.human_extinction_bond.description,"If Ray Gun, Alien Helmet, Spaceship, and Mind Controller exist simultaneously in symbol pool, eliminate one human at the start of next turn and gain 300 coins",如果光线枪，外星头盔，宇宙飞船，精神控制器同时在符号池内， 下个回合开始时，消灭一个人类，获得 300 金币
 bonds.raccoon_city_bond.name,raccoon-city,浣熊市
-bonds.raccoon_city_bond.description,Infect one human into a zombie before each mining. Gain +5 coins for each zombie,每次挖矿前感染一个人类变成丧尸。每有一个丧尸，额外金币增加5
+bonds.raccoon_city_bond.description,Infect one human into a zombie before each mining. Gain +20 coins for each zombie,每次挖矿前感染一个人类变成丧尸。每有一个丧尸，额外金币增加20
 bonds.human_3_bond.name,human-3,人类·三人组
 bonds.human_3_bond.description,Gain 1 random Human each round.,每回合获得1个随机人类
 bonds.human_5_bond.name,human-5,人类·五人组
