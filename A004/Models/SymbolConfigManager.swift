@@ -376,7 +376,9 @@ class SymbolConfigManager {
     
     /// 获取随机的起始符号
     func getStartingSymbols() -> [Symbol] {
-        let allSymbols = getAllSymbols()
+        // 排除不应该作为初始符号的符号：死神、圣骑士、艺术品、魔法袋
+        let excludedNameKeys = ["death", "paladin", "artwork", "magic_bag"]
+        let allSymbols = getAllSymbols().filter { !excludedNameKeys.contains($0.nameKey) }
         let count = useCSV ? 3 : (configFile?.config.startingSymbolCount ?? 3)
         
         var selectedSymbols: [Symbol] = []

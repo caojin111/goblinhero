@@ -42,10 +42,8 @@ struct LanguageSelectionView: View {
                             HStack {
                                 Text(language.name)
                                     .font(
-                                        // 英文界面时，如果显示的是"中文"，使用系统默认字体
-                                        localizationManager.currentLanguage == "en" && language.code == "zh" 
-                                            ? .system(size: 17) 
-                                            : customFont(size: 17)
+                                        // 英文界面时，如果显示的是"中文"，也使用猫啃什锦黑字体
+                                        customFont(size: 17)
                                     )
                                     .foregroundColor(.white)
                                     .textStroke()

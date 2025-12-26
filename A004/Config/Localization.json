@@ -55,12 +55,14 @@
           "description": "Diamond purchase feature will be available soon!",
           "free": "FREE",
           "claim": "Claim",
-          "claimed": "Claimed Today",
+          "claimed": "Claimed",
           "buy": "Buy",
           "purchase": "Purchase",
           "purchase_title": "Purchase Diamonds",
           "purchase_message": "Purchase {diamonds} 💎 for ${price}?",
-          "free_daily_message": "Claim {diamonds} 💎 for free today?"
+          "free_daily_message": "Claim {diamonds} 💎 for free today?",
+          "reward_title": "Reward",
+          "reward_message": "You got {diamonds} 💎"
         }
       },
       "settings": {
@@ -77,14 +79,16 @@
         "sound_effects_description": "Enable game sound effects",
         "privacy_policy": "Privacy Policy",
         "privacy_policy_description": "View our privacy policy",
-        "privacy_policy_content": "Privacy Policy\n\nLast Updated: [Date]\n\n1. Information We Collect\nWe collect information you provide directly to us, such as when you create an account, make a purchase, or contact us for support.\n\n2. How We Use Your Information\nWe use the information we collect to provide, maintain, and improve our services, process transactions, and communicate with you.\n\n3. Information Sharing\nWe do not sell, trade, or otherwise transfer your personal information to third parties without your consent.\n\n4. Data Security\nWe implement appropriate security measures to protect your personal information.\n\n5. Your Rights\nYou have the right to access, update, or delete your personal information at any time.\n\n6. Contact Us\nIf you have any questions about this Privacy Policy, please contact us at support@example.com.",
+        "privacy_policy_content": "Privacy Policy for Lucky Goblin\n\nLast Updated: December 26, 2025\n\nThis Privacy Policy describes how Lazycat (\"we\", \"our\", or \"us\") collects, uses, and protects your information when you use our mobile game \"Lucky Goblin\" (the \"Game\").\n\n1. Information We Collect\nWe collect information you provide directly to us, such as when you create an account, make a purchase, or contact us for support.\n\n2. How We Use Your Information\nWe use the information we collect to provide, maintain, and improve our services, process transactions, and communicate with you.\n\n3. Information Sharing\nWe do not sell, trade, or otherwise transfer your personal information to third parties without your consent.\n\n4. Data Security\nWe implement appropriate security measures to protect your personal information.\n\n5. Your Rights\nYou have the right to access, update, or delete your personal information at any time.\n\n6. Contact Us\nIf you have any questions about this Privacy Policy, please contact us at dxycj250@gmail.com.",
+        "terms_of_service": "Terms of Service",
         "contact_us": "Contact Us",
         "contact_us_description": "Get in touch with us",
         "contact_us_content": "We'd love to hear from you!\n\nIf you have any questions, feedback, or need support, please reach out to us via email.",
+        "restore": "Restore Purchases",
         "book": "Book"
       },
       "book": {
-        "title": "📚 Book",
+        "title": "Book",
         "symbols": "Symbols",
         "bonds": "Bonds",
         "any_different": "Any different",
@@ -125,7 +129,7 @@
         "elf": "Elf",
         "forest": "Forest",
         "live or dead": "Live or Dead",
-        "vampire note": "Vampire Note",
+        "vampire note": "V's diary",
         "monster": "Monster",
         "god": "God",
         "element": "Element",
@@ -297,28 +301,33 @@
       "goblins": {
         "warrior_goblin": {
           "name": "Warrior Goblin",
-          "buff": "+1 coin for each symbol eliminated",
-          "description": "A brave warrior who earns extra coins for each symbol eliminated"
+          "buff": "Classic 6-sided dice (1-6)",
+          "description": "Own a classic six-sided die that can roll numbers from <color=#B9625F>1</color> to <color=#B9625F>6</color>."
         },
         "craftsman_goblin": {
           "name": "Craftsman Goblin",
-          "buff": "Extra symbol choice opportunity each round",
-          "description": "A skilled craftsman who provides extra symbol choice opportunities each round"
+          "buff": "8-sided dice (1-8)",
+          "description": "He modified the dice into powerful 8-sided dice that could roll numbers from <color=#B9625F>1</color> to <color=#B9625F>8</color>."
         },
         "gambler_goblin": {
           "name": "Gambler Goblin",
-          "buff": "Double dice probability",
-          "description": "A lucky gambler who doubles the probability of finding dice"
+          "buff": "Gambler dice (1 or 6 only)",
+          "description": "He's a complete gambling addict, only able to roll <color=#B9625F>1</color> or <color=#B9625F>6</color>."
         },
         "king_goblin": {
           "name": "King Goblin",
-          "buff": "+10 coins for each soldier",
-          "description": "A noble king whose soldiers create wealth for him"
+          "buff": "Odd dice (1, 3, 5, 7, 9)",
+          "description": "The eccentric king, who only likes odd numbers, can roll a <color=#B9625F>1</color>, <color=#B9625F>3</color>, <color=#B9625F>5</color>, <color=#B9625F>7</color>, or <color=#B9625F>9</color>."
         },
         "wizard_goblin": {
           "name": "Wizard Goblin",
-          "buff": "Randomly fill 1 magic bag before mining each round",
-          "description": "A mysterious wizard who fills magic bags before mining each round"
+          "buff": "Even dice (2, 4, 6, 8, 10)",
+          "description": "He believes even number saves the world. Can roll a <color=#B9625F>2</color>, <color=#B9625F>4</color>, <color=#B9625F>6</color>, <color=#B9625F>8</color>, <color=#B9625F>10</color>."
+        },
+        "athlete_goblin": {
+          "name": "Athlete Goblin",
+          "buff": "Extreme dice (0, 1, 2, 6, 7, 8)",
+          "description": "An athlete who pushes the limits. Capable of throwing scores of <color=#B9625F>0</color>, <color=#B9625F>1</color>, <color=#B9625F>2</color>, <color=#B9625F>6</color>, <color=#B9625F>7</color>, or <color=#B9625F>8</color>."
         }
       },
       "symbols": {
@@ -628,7 +637,7 @@
         },
         "magic_bag": {
           "name": "Magic Bag",
-          "description": "Randomly generate 3~5 random symbols into the symbol pool."
+          "description": "Remove itself and randomly generate 3~5 random symbols into the symbol pool."
         },
         "artwork": {
           "name": "Art Work",
@@ -723,6 +732,10 @@
         "classictale_6_bond": {
           "name": "classictale-6",
           "description": "Mining the center tile grants +400 coins."
+        },
+        "dark_forest_3_bond": {
+          "name": "Dark Forest-3",
+          "description": "Gain 1 Magic Bag each round."
         }
       }
     },
@@ -781,7 +794,9 @@
           "purchase": "购买",
           "purchase_title": "购买钻石",
           "purchase_message": "是否花费 ${price} 购买 {diamonds} 💎？",
-          "free_daily_message": "是否领取今日免费 {diamonds} 💎？"
+          "free_daily_message": "是否领取今日免费 {diamonds} 💎？",
+          "reward_title": "奖励",
+          "reward_message": "您获得了 {diamonds} 💎"
         }
       },
       "settings": {
@@ -798,14 +813,16 @@
         "sound_effects_description": "开启游戏音效",
         "privacy_policy": "隐私政策",
         "privacy_policy_description": "查看我们的隐私政策",
-        "privacy_policy_content": "隐私政策\n\n最后更新：[日期]\n\n1. 我们收集的信息\n我们收集您直接提供给我们的信息，例如当您创建账户、进行购买或联系我们寻求支持时。\n\n2. 我们如何使用您的信息\n我们使用收集的信息来提供、维护和改进我们的服务，处理交易，并与您沟通。\n\n3. 信息共享\n未经您同意，我们不会向第三方出售、交易或以其他方式转让您的个人信息。\n\n4. 数据安全\n我们实施适当的安全措施来保护您的个人信息。\n\n5. 您的权利\n您有权随时访问、更新或删除您的个人信息。\n\n6. 联系我们\n如果您对此隐私政策有任何疑问，请通过 support@example.com 联系我们。",
+        "privacy_policy_content": "Lucky Goblin 隐私政策\n\n最后更新：2025年12月26日\n\n本隐私政策描述了 Lazycat（\"我们\"、\"我们的\"或\"我方\"）在您使用我们的手机游戏 \"Lucky Goblin\"（\"游戏\"）时如何收集、使用和保护您的信息。\n\n1. 我们收集的信息\n我们收集您直接提供给我们的信息，例如当您创建账户、进行购买或联系我们寻求支持时。\n\n2. 我们如何使用您的信息\n我们使用收集的信息来提供、维护和改进我们的服务，处理交易，并与您沟通。\n\n3. 信息共享\n未经您同意，我们不会向第三方出售、交易或以其他方式转让您的个人信息。\n\n4. 数据安全\n我们实施适当的安全措施来保护您的个人信息。\n\n5. 您的权利\n您有权随时访问、更新或删除您的个人信息。\n\n6. 联系我们\n如果您对此隐私政策有任何疑问，请通过 dxycj250@gmail.com 联系我们。",
+        "terms_of_service": "使用条款",
         "contact_us": "联系我们",
         "contact_us_description": "与我们取得联系",
         "contact_us_content": "我们很乐意听到您的声音！\n\n如果您有任何问题、反馈或需要支持，请通过电子邮件与我们联系。",
+        "restore": "恢复购买",
         "book": "图鉴"
       },
       "book": {
-        "title": "📚 图鉴",
+        "title": "图鉴",
         "symbols": "符号",
         "bonds": "羁绊",
         "any_different": "任意不同",
@@ -846,7 +863,7 @@
         "elf": "精灵",
         "forest": "森林",
         "live or dead": "生或死",
-        "vampire note": "吸血鬼日记",
+        "vampire note": "V's diary",
         "monster": "怪物",
         "god": "神",
         "element": "元素",
@@ -922,28 +939,33 @@
       "goblins": {
         "warrior_goblin": {
           "name": "勇者哥布林",
-          "buff": "每有一个符号被消除，则+1金币",
-          "description": "勇猛的战士，每次消除符号都能额外获得金币奖励"
+          "buff": "拥有最经典的6面骰子",
+          "description": "拥有最经典的6面骰子，可以投掷出<color=#B9625F>1</color>到<color=#B9625F>6</color>的数字"
         },
         "craftsman_goblin": {
           "name": "工匠哥布林",
-          "buff": "每回合增加一次获得符号3选1的机会",
-          "description": "技艺精湛的工匠，能在每回合提供额外的符号选择机会"
+          "buff": "把骰子改造为8面骰子，能投掷出1～8",
+          "description": "把骰子改造为强大的8面骰子，可以投掷出<color=#B9625F>1</color>到<color=#B9625F>8</color>的数字"
         },
         "gambler_goblin": {
           "name": "赌徒哥布林",
-          "buff": "挖到骰子概率翻倍",
-          "description": "运气极佳的赌徒，能够提高挖到骰子的概率"
+          "buff": "赌狗一条。骰子只能投掷出1或6",
+          "description": "他是个彻底的赌徒，只能投掷出<color=#B9625F>1</color>或<color=#B9625F>6</color>"
         },
         "king_goblin": {
           "name": "国王哥布林",
-          "buff": "每有一个士兵，额外获得10金币",
-          "description": "尊贵的国王，麾下每个士兵都能为其创造财富"
+          "buff": "奇数骰子，可以投掷出1,3,5,7,9",
+          "description": "古怪的国王，只喜欢奇数，可以投掷出<color=#B9625F>1</color>、<color=#B9625F>3</color>、<color=#B9625F>5</color>、<color=#B9625F>7</color>或<color=#B9625F>9</color>"
         },
         "wizard_goblin": {
           "name": "巫师哥布林",
-          "buff": "每回合挖矿之前随机填充1个魔法袋",
-          "description": "神秘的巫师，在挖矿前会施展魔法填充魔法袋"
+          "buff": "偶数骰子，可以投掷出2,4,6,8,10",
+          "description": "古怪的巫师，相信只有偶数才能拯救世界。可以投掷出<color=#B9625F>2</color>、<color=#B9625F>4</color>、<color=#B9625F>6</color>、<color=#B9625F>8</color>或<color=#B9625F>10</color>"
+        },
+        "athlete_goblin": {
+          "name": "运动员哥布林",
+          "buff": "极限骰子，可以掷出0,1,2,6,7,8",
+          "description": "一个挑战极限的运动员。要么生，要么死！可以投掷出<color=#B9625F>0</color>、<color=#B9625F>1</color>、<color=#B9625F>2</color>、<color=#B9625F>6</color>、<color=#B9625F>7</color>或<color=#B9625F>8</color>"
         }
       },
       "game_over": {
@@ -1349,7 +1371,7 @@
         },
         "magic_bag": {
           "name": "魔法袋",
-          "description": "随机生成3~5个随机符号到符号池"
+          "description": "消除自身，随机生成3~5个随机符号到符号池"
         },
         "artwork": {
           "name": "艺术品",
@@ -1444,6 +1466,10 @@
         "classictale_6_bond": {
           "name": "经典传说·中心秘宝",
           "description": "挖到中心格，奖励400金币"
+        },
+        "dark_forest_3_bond": {
+          "name": "黑暗森林-3",
+          "description": "每回合获得一个魔法袋"
         }
       }
     }

@@ -47,6 +47,11 @@ struct HomeView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .ignoresSafeArea(.all)
                 .clipped()
+                .overlay {
+                    // 云朵（作为背景图的overlay，独立层级，不会遮盖UI）
+                    CloudView()
+                        .allowsHitTesting(false) // 不拦截点击事件
+                }
             
             GeometryReader { geometry in
                 // 使用比例定位，而不是绝对坐标
@@ -83,7 +88,7 @@ struct HomeView: View {
                             .font(customFont(size: 62 * scaleX)) // 从 57 增加到 62（+5）
                             .foregroundColor(.white)
                             .textStroke()
-                            .offset(x: (237 - 37) * scaleX, y: (112 - 76) * scaleY)
+                            .offset(x: (237 - 37) * scaleX, y: (112 - 76 - 30) * scaleY) // 上移30像素
                         
                         // "best level: 10-1" 文字（Figma: x: 242, y: 191）
                         VStack(alignment: .leading, spacing: 0) {
@@ -97,7 +102,7 @@ struct HomeView: View {
                                 .foregroundColor(.white)
                                 .textStroke()
                         }
-                            .offset(x: (242 - 37) * scaleX, y: (191 - 76) * scaleY)
+                            .offset(x: (242 - 37) * scaleX, y: (191 - 76 - 30) * scaleY) // 上移30像素
                     }
                     .frame(width: 485.01 * scaleX, height: 251.44 * scaleY)
                     .position(
@@ -140,19 +145,22 @@ struct HomeView: View {
                         y: (89 + 127/2) * scaleY + 60
                     )
                     
-                    // Rank 和 Achievement 按钮（钻石条正下方，并排显示）
-                    HStack(spacing: 20 * scaleX) {
-                        // Rank 按钮
-                        RankButtonView()
-                            .frame(width: 140 * scaleX, height: 100 * scaleY)
-                        
-                        // Achievement 按钮
-                        AchievementButtonView()
-                            .frame(width: 140 * scaleX, height: 100 * scaleY)
-                    }
-                    .position(
-                        x: geometry.size.width - (figmaWidth - 894 - 288/2) * scaleX - 40 * scaleX - 20 * scaleX, // 再左移 20 像素
-                        y: (89 + 127 + 50) * scaleY + 60 + 10 * scaleY // 再下移 10 像素
+                    // Achievement 按钮
+                    AchievementButtonView()
+                        .frame(width: 140 * scaleX, height: 100 * scaleY)
+                        .offset(x: -10 * scaleX) // Achievement按钮单独左移30像素
+                        .position(
+                            x: geometry.size.width - (figmaWidth - 894 - 288/2) * scaleX - 40 * scaleX - 20 * scaleX + 80 * scaleX, // 统一右移80像素（50+30）
+                            y: (89 + 127 + 50) * scaleY + 60 + 10 * scaleY // 再下移 10 像素
+                        )
+                    
+                    // Rank 按钮（放在 Achievement 按钮正下方）
+                    RankButtonView()
+                        .frame(width: 140 * scaleX, height: 100 * scaleY)
+                        .offset(x: -40 * scaleX, y: 4 * scaleY) // Rank按钮单独左移40像素，下移4像素
+                        .position(
+                            x: geometry.size.width - (figmaWidth - 894 - 288/2) * scaleX - 40 * scaleX - 20 * scaleX + 118 * scaleX, // 统一右移118像素（88+30）
+                            y: (89 + 127 + 50) * scaleY + 60 + 10 * scaleY + 100 * scaleY + 20 * scaleY + 60 * scaleY // 再向下移动30像素（总共60像素）
                     )
                     
                     // 中间：哥布林的家（Figma: x: 50, y: 609, 1102 x 1121）
@@ -186,7 +194,7 @@ struct HomeView: View {
                                 .font(customFont(size: 95 * scaleX)) // 从83增加到88（+5）
                                 .foregroundColor(.white)
                                 .textStroke()
-                                .offset(y: -20 * scaleY) // 文本向上移动20像素
+                                .offset(y: -25 * scaleY) // 文本向上移动25像素（20+5）
                         }
                     }
                     .buttonStyle(ScaleButtonStyle())
@@ -233,10 +241,21 @@ struct HomeView: View {
                             audioManager.playSoundEffect("click", fileExtension: "wav")
                             storeTabIdentifier = StoreTabIdentifier(tab: .goblins)
                         }) {
-                            Image("shop")
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 142 * scaleX, height: 142 * scaleY)
+                            ZStack(alignment: .topTrailing) {
+                                Image("shop")
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 142 * scaleX, height: 142 * scaleY)
+                                
+                                // 小红点提示（如果钻石宝箱未领取）
+                                if viewModel.canClaimFreeDiamonds {
+                                    Image("reddot")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 60 * scaleX, height: 60 * scaleY)
+                                        .offset(x: 5 * scaleX, y: -5 * scaleY)
+                                }
+                            }
                         }
                         .buttonStyle(ScaleButtonStyle())
                         .position(
@@ -263,7 +282,7 @@ struct HomeView: View {
                         
                         // "settings" 文本标签（Figma: x: 163, y: 2522, 210 x 69）
                         Text(localizationManager.localized("home.settings"))
-                            .font(customFont(size: 66 * scaleX)) // 从 61 增加到 66（+5）
+                            .font(customFont(size: (localizationManager.currentLanguage == "zh" ? 66 : 63) * scaleX)) // 中文66号，英文63号（66-3）
                             .foregroundColor(.white)
                             .textStroke()
                             .lineLimit(1)
@@ -275,7 +294,7 @@ struct HomeView: View {
                         
                         // "shop" 文本标签（Figma: x: 549, y: 2522, 113 x 74）
                         Text(localizationManager.localized("home.shop"))
-                            .font(customFont(size: 66 * scaleX)) // 从 61 增加到 66（+5）
+                            .font(customFont(size: (localizationManager.currentLanguage == "zh" ? 66 : 63) * scaleX)) // 中文66号，英文63号（66-3）
                             .foregroundColor(.white)
                             .textStroke()
                             .lineLimit(1)
@@ -287,7 +306,7 @@ struct HomeView: View {
                         
                         // "sign-in" 文本标签（Figma: x: 869, y: 2525, 176 x 69）
                         Text(localizationManager.localized("home.sign_in"))
-                            .font(customFont(size: 66 * scaleX)) // 从 61 增加到 66（+5）
+                            .font(customFont(size: (localizationManager.currentLanguage == "zh" ? 66 : 63) * scaleX)) // 中文66号，英文63号（66-3）
                             .foregroundColor(.white)
                             .textStroke()
                             .lineLimit(1)
@@ -354,6 +373,10 @@ struct HomeView: View {
             DailySignInView(viewModel: viewModel, isPresented: $showDailySignIn)
         }
         // 设置弹窗（首页设置）
+        .onAppear {
+            // 更新钻石宝箱状态，确保红点正确显示
+            viewModel.updateFreeDiamondsClaimStatus()
+        }
         .overlay {
             if showSettings {
                 HomeSettingsView(isPresented: $showSettings)
@@ -553,7 +576,7 @@ struct StaminaBarView: View {
                 
                 // 体力数值（Figma: x: 677, y: 124）- 横向排列，不换行
                 Text("\(viewModel.stamina)/\(viewModel.maxStamina)")
-                    .font(customFont(size: (localizationManager.currentLanguage == "zh" ? 42 : 50) * scaleX)) // 中文时减小8号（3+5）
+                    .font(customFont(size: (localizationManager.currentLanguage == "zh" ? 42 : 47) * scaleX)) // 中文42号，英文47号（50-3）
                     .foregroundColor(.white)
                     .textStroke()
                     .lineLimit(1)
@@ -693,7 +716,7 @@ struct RankButtonView: View {
                     
                     // Rank 文字标题（放大 2 倍，使用多语言）
                     Text(localizationManager.localized("home.rank"))
-                        .font(customFont(size: 100 * scaleX))
+                        .font(customFont(size: (localizationManager.currentLanguage == "zh" ? 95 : 97) * scaleX)) // 中文95号（100-5），英文97号（100-3）
                         .foregroundColor(.white)
                         .textStroke()
                 }
@@ -737,7 +760,7 @@ struct AchievementButtonView: View {
                     
                     // Achievement 文字标题（使用多语言，向右扩展 10 像素）
                     Text(localizationManager.localized("home.achievement"))
-                        .font(customFont(size: 50 * scaleX))
+                        .font(customFont(size: (localizationManager.currentLanguage == "zh" ? 48 : 45) * scaleX)) // 中文48号，英文45号（48-3）
                         .foregroundColor(.white)
                         .textStroke()
                         .lineLimit(1)
@@ -751,6 +774,91 @@ struct AchievementButtonView: View {
     }
     
     @ObservedObject private var audioManager = AudioManager.shared
+}
+
+// MARK: - 云朵视图
+struct CloudView: View {
+    @State private var offsetX: CGFloat = 0
+    @State private var breathingScale: CGFloat = 1.0
+    @State private var animationTimer: Timer?
+    
+    // Figma 设计稿尺寸：1202 x 2622
+    private let figmaWidth: CGFloat = 1202
+    private let figmaHeight: CGFloat = 2622
+    
+    var body: some View {
+        GeometryReader { geometry in
+            let scaleX = geometry.size.width / figmaWidth
+            let scaleY = geometry.size.height / figmaHeight
+            
+            // 成就按钮的位置（用于确定云朵的Y坐标）
+            let achievementY = (89 + 127 + 50) * scaleY + 60 + 10 * scaleY
+            let cloudWidth = 400 * scaleX // 变大一倍：从 200 改为 400
+            let cloudHeight = 240 * scaleY // 变大一倍：从 120 改为 240
+            
+            // 云朵从屏幕右侧外开始，移动到左侧外
+            Image("cloud")
+                .resizable()
+                .scaledToFit()
+                .frame(width: cloudWidth, height: cloudHeight)
+                .scaleEffect(breathingScale) // 呼吸效果
+                .offset(x: offsetX) // 移动偏移
+                .position(
+                    x: geometry.size.width + cloudWidth / 2, // 初始位置：屏幕右侧外
+                    y: achievementY // 与成就按钮相同的Y坐标
+                )
+                .onAppear {
+                    startAnimations(screenWidth: geometry.size.width, scaleX: scaleX)
+                }
+                .onDisappear {
+                    stopAnimations()
+                }
+        }
+        .ignoresSafeArea(.all)
+    }
+    
+    private func startAnimations(screenWidth: CGFloat, scaleX: CGFloat) {
+        // 呼吸效果：1.0 到 1.15，周期 4 秒（增强呼吸动效）
+        withAnimation(.easeInOut(duration: 4.0).repeatForever(autoreverses: true)) {
+            breathingScale = 1.15
+        }
+        
+        // 移动动画：从右侧外移动到左侧外，速度缓慢（120秒完成一次循环，速度再慢一倍）
+        let cloudWidth = 400 * scaleX // 变大一倍：从 200 改为 400
+        let totalDistance = screenWidth + cloudWidth + 200 // 屏幕宽度 + 云朵宽度 + 边距
+        
+        // 使用 Timer 实现平滑的循环移动
+        var currentOffset: CGFloat = 0
+        let stepInterval: TimeInterval = 0.05 // 每0.05秒更新一次，更流畅
+        let stepDistance = totalDistance / (120.0 / stepInterval) // 120秒内完成移动（速度再慢一倍：从60秒改为120秒）
+        
+        animationTimer = Timer.scheduledTimer(withTimeInterval: stepInterval, repeats: true) { timer in
+            currentOffset -= stepDistance
+            DispatchQueue.main.async {
+                withAnimation(.linear(duration: stepInterval)) {
+                    self.offsetX = currentOffset
+                }
+            }
+            
+            // 当云朵完全移出屏幕左侧时，重置到右侧（无动画，瞬间重置）
+            if currentOffset <= -totalDistance {
+                currentOffset = 0
+                DispatchQueue.main.async {
+                    self.offsetX = 0
+                }
+            }
+        }
+        
+        // 将定时器添加到 common mode，确保在滚动等操作时也能正常运行
+        if let timer = animationTimer {
+            RunLoop.current.add(timer, forMode: .common)
+        }
+    }
+    
+    private func stopAnimations() {
+        animationTimer?.invalidate()
+        animationTimer = nil
+    }
 }
 
 #Preview {

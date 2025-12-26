@@ -159,6 +159,10 @@ class BondEffectProcessor {
             // 浣熊市：每次挖矿前感染一个人类变成丧尸。每有一个丧尸，额外金币增加20
             return processRaccoonCityBond(symbolPool: &symbolPool)
             
+        case "dark_forest_3_bond":
+            // 黑暗森林-3：每回合获得一个魔法袋
+            return processDarkForest3Bond(symbolPool: &symbolPool)
+            
         default:
             print("⚠️ [羁绊Buff] 未知的羁绊Buff: \(bondBuff.nameKey)")
             return (bonus: 0, shouldGameOver: false)
@@ -314,6 +318,18 @@ class BondEffectProcessor {
         }
         
         // 计算丧尸数量奖励（这个应该在计算收益时应用，这里只返回0）
+        return (bonus: 0, shouldGameOver: false)
+    }
+    
+    private func processDarkForest3Bond(symbolPool: inout [Symbol]) -> (bonus: Int, shouldGameOver: Bool) {
+        // 黑暗森林-3：每回合获得一个魔法袋
+        guard let magicBag = SymbolLibrary.getSymbol(byName: "魔法袋") else {
+            print("⚠️ [羁绊Buff] 黑暗森林-3：找不到魔法袋符号")
+            return (bonus: 0, shouldGameOver: false)
+        }
+        
+        symbolPool.append(magicBag)
+        print("🌲 [羁绊Buff] 黑暗森林-3：每回合获得1个魔法袋")
         return (bonus: 0, shouldGameOver: false)
     }
 }

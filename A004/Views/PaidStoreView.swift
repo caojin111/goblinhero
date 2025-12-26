@@ -15,6 +15,9 @@ struct PaidStoreView: View {
     
     var initialTab: StoreTab = .goblins
     @State private var selectedTab: StoreTab = .goblins
+    @State private var showGoblinDetail: Bool = false
+    @State private var selectedGoblinForDetail: Goblin?
+    @State private var refreshTrigger: UUID = UUID() // 用于触发红点更新
     
     // 获取自定义字体
     private func customFont(size: CGFloat) -> Font {
@@ -66,19 +69,26 @@ struct PaidStoreView: View {
                             Group {
                                 switch selectedTab {
                                 case .goblins:
-                                    GoblinsStoreView(viewModel: viewModel, scaleX: scaleX, scaleY: scaleY)
+                                    GoblinsStoreView(
+                                        viewModel: viewModel,
+                                        localizationManager: localizationManager,
+                                        showGoblinDetail: $showGoblinDetail,
+                                        selectedGoblinForDetail: $selectedGoblinForDetail,
+                                        scaleX: scaleX,
+                                        scaleY: scaleY
+                                    )
                                         .transition(.opacity)
                                 case .stamina:
                                     StaminaStoreView(viewModel: viewModel, scaleX: scaleX, scaleY: scaleY)
                                         .transition(.opacity)
                                 case .diamonds:
-                                    DiamondsStoreView(viewModel: viewModel, scaleX: scaleX, scaleY: scaleY)
+                                    DiamondsStoreView(viewModel: viewModel, refreshTrigger: refreshTrigger, scaleX: scaleX, scaleY: scaleY)
                                         .transition(.opacity)
                                 }
                             }
                             .id(selectedTab.rawValue) // 使用id确保视图正确更新
                         }
-                        .padding(.bottom, 200 * scaleY) // 为底部页签留出更多空间，避免穿帮
+                        .padding(.bottom, 270 * scaleY) // 为底部页签留出更多空间，避免穿帮（再增加50像素）
                     }
                     .animation(.easeInOut(duration: 0.15), value: selectedTab) // 快速切换动画
                 }
@@ -125,6 +135,7 @@ struct PaidStoreView: View {
                             ForEach(StoreTab.allCases, id: \.self) { tab in
                                 Button(action: {
                                     print("🛒 [商店] 切换到页签: \(tab.rawValue)")
+                                    audioManager.playSoundEffect("click", fileExtension: "wav")
                                     // 立即更新状态，不使用动画避免延迟
                                     selectedTab = tab
                                 }) {
@@ -145,6 +156,17 @@ struct PaidStoreView: View {
                                             .foregroundColor(.white)
                                             .id("tab_text_\(tab.rawValue)_\(selectedTab == tab)") // 确保文字正确更新
                                     }
+                                    .overlay(alignment: .topTrailing) {
+                                        // 小红点提示（diamonds 页签，如果钻石宝箱未领取）- 使用overlay避免影响文本位置
+                                        if tab == .diamonds && viewModel.canClaimFreeDiamonds {
+                                            Image("reddot")
+                                                .resizable()
+                                                .scaledToFit()
+                                                .frame(width: 60 * scaleX, height: 60 * scaleY)
+                                                .offset(x: -10 * scaleX, y: 10 * scaleY)
+                                        }
+                                    }
+                                    .id(refreshTrigger) // 使用 refreshTrigger 触发更新
                                     .frame(maxWidth: .infinity) // 确保所有页签宽度一致
                                     .frame(height: 200 * scaleY) // 确保所有页签高度一致
                                 .clipped() // 在 ZStack 外层也添加 clipped，确保整体尺寸一致，防止图片溢出
@@ -164,6 +186,25 @@ struct PaidStoreView: View {
                     )
                 }
                 .allowsHitTesting(true) // 确保页签可以点击，不参与滑动
+                
+                // 哥布林详情弹窗 - 在屏幕正中心显示（提升到PaidStoreView层级）
+                if showGoblinDetail, let goblin = selectedGoblinForDetail {
+                    ZStack {
+                        // 背景遮罩，点击后关闭弹窗
+                        Color.black.opacity(0.3)
+                            .ignoresSafeArea()
+                            .onTapGesture {
+                                withAnimation {
+                                    showGoblinDetail = false
+                                }
+                            }
+                        
+                        // 哥布林详情弹窗（使用和局内一样的样式）- 在屏幕正中心显示
+                        GoblinBuffTipView(goblin: goblin, isDismissing: false)
+                            .transition(.scale.combined(with: .opacity))
+                            .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
+                    }
+                }
             }
         }
         .onAppear {
@@ -181,9 +222,11 @@ struct PaidStoreView: View {
 // MARK: - 哥布林商城视图
 struct GoblinsStoreView: View {
     @ObservedObject var viewModel: GameViewModel
-    @ObservedObject var localizationManager = LocalizationManager.shared
+    @ObservedObject var localizationManager: LocalizationManager
     @State private var showUnlockAlert: Bool = false
     @State private var goblinToUnlock: Goblin?
+    @Binding var showGoblinDetail: Bool
+    @Binding var selectedGoblinForDetail: Goblin?
     let scaleX: CGFloat
     let scaleY: CGFloat
     
@@ -223,9 +266,13 @@ struct GoblinsStoreView: View {
                             print("🛒 [商店] 点击解锁哥布林: \(goblin.name)")
                             goblinToUnlock = goblin
                             showUnlockAlert = true
+                        },
+                        onShowDetail: {
+                            print("🛒 [商店] 点击查看哥布林详情: \(goblin.name)")
+                            selectedGoblinForDetail = goblin
+                            showGoblinDetail = true
                         }
                     )
-                    .offset(y: goblin.nameKey == "wizard_goblin" ? -30 * scaleY : 0) // wizard卡片额外向上移动30像素（总共向上移动30像素）
                 }
             }
         }
@@ -233,23 +280,47 @@ struct GoblinsStoreView: View {
         .padding(.top, 40 * scaleY + 0) // 再向上移动30像素（从30改为0）
         .alert(localizationManager.localized("store.goblins.unlock_title"), isPresented: $showUnlockAlert) {
             if let goblin = goblinToUnlock {
-                if viewModel.diamonds >= goblin.unlockPrice {
+                if goblin.unlockCurrency == "usd" {
+                    // USD购买：显示确认按钮，实际购买通过StoreKit处理
                     Button(localizationManager.localized("confirmations.confirm")) {
-                        if viewModel.unlockGoblin(goblinId: goblin.id, cost: goblin.unlockPrice) {
-                            print("🛒 [商店] 成功解锁哥布林: \(goblin.name)")
-                        }
+                        print("🛒 [商店] 确认购买USD哥布林: \(goblin.name), 价格: $\(Double(goblin.unlockPrice) / 100.0)")
+                        // TODO: 这里应该调用 StoreKit 购买流程
+                        // StoreKitManager.shared.purchase(productId: goblin.productId) { success in
+                        //     if success {
+                        //         viewModel.unlockGoblin(goblinId: goblin.id, cost: 0) // USD购买不需要消耗钻石
+                        //     }
+                        // }
+                        // 临时：直接解锁（实际应该等StoreKit购买成功后再解锁）
+                        viewModel.unlockGoblin(goblinId: goblin.id, cost: 0)
                     }
                     Button(localizationManager.localized("confirmations.cancel"), role: .cancel) { }
                 } else {
-                    Button(localizationManager.localized("confirmations.confirm"), role: .cancel) { }
+                    // 钻石购买：检查钻石数量
+                    if viewModel.diamonds >= goblin.unlockPrice {
+                        Button(localizationManager.localized("confirmations.confirm")) {
+                            if viewModel.unlockGoblin(goblinId: goblin.id, cost: goblin.unlockPrice) {
+                                print("🛒 [商店] 成功解锁哥布林: \(goblin.name)")
+                            }
+                        }
+                        Button(localizationManager.localized("confirmations.cancel"), role: .cancel) { }
+                    } else {
+                        Button(localizationManager.localized("confirmations.confirm"), role: .cancel) { }
+                    }
                 }
             }
         } message: {
             if let goblin = goblinToUnlock {
-                if viewModel.diamonds >= goblin.unlockPrice {
-                    Text(localizationManager.localized("store.goblins.unlock_message").replacingOccurrences(of: "{name}", with: goblin.name).replacingOccurrences(of: "{price}", with: "\(goblin.unlockPrice)"))
+                if goblin.unlockCurrency == "usd" {
+                    // USD购买：显示USD价格
+                    let priceText = String(format: "$%.2f", Double(goblin.unlockPrice) / 100.0)
+                    Text(localizationManager.localized("store.goblins.unlock_message").replacingOccurrences(of: "{name}", with: goblin.name).replacingOccurrences(of: "{price}", with: priceText))
                 } else {
-                    Text(localizationManager.localized("store.goblins.insufficient_diamonds").replacingOccurrences(of: "{price}", with: "\(goblin.unlockPrice)").replacingOccurrences(of: "{current}", with: "\(viewModel.diamonds)"))
+                    // 钻石购买：检查钻石数量
+                    if viewModel.diamonds >= goblin.unlockPrice {
+                        Text(localizationManager.localized("store.goblins.unlock_message").replacingOccurrences(of: "{name}", with: goblin.name).replacingOccurrences(of: "{price}", with: "\(goblin.unlockPrice)"))
+                    } else {
+                        Text(localizationManager.localized("store.goblins.insufficient_diamonds").replacingOccurrences(of: "{price}", with: "\(goblin.unlockPrice)").replacingOccurrences(of: "{current}", with: "\(viewModel.diamonds)"))
+                    }
                 }
             }
         }
@@ -263,11 +334,24 @@ struct GoblinStoreCard: View {
     let scaleX: CGFloat
     let scaleY: CGFloat
     let onUnlock: () -> Void
+    let onShowDetail: () -> Void
     @ObservedObject var localizationManager = LocalizationManager.shared
     
     // 获取自定义字体
     private func customFont(size: CGFloat) -> Font {
         return FontManager.shared.customFont(size: size)
+    }
+    
+    // 格式化哥布林价格显示
+    private func formatGoblinPrice(_ price: Int, currency: String) -> String {
+        if currency == "usd" {
+            // USD价格：999 表示 9.99 美元（以分为单位）
+            let dollars = Double(price) / 100.0
+            return String(format: "$%.2f", dollars)
+        } else {
+            // 钻石或金币：直接显示数字
+            return "\(price)"
+        }
     }
     
     var body: some View {
@@ -279,71 +363,129 @@ struct GoblinStoreCard: View {
         let cardHeight = cardWidth / imageAspectRatio
         let cornerRadius = 30 * scaleX
         
-        return VStack(spacing: 0) {
-            // 标题栏 (Figma: x: 134, y: 168, width: 966, height: 114) - 已隐藏
-            ZStack {
-                RoundedRectangle(cornerRadius: 20 * scaleX)
-                    .fill(Color(hex: "E5D6A1"))
-                    .frame(height: 114 * scaleY)
-                
-                Text(goblin.name)
-                    .font(customFont(size: 100 * scaleX))
-                    .foregroundColor(.white)
-                    .textStroke()
-            }
-            .hidden() // 隐藏标题栏
-            
-            // 哥布林图片区域 - 新的一体化图片（分辨率：1094*729）
-            // 图片宽度与购买按钮一致（即 cardWidth）
-            
-            ZStack {
-                // 哥布林一体化图片（包含角色、背景和文字）
-                if goblin.nameKey == "king_goblin" {
-                    Image("king")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: cardWidth, height: cardHeight)
-                    .clipShape(
-                        TopRoundedRectangle(cornerRadius: cornerRadius)
-                    )
-                } else if goblin.nameKey == "wizard_goblin" {
-                    Image("wizard")
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: cardWidth, height: cardHeight)
-                        .clipShape(
-                            TopRoundedRectangle(cornerRadius: cornerRadius)
-                        )
-                }
-            }
-            .frame(width: cardWidth, height: cardHeight)
-            .padding(.top, 20 * scaleY)
-            
-            // 价格栏 (Figma: height: 156) - 改为Button，始终可点击，宽度与哥布林图片一致
+        return ZStack {
+            // 购买按钮 - 触摸区域包含整个卡片（包括商品卡片图标区域）
             Button(action: {
                 print("🛒 [商店] 点击购买哥布林: \(goblin.name), 价格: \(goblin.unlockPrice), 当前钻石: \(viewModel.diamonds)")
                 onUnlock() // 始终调用，让alert来处理钻石不足的情况
             }) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 0)
-                        .fill(Color(hex: "FDE827"))
-                        .frame(width: cardWidth, height: 156 * scaleY)
-                    
-                    HStack(spacing: 20 * scaleX) {
-                        Image("crystal")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 95 * scaleX, height: 95 * scaleY)
+                Color.clear
+                    .frame(width: cardWidth, height: cardHeight + 156 * scaleY)
+                    .contentShape(Rectangle()) // 确保整个区域可点击
+            }
+            .buttonStyle(PlainButtonStyle())
+            .zIndex(0) // 购买按钮在底层
+            
+            VStack(spacing: 0) {
+                // 标题栏 (Figma: x: 134, y: 168, width: 966, height: 114)
+                // 名字条再往下移动 10 像素（更贴近商品卡片），整体再往下移动 8 像素（盖住价格条）
+                Button(action: {
+                    onShowDetail()
+                }) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 20 * scaleX)
+                            .fill(Color(hex: "E5D6A1"))
+                            .frame(height: 114 * scaleY)
                         
-                        Text("\(goblin.unlockPrice)")
-                            .font(customFont(size: 100 * scaleX))
+                        Text(goblin.name)
+                            .font(customFont(size: (localizationManager.currentLanguage == "zh" ? 97 : 100) * scaleX)) // 中文时减少3号
                             .foregroundColor(.white)
                             .textStroke()
                     }
                 }
+                .buttonStyle(PlainButtonStyle())
+                .offset(y: (13 + 10 + 8) * scaleY) // 之前13 + 再往下10 + 整体再往下8 = 31 像素
+                
+                // 哥布林图片区域 - 新的一体化图片（分辨率：1094*729）
+                // 图片宽度与购买按钮一致（即 cardWidth）
+                // 整个图片区域可点击，显示详情（优先于购买按钮）
+                // 商品卡片整体再往下移动 8 像素（盖住价格条）
+                Button(action: {
+                    onShowDetail()
+                }) {
+                    ZStack {
+                        // 哥布林一体化图片（包含角色、背景和文字）
+                        if goblin.nameKey == "king_goblin" {
+                            Image("king")
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: cardWidth, height: cardHeight)
+                            .clipShape(
+                                TopRoundedRectangle(cornerRadius: cornerRadius)
+                            )
+                        } else if goblin.nameKey == "wizard_goblin" {
+                            Image("wizard")
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: cardWidth, height: cardHeight)
+                                .clipShape(
+                                    TopRoundedRectangle(cornerRadius: cornerRadius)
+                                )
+                        } else if goblin.nameKey == "athlete_goblin" {
+                            Image("athlete")
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: cardWidth, height: cardHeight)
+                                .clipShape(
+                                    TopRoundedRectangle(cornerRadius: cornerRadius)
+                                )
+                        } else if goblin.nameKey == "craftsman_goblin" {
+                            Image("craftsman")
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: cardWidth, height: cardHeight)
+                                .clipShape(
+                                    TopRoundedRectangle(cornerRadius: cornerRadius)
+                                )
+                        } else if goblin.nameKey == "gambler_goblin" {
+                            Image("gambler")
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: cardWidth, height: cardHeight)
+                                .clipShape(
+                                    TopRoundedRectangle(cornerRadius: cornerRadius)
+                                )
+                        }
+                    }
+                    .frame(width: cardWidth, height: cardHeight)
+                }
+                .buttonStyle(PlainButtonStyle())
+                .zIndex(2) // 哥布林图片在上层，优先响应点击
+                .offset(y: (8 + 8) * scaleY) // 之前8 + 整体再往下8 = 16 像素，盖住价格条
+                // 移除标题栏和图片之间的间距，让名字条和卡片紧贴
+                
+                // 价格栏 (Figma: height: 156) - 显示价格信息
+                ZStack {
+                    Image("goblin_card_button")
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: cardWidth, height: 156 * scaleY)
+                        .clipped()
+                    
+                    HStack(spacing: 20 * scaleX) {
+                        if goblin.unlockCurrency == "usd" {
+                            // USD价格：显示美元符号和格式化的价格
+                            Text(formatGoblinPrice(goblin.unlockPrice, currency: goblin.unlockCurrency))
+                                .font(customFont(size: 100 * scaleX))
+                                .foregroundColor(.white)
+                                .textStroke()
+                        } else {
+                            // 钻石价格：显示钻石图标和数量
+                            Image("crystal")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 95 * scaleX, height: 95 * scaleY)
+                            
+                            Text("\(goblin.unlockPrice)")
+                                .font(customFont(size: 100 * scaleX))
+                                .foregroundColor(.white)
+                                .textStroke()
+                        }
+                    }
+                }
+                .frame(width: cardWidth, height: 156 * scaleY)
+                .zIndex(1) // 价格栏在中间层
             }
-            .buttonStyle(PlainButtonStyle())
-            .frame(width: cardWidth) // 确保按钮宽度与图片一致
         }
         .frame(width: cardWidth) // 确保整个卡片宽度一致
         .cornerRadius(20 * scaleX)
@@ -376,9 +518,9 @@ struct StaminaStoreView: View {
     }
     
     let staminaPacks: [StaminaPack] = [
-        StaminaPack(stamina: 30, diamonds: 2000, titleKey: "a_little_bit"),
-        StaminaPack(stamina: 90, diamonds: 2000, titleKey: "a_lot"),
-        StaminaPack(stamina: 300, diamonds: 2000, titleKey: "super_many")
+        StaminaPack(stamina: 30, diamonds: 5, titleKey: "a_little_bit"),
+        StaminaPack(stamina: 90, diamonds: 15, titleKey: "a_lot"),
+        StaminaPack(stamina: 300, diamonds: 50, titleKey: "super_many")
     ]
     
     var body: some View {
@@ -476,27 +618,43 @@ struct StaminaPackCard: View {
     
     // 获取标题文本
     private func getTitle() -> String {
-        switch pack.titleKey {
-        case "a_little_bit":
-            return "a little bit of\nstamina"
-        case "a_lot":
-            return "a lot of\nstamina"
-        case "super_many":
-            return "super many of\nstamina"
-        default:
-            return "stamina"
+        if localizationManager.currentLanguage == "zh" {
+            switch pack.titleKey {
+            case "a_little_bit":
+                return "少量\n体力"
+            case "a_lot":
+                return "大量\n体力"
+            case "super_many":
+                return "超级多\n体力"
+            default:
+                return "体力"
+            }
+        } else {
+            switch pack.titleKey {
+            case "a_little_bit":
+                return "a little bit of\nstamina"
+            case "a_lot":
+                return "a lot of\nstamina"
+            case "super_many":
+                return "super many of\nstamina"
+            default:
+                return "stamina"
+            }
         }
     }
     
-    // 获取食物图片名称
-    private func getFoodImageName() -> String {
-        // 根据设计图，第一个和第二个卡片有食物图片
-        if pack.titleKey == "a_little_bit" {
-            return "FOOD_21"
-        } else if pack.titleKey == "a_lot" {
-            return "FOOD_22"
+    // 根据体力数量获取对应的图标
+    private func getStaminaImageName() -> String {
+        switch pack.stamina {
+        case 30:
+            return "stamina_1"
+        case 90:
+            return "stamina_2"
+        case 300:
+            return "stamina_3"
+        default:
+            return "fruit" // 默认图标
         }
-        return "fruit" // 默认使用fruit图标
     }
     
     var body: some View {
@@ -521,10 +679,17 @@ struct StaminaPackCard: View {
                         TopRoundedRectangle(cornerRadius: cornerRadius)
                     )
                 
-                Text(getTitle())
-                    .font(customFont(size: 64 * scaleX))
+                Text({
+                    let title = getTitle().replacingOccurrences(of: "\n", with: " ")
+                    // 如果是中文，移除空格；英文保留空格
+                    return localizationManager.currentLanguage == "zh" ? title.replacingOccurrences(of: " ", with: "") : title
+                }())
+                    .font(customFont(size: (localizationManager.currentLanguage == "zh" ? 64 : 54) * scaleX))
                     .foregroundColor(Color(hex: "81331B")) // 标题字体色 #81331B
                     .multilineTextAlignment(.center)
+                    .lineLimit(1) // 不换行
+                    .minimumScaleFactor(0.5) // 自动缩小字体以适应宽度，避免省略号
+                    .frame(width: localizationManager.currentLanguage == "zh" ? (cardWidth + 90 * scaleX) : (cardWidth + 100 * scaleX), height: titleHeight, alignment: .center) // 横向扩张（向右再扩张50像素）
             }
             
             // 内容区域 (Figma: height: 653, 背景色 #FDE9B4)
@@ -533,16 +698,14 @@ struct StaminaPackCard: View {
                 Color(hex: "FDE9B4")
                     .frame(height: cardContentHeight)
                 
-                // 食物图片（如果有）- 根据设计图位置显示
-                if pack.titleKey == "a_little_bit" || pack.titleKey == "a_lot" {
-                    VStack {
-                        Spacer()
-                        Image(getFoodImageName())
-                            .resizable()
-                            .scaledToFit()
-                            .frame(maxWidth: 207 * scaleX, maxHeight: 137 * scaleY)
-                            .padding(.bottom, 100 * scaleY) // 距离底部一定距离
-                    }
+                // 体力图标 - 根据体力数量显示对应的图标（放大3倍：2 * 1.5）
+                VStack {
+                    Spacer()
+                    Image(getStaminaImageName())
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxWidth: 207 * 3 * scaleX, maxHeight: 137 * 3 * scaleY)
+                        .padding(.bottom, 100 * scaleY) // 距离底部一定距离
                 }
             }
             .frame(height: cardContentHeight)
@@ -554,7 +717,7 @@ struct StaminaPackCard: View {
                     .frame(height: 125 * scaleY)
                 
                 Text("x\(pack.stamina)")
-                    .font(customFont(size: 100 * scaleX))
+                    .font(customFont(size: (localizationManager.currentLanguage == "zh" ? 100 : 77) * scaleX))
                     .foregroundColor(.white)
                     .textStroke()
             }
@@ -583,7 +746,7 @@ struct StaminaPackCard: View {
                             .frame(width: 95 * scaleX, height: 95 * scaleY)
                         
                         Text("\(pack.diamonds)")
-                            .font(customFont(size: 100 * scaleX))
+                            .font(customFont(size: (localizationManager.currentLanguage == "zh" ? 100 : 75) * scaleX))
                             .foregroundColor(.white)
                             .textStroke()
                     }
@@ -649,6 +812,9 @@ struct DiamondsStoreView: View {
     @ObservedObject var localizationManager = LocalizationManager.shared
     @State private var showPurchaseAlert: Bool = false
     @State private var selectedProduct: DiamondProduct?
+    @State private var showRewardAlert: Bool = false
+    @State private var rewardDiamonds: Int = 0
+    let refreshTrigger: UUID // 用于触发子视图刷新（从父视图传入）
     let scaleX: CGFloat
     let scaleY: CGFloat
     
@@ -659,6 +825,7 @@ struct DiamondsStoreView: View {
     
     struct DiamondProduct: Identifiable {
         let id: String
+        let productId: String? // StoreKit product identifier (nil for free daily)
         let type: ProductType
         let priceUSD: Double
         let diamonds: Int
@@ -670,11 +837,11 @@ struct DiamondsStoreView: View {
     }
     
     let products: [DiamondProduct] = [
-        DiamondProduct(id: "free_daily", type: .freeDaily, priceUSD: 0.00, diamonds: 10),
-        DiamondProduct(id: "pack_100", type: .paid, priceUSD: 5.99, diamonds: 100),
-        DiamondProduct(id: "pack_150", type: .paid, priceUSD: 9.99, diamonds: 150),
-        DiamondProduct(id: "pack_350", type: .paid, priceUSD: 19.99, diamonds: 350),
-        DiamondProduct(id: "pack_600", type: .paid, priceUSD: 29.99, diamonds: 600)
+        DiamondProduct(id: "free_daily", productId: nil, type: .freeDaily, priceUSD: 0.00, diamonds: 10),
+        DiamondProduct(id: "pack_100", productId: "diamond_5.99", type: .paid, priceUSD: 5.99, diamonds: 100),
+        DiamondProduct(id: "pack_150", productId: "diamond_9.99", type: .paid, priceUSD: 9.99, diamonds: 150),
+        DiamondProduct(id: "pack_350", productId: "diamond_19.99", type: .paid, priceUSD: 19.99, diamonds: 350),
+        DiamondProduct(id: "pack_600", productId: "diamond_29.99", type: .paid, priceUSD: 29.99, diamonds: 600)
     ]
     
     var body: some View {
@@ -688,10 +855,18 @@ struct DiamondsStoreView: View {
                         viewModel: viewModel,
                         scaleX: scaleX,
                         scaleY: scaleY,
+                        refreshTrigger: refreshTrigger,
                         onPurchase: {
-                            print("🛒 [商店] 点击购买钻石商品: \(products[0].diamonds)钻石")
-                            selectedProduct = products[0]
-                            showPurchaseAlert = true
+                            if products[0].type == .freeDaily {
+                                if canClaimFreeDaily() {
+                                    selectedProduct = products[0]
+                                    showPurchaseAlert = true
+                                }
+                            } else {
+                                print("🛒 [商店] 点击购买钻石商品: \(products[0].diamonds)钻石")
+                                selectedProduct = products[0]
+                                showPurchaseAlert = true
+                            }
                         }
                     )
                 }
@@ -702,6 +877,7 @@ struct DiamondsStoreView: View {
                         viewModel: viewModel,
                         scaleX: scaleX,
                         scaleY: scaleY,
+                        refreshTrigger: refreshTrigger,
                         onPurchase: {
                             print("🛒 [商店] 点击购买钻石商品: \(products[1].diamonds)钻石")
                             selectedProduct = products[1]
@@ -719,6 +895,7 @@ struct DiamondsStoreView: View {
                         viewModel: viewModel,
                         scaleX: scaleX,
                         scaleY: scaleY,
+                        refreshTrigger: refreshTrigger,
                         onPurchase: {
                             print("🛒 [商店] 点击购买钻石商品: \(products[2].diamonds)钻石")
                             selectedProduct = products[2]
@@ -732,6 +909,7 @@ struct DiamondsStoreView: View {
                             viewModel: viewModel,
                             scaleX: scaleX,
                             scaleY: scaleY,
+                            refreshTrigger: refreshTrigger,
                             onPurchase: {
                                 print("🛒 [商店] 点击购买钻石商品: \(products[3].diamonds)钻石")
                                 selectedProduct = products[3]
@@ -752,6 +930,7 @@ struct DiamondsStoreView: View {
                         viewModel: viewModel,
                         scaleX: scaleX,
                         scaleY: scaleY,
+                        refreshTrigger: refreshTrigger,
                         onPurchase: {
                             print("🛒 [商店] 点击购买钻石商品: \(products[4].diamonds)钻石")
                             selectedProduct = products[4]
@@ -767,10 +946,15 @@ struct DiamondsStoreView: View {
         .alert(localizationManager.localized("store.diamonds.purchase_title"), isPresented: $showPurchaseAlert) {
             if let product = selectedProduct {
                 if product.type == .freeDaily {
-                    Button(localizationManager.localized("confirmations.confirm")) {
-                        claimFreeDailyDiamonds()
+                    // 检查是否已领取
+                    if canClaimFreeDaily() {
+                        Button(localizationManager.localized("confirmations.confirm")) {
+                            claimFreeDailyDiamonds()
+                        }
+                        Button(localizationManager.localized("confirmations.cancel"), role: .cancel) { }
+                    } else {
+                        Button(localizationManager.localized("confirmations.confirm"), role: .cancel) { }
                     }
-                    Button(localizationManager.localized("confirmations.cancel"), role: .cancel) { }
                 } else {
                     Button(localizationManager.localized("store.diamonds.purchase")) {
                         purchaseDiamonds(product: product)
@@ -781,15 +965,26 @@ struct DiamondsStoreView: View {
         } message: {
             if let product = selectedProduct {
                 if product.type == .freeDaily {
-                    Text(localizationManager.localized("store.diamonds.free_daily_message").replacingOccurrences(of: "{diamonds}", with: "\(product.diamonds)"))
+                    if canClaimFreeDaily() {
+                        Text(localizationManager.localized("store.diamonds.free_daily_message").replacingOccurrences(of: "{diamonds}", with: "10-50"))
+                    } else {
+                        Text(localizationManager.localized("store.diamonds.claimed"))
+                    }
                 } else {
                     Text(localizationManager.localized("store.diamonds.purchase_message").replacingOccurrences(of: "{diamonds}", with: "\(product.diamonds)").replacingOccurrences(of: "{price}", with: String(format: "%.2f", product.priceUSD)))
                 }
             }
         }
+        .alert(localizationManager.localized("store.diamonds.reward_title"), isPresented: $showRewardAlert) {
+            Button(localizationManager.localized("confirmations.confirm")) {
+                showRewardAlert = false
+            }
+        } message: {
+            Text(localizationManager.localized("store.diamonds.reward_message").replacingOccurrences(of: "{diamonds}", with: "\(rewardDiamonds)"))
+        }
     }
     
-    /// 领取每日免费钻石
+    /// 领取每日免费钻石随机宝箱
     private func claimFreeDailyDiamonds() {
         let lastClaimDate = UserDefaults.standard.object(forKey: "lastFreeDiamondsClaimDate") as? Date
         let calendar = Calendar.current
@@ -800,18 +995,68 @@ struct DiamondsStoreView: View {
             return
         }
         
+        // 随机抽取钻石数量（根据概率）
+        let diamonds = getRandomDiamondsFromBox()
+        
         // 领取钻石
-        viewModel.addDiamonds(10)
-        UserDefaults.standard.set(Date(), forKey: "lastFreeDiamondsClaimDate")
-        print("💎 [每日免费] 成功领取10钻石")
+        viewModel.addDiamonds(diamonds)
+        let claimDate = Date()
+        UserDefaults.standard.set(claimDate, forKey: "lastFreeDiamondsClaimDate")
+        print("💎 [每日免费] 成功领取\(diamonds)钻石（随机宝箱）")
+        
+        // 更新 viewModel 的状态，触发红点立即消失
+        DispatchQueue.main.async {
+            self.viewModel.freeDiamondsClaimDate = claimDate
+        }
+        
+        // 显示领取成功弹窗
+        rewardDiamonds = diamonds
+        showRewardAlert = true
+    }
+    
+    /// 根据概率随机获取钻石数量
+    private func getRandomDiamondsFromBox() -> Int {
+        let random = Double.random(in: 0...100)
+        
+        // 10钻：50% (0-50)
+        if random <= 50 {
+            return 10
+        }
+        // 20钻：20% (50-70)
+        else if random <= 70 {
+            return 20
+        }
+        // 30钻：15% (70-85)
+        else if random <= 85 {
+            return 30
+        }
+        // 40钻：10% (85-95)
+        else if random <= 95 {
+            return 40
+        }
+        // 50钻：5% (95-100)
+        else {
+            return 50
+        }
     }
     
     /// 购买钻石（模拟，实际需要集成 StoreKit）
     private func purchaseDiamonds(product: DiamondProduct) {
         // TODO: 这里应该集成 StoreKit 进行实际支付
+        // 使用 productId 进行 StoreKit 购买
+        if let productId = product.productId {
+            print("💎 [购买钻石] 准备购买商品ID: \(productId), \(product.diamonds)钻石，价格$\(product.priceUSD)")
+            // TODO: 调用 StoreKit 购买流程
+            // StoreKitManager.shared.purchase(productId: productId) { success in
+            //     if success {
+            //         viewModel.addDiamonds(product.diamonds)
+            //     }
+            // }
+        }
+        
         // 目前先模拟购买，直接添加钻石
         viewModel.addDiamonds(product.diamonds)
-        print("💎 [购买钻石] 购买\(product.diamonds)钻石，价格$\(product.priceUSD)")
+        print("💎 [购买钻石] 购买\(product.diamonds)钻石，价格$\(product.priceUSD)，商品ID: \(product.productId ?? "N/A")")
     }
     
     /// 检查每日免费是否可领取
@@ -819,10 +1064,36 @@ struct DiamondsStoreView: View {
         let lastClaimDate = UserDefaults.standard.object(forKey: "lastFreeDiamondsClaimDate") as? Date
         let calendar = Calendar.current
         
+        // 检查是否已经领取过（需要检查是否是今天）
         if let lastDate = lastClaimDate {
-            return !calendar.isDateInToday(lastDate)
+            // 如果最后领取日期是今天，则已领取
+            if calendar.isDateInToday(lastDate) {
+                return false
+            }
+            // 如果最后领取日期不是今天，检查是否需要刷新（跨天）
+            let today = calendar.startOfDay(for: Date())
+            let lastDay = calendar.startOfDay(for: lastDate)
+            if today > lastDay {
+                // 跨天了，可以领取
+                return true
+            }
         }
         return true
+    }
+    
+    /// 检查是否需要刷新宝箱状态（每天00:00）
+    func shouldRefreshBox() -> Bool {
+        let lastClaimDate = UserDefaults.standard.object(forKey: "lastFreeDiamondsClaimDate") as? Date
+        let calendar = Calendar.current
+        
+        guard let lastDate = lastClaimDate else {
+            return false
+        }
+        
+        // 检查是否跨天了
+        let today = calendar.startOfDay(for: Date())
+        let lastDay = calendar.startOfDay(for: lastDate)
+        return today > lastDay
     }
 }
 
@@ -832,8 +1103,10 @@ struct DiamondProductCard: View {
     @ObservedObject var viewModel: GameViewModel
     let scaleX: CGFloat
     let scaleY: CGFloat
+    let refreshTrigger: UUID // 用于接收刷新触发
     let onPurchase: () -> Void
     @ObservedObject var localizationManager = LocalizationManager.shared
+    @State private var canClaim: Bool = true
     
     // 获取自定义字体
     private func customFont(size: CGFloat) -> Font {
@@ -843,9 +1116,30 @@ struct DiamondProductCard: View {
     // 获取标题文本
     private func getTitle() -> String {
         if product.type == .freeDaily {
-            return "free\ndiamonds"
+            return localizationManager.currentLanguage == "zh" ? "免费\n钻石" : "daily\nrewards"
         } else {
-            return "diamonds\npack"
+            return localizationManager.currentLanguage == "zh" ? "钻石\n包" : "diamonds\npack"
+        }
+    }
+    
+    // 格式化价格显示
+    private func formatPrice(_ price: Double) -> String {
+        return String(format: "$%.2f", price)
+    }
+    
+    // 根据钻石数量获取对应的图标
+    private func getDiamondImageName(for diamonds: Int) -> String {
+        switch diamonds {
+        case 100:
+            return "diamond_1"
+        case 150:
+            return "diamond_2"
+        case 350:
+            return "diamond_3"
+        case 600:
+            return "diamond_4"
+        default:
+            return "crystal" // 默认图标
         }
     }
     
@@ -867,10 +1161,17 @@ struct DiamondProductCard: View {
                         TopRoundedRectangle(cornerRadius: cornerRadius)
                     )
                 
-                Text(getTitle())
-                    .font(customFont(size: 64 * scaleX))
+                Text({
+                    let title = getTitle().replacingOccurrences(of: "\n", with: " ")
+                    // 如果是中文，移除空格；英文保留空格
+                    return localizationManager.currentLanguage == "zh" ? title.replacingOccurrences(of: " ", with: "") : title
+                }())
+                    .font(customFont(size: (localizationManager.currentLanguage == "zh" ? 64 : 54) * scaleX))
                     .foregroundColor(Color(hex: "81331B")) // 标题字体色 #81331B
                     .multilineTextAlignment(.center)
+                    .lineLimit(1) // 不换行
+                    .minimumScaleFactor(0.5) // 自动缩小字体以适应宽度，避免省略号
+                    .frame(width: localizationManager.currentLanguage == "zh" ? (cardWidth + 90 * scaleX) : (cardWidth + 100 * scaleX), height: titleHeight, alignment: .center) // 横向扩张（向右再扩张50像素）
             }
             
             // 内容区域 (Figma: height: 653, 背景色 #FDE9B4)
@@ -879,11 +1180,19 @@ struct DiamondProductCard: View {
                 Color(hex: "FDE9B4")
                     .frame(height: cardContentHeight)
                 
-                // 钻石图标（移除下方的数量显示）
-                    Image("crystal")
+                if product.type == .freeDaily {
+                    // 免费每日：显示宝箱图片（放大1.3倍）
+                    Image(canClaim ? "diamonds_box_full" : "diamonds_box_none")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 150 * scaleX, height: 150 * scaleY)
+                        .frame(width: 300 * 1.3 * scaleX, height: 300 * 1.3 * scaleY)
+                } else {
+                    // 付费商品：根据钻石数量显示对应的图标（放大3倍：2 * 1.5）
+                    Image(getDiamondImageName(for: product.diamonds))
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 150 * 3 * scaleX, height: 150 * 3 * scaleY)
+                }
             }
             .frame(height: cardContentHeight)
             
@@ -893,20 +1202,39 @@ struct DiamondProductCard: View {
                     .fill(Color(hex: "FDE9B4"))
                     .frame(height: 125 * scaleY)
                 
-                Text("x\(product.diamonds)")
-                    .font(customFont(size: 100 * scaleX))
-                    .foregroundColor(.white)
-                    .textStroke()
+                if product.type == .freeDaily {
+                    // 免费每日：显示随机宝箱提示（10~50 + crystal图标）
+                    HStack(spacing: 8 * scaleX) {
+                        Text("10~50")
+                            .font(customFont(size: 80 * scaleX))
+                            .foregroundColor(.white)
+                            .textStroke()
+                        Image("crystal")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 60 * scaleX, height: 60 * scaleY)
+                    }
+                } else {
+                    // 付费商品：显示钻石数量
+                    Text("x\(product.diamonds)")
+                        .font(customFont(size: (localizationManager.currentLanguage == "zh" ? 100 : 77) * scaleX))
+                        .foregroundColor(.white)
+                        .textStroke()
+                }
             }
             
             // 价格栏 (Figma: height: 128, 购买按钮背景色 #FFC400)
             Button(action: {
-                print("🛒 [商店] 点击购买钻石商品: \(product.diamonds)钻石")
+                if product.type == .freeDaily {
+                    print("🛒 [商店] 点击领取每日免费钻石宝箱")
+                } else {
+                    print("🛒 [商店] 点击购买钻石商品: \(product.diamonds)钻石")
+                }
                 onPurchase()
             }) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 0)
-                        .fill(Color(hex: "FFC400"))
+                        .fill((canClaim && product.type == .freeDaily) ? Color(hex: "FFC400") : (product.type == .freeDaily ? Color(hex: "CCCCCC") : Color(hex: "FFC400")))
                         .frame(height: priceHeight)
                         .mask(
                             BottomRoundedRectangle(cornerRadius: cornerRadius)
@@ -915,18 +1243,14 @@ struct DiamondProductCard: View {
                     HStack(spacing: 20 * scaleX) {
                         if product.type == .freeDaily {
                             // 免费显示特殊图标或文字
-                            Text("FREE")
+                            Text(canClaim ? "FREE" : localizationManager.localized("store.diamonds.claimed"))
                                 .font(customFont(size: 80 * scaleX))
                                 .foregroundColor(.white)
                                 .textStroke()
                         } else {
-                            Image("crystal")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 95 * scaleX, height: 95 * scaleY)
-                            
-                            Text("\(product.diamonds)")
-                                .font(customFont(size: 100 * scaleX))
+                            // 显示价格
+                            Text(formatPrice(product.priceUSD))
+                                .font(customFont(size: (localizationManager.currentLanguage == "zh" ? 80 : 75) * scaleX))
                                 .foregroundColor(.white)
                                 .textStroke()
                         }
@@ -934,6 +1258,21 @@ struct DiamondProductCard: View {
                 }
             }
             .buttonStyle(PlainButtonStyle())
+            .disabled(!canClaim && product.type == .freeDaily)
+            .onAppear {
+                // 检查是否可以领取（每天00:00刷新）
+                updateClaimStatus()
+                // 设置定时器检查每天00:00刷新
+                setupDailyRefreshTimer()
+            }
+            .onChange(of: refreshTrigger) { _ in
+                // 当收到刷新触发时，更新状态
+                updateClaimStatus()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
+                // 监听系统时间变化（包括跨天）
+                updateClaimStatus()
+            }
         }
         .frame(width: cardWidth)
         .cornerRadius(cornerRadius)
@@ -945,15 +1284,50 @@ struct DiamondProductCard: View {
         .offset(y: 10 * scaleY) // 整个卡片（包括标题区域和描边）下移 10 像素
     }
     
-    /// 检查每日免费是否可领取
-    private func canClaimFreeDaily() -> Bool {
-        let lastClaimDate = UserDefaults.standard.object(forKey: "lastFreeDiamondsClaimDate") as? Date
-        let calendar = Calendar.current
-        
-        if let lastDate = lastClaimDate {
-            return !calendar.isDateInToday(lastDate)
+    /// 更新领取状态
+    private func updateClaimStatus() {
+        if product.type == .freeDaily {
+            let lastClaimDate = UserDefaults.standard.object(forKey: "lastFreeDiamondsClaimDate") as? Date
+            let calendar = Calendar.current
+            
+            if let lastDate = lastClaimDate {
+                // 检查是否是今天
+                canClaim = !calendar.isDateInToday(lastDate)
+            } else {
+                canClaim = true
+            }
         }
-        return true
+    }
+    
+    /// 设置每天00:00刷新定时器
+    private func setupDailyRefreshTimer() {
+        guard product.type == .freeDaily else { return }
+        
+        let calendar = Calendar.current
+        let now = Date()
+        
+        // 计算下一个00:00的时间
+        var components = calendar.dateComponents([.year, .month, .day, .hour, .minute, .second], from: now)
+        components.hour = 0
+        components.minute = 0
+        components.second = 0
+        
+        var nextMidnight = calendar.date(from: components)!
+        
+        // 如果当前时间已经过了今天的00:00，则设置为明天的00:00
+        if nextMidnight <= now {
+            nextMidnight = calendar.date(byAdding: .day, value: 1, to: nextMidnight)!
+        }
+        
+        // 计算距离下一个00:00的秒数
+        let timeInterval = nextMidnight.timeIntervalSince(now)
+        
+        // 设置定时器
+        DispatchQueue.main.asyncAfter(deadline: .now() + timeInterval) {
+            self.updateClaimStatus()
+            // 递归设置下一个00:00的定时器
+            self.setupDailyRefreshTimer()
+        }
     }
 }
 

@@ -108,9 +108,9 @@ struct TutorialView: View {
                         x: geometry.size.width / 2,
                         y: tipCardY // 使用计算出的位置
                     )
-                }
             }
         }
+    }
     }
     
     /// 完成教程

@@ -363,9 +363,9 @@ class SymbolEffectProcessor {
         
         // 检查是否集齐了全部5种不同的元素
         if collectedElementKeys.count == 5 && collectedElementKeys == requiredElementKeys {
-            // 收集齐全五种不同元素，获得500金币
-            totalBonus += 500
-            let msg = "✨ 五元素收集完成（5种不同元素）: 获得500金币"
+            // 收集齐全五种不同元素，获得100金币
+            totalBonus += 100
+            let msg = "✨ 五元素收集完成（5种不同元素）: 获得100金币"
             print(msg)
         } else {
             // 调试信息：显示当前收集到的元素
@@ -1643,11 +1643,20 @@ class SymbolEffectProcessor {
         return 0
     }
     
-    /// 随机数量生成
+    /// 随机数量生成（魔法袋：消除自身，随机生成3~5个随机符号到符号池）
     private func processSpawnRandomMultiple(symbol: Symbol, symbolPool: inout [Symbol], logCallback: ((String) -> Void)? = nil) -> Int {
         guard let minCount = symbol.effectParams["minCount"] as? Int,
               let maxCount = symbol.effectParams["maxCount"] as? Int else {
             return 0
+        }
+
+        // 消除自身（魔法袋）
+        if let index = symbolPool.firstIndex(where: { $0.id == symbol.id }) {
+            symbolPool.remove(at: index)
+            eliminatedSymbolCount += 1
+            let eliminateMsg = "   ✗ \(symbol.name)被消耗，从符号池中移除"
+            print(eliminateMsg)
+            logCallback?(eliminateMsg)
         }
 
         let count = Int.random(in: minCount...maxCount)
@@ -1746,12 +1755,27 @@ class SymbolEffectProcessor {
     /// 生成特定符号
     private func processSpawnSpecific(symbol: Symbol, symbolPool: inout [Symbol], logCallback: ((String) -> Void)? = nil) -> Int {
         guard let symbolName = symbol.effectParams["symbol"] as? String else {
+            print("⚠️ [效果处理] spawn_specific: 未找到symbol参数")
             return 0
         }
 
         let eliminateSelf = symbol.effectParams["eliminateSelf"] as? Bool ?? false
 
-        if let newSymbol = SymbolLibrary.getSymbol(byName: symbolName) {
+        // 先尝试通过中文名称查找，如果失败则尝试通过nameKey映射
+        var newSymbol: Symbol?
+        if let foundSymbol = SymbolLibrary.getSymbol(byName: symbolName) {
+            newSymbol = foundSymbol
+        } else if let nameKey = SymbolEffectProcessor.getNameKey(fromChineseName: symbolName),
+                  let foundSymbol = SymbolLibrary.getSymbol(byName: nameKey) {
+            newSymbol = foundSymbol
+            print("🔍 [效果处理] 通过中文名称映射找到符号: \(symbolName) -> \(nameKey)")
+        } else {
+            print("❌ [效果处理] spawn_specific: 无法找到符号 '\(symbolName)'")
+            logCallback?("   ❌ 无法生成符号: \(symbolName)")
+            return 0
+        }
+
+        if let newSymbol = newSymbol {
             symbolPool.append(newSymbol)
             let msg = "   🎁 生成: \(newSymbol.icon) \(newSymbol.name)"
             print(msg)
@@ -2091,35 +2115,51 @@ class SymbolEffectProcessor {
     /// 从列表随机生成
     private func processSpawnRandomFromList(symbol: Symbol, symbolPool: inout [Symbol], logCallback: ((String) -> Void)? = nil) -> Int {
         guard let symbols = symbol.effectParams["symbols"] as? [String] else {
+            print("⚠️ [效果处理] spawn_random_from_list: 未找到symbols参数")
+            logCallback?("   ❌ 无法生成符号：缺少symbols参数")
             return 0
         }
 
         let eliminateSelf = symbol.effectParams["eliminateSelf"] as? Bool ?? false
 
+        print("🔍 [效果处理] spawn_random_from_list: 符号列表: \(symbols), eliminateSelf: \(eliminateSelf)")
+
         // 使用nameKey匹配
         if let randomSymbolName = symbols.randomElement() {
+            print("🔍 [效果处理] 随机选择符号名称: \(randomSymbolName)")
+            
             let newSymbol: Symbol?
             if let nameKey = SymbolEffectProcessor.getNameKey(fromChineseName: randomSymbolName) {
+                print("🔍 [效果处理] 通过中文名称映射找到nameKey: \(randomSymbolName) -> \(nameKey)")
                 newSymbol = getAllSymbols().first(where: { $0.nameKey == nameKey })
             } else {
+                print("🔍 [效果处理] 尝试直接通过名称查找: \(randomSymbolName)")
                 newSymbol = SymbolLibrary.getSymbol(byName: randomSymbolName)
             }
             
             if let newSymbol = newSymbol {
-            symbolPool.append(newSymbol)
+                symbolPool.append(newSymbol)
                 let msg = "   🎭 从列表随机生成: \(newSymbol.name) (nameKey: \(newSymbol.nameKey))"
-            print(msg)
-            logCallback?(msg)
+                print(msg)
+                logCallback?(msg)
 
-            if eliminateSelf {
+                if eliminateSelf {
                     // 使用nameKey匹配
+                    let beforeCount = symbolPool.count
                     symbolPool.removeAll { $0.nameKey == symbol.nameKey }
-                eliminatedSymbolCount += 1
-                let eliminateMsg = "   ✗ 消耗自身"
-                print(eliminateMsg)
-                logCallback?(eliminateMsg)
+                    let afterCount = symbolPool.count
+                    eliminatedSymbolCount += 1
+                    let eliminateMsg = "   ✗ 消耗自身 (移除前: \(beforeCount), 移除后: \(afterCount))"
+                    print(eliminateMsg)
+                    logCallback?(eliminateMsg)
                 }
+            } else {
+                print("❌ [效果处理] spawn_random_from_list: 无法找到符号 '\(randomSymbolName)'")
+                logCallback?("   ❌ 无法生成符号: \(randomSymbolName)")
             }
+        } else {
+            print("⚠️ [效果处理] spawn_random_from_list: symbols列表为空")
+            logCallback?("   ❌ 符号列表为空")
         }
 
         return 0

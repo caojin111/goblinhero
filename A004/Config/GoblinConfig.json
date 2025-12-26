@@ -6,32 +6,35 @@
       "icon": "⚔️",
       "isFree": true,
       "buffKey": "warrior_goblin",
-      "buffType": "on_symbol_eliminate",
-      "buffValue": 1,
+      "buffType": "dice_type_classic",
+      "buffValue": 0,
       "unlockPrice": 0,
-      "descriptionKey": "warrior_goblin"
+      "descriptionKey": "warrior_goblin",
+      "unlockCurrency": "coins"
     },
     {
       "id": 2,
       "nameKey": "craftsman_goblin",
       "icon": "🔨",
-      "isFree": true,
+      "isFree": false,
       "buffKey": "craftsman_goblin",
-      "buffType": "extra_symbol_choice",
-      "buffValue": 1,
-      "unlockPrice": 0,
-      "descriptionKey": "craftsman_goblin"
+      "buffType": "dice_type_artisan",
+      "buffValue": 0,
+      "unlockPrice": 200,
+      "descriptionKey": "craftsman_goblin",
+      "unlockCurrency": "diamonds"
     },
     {
       "id": 3,
       "nameKey": "gambler_goblin",
       "icon": "🎲",
-      "isFree": true,
+      "isFree": false,
       "buffKey": "gambler_goblin",
-      "buffType": "dice_probability_boost",
-      "buffValue": 2.0,
-      "unlockPrice": 0,
-      "descriptionKey": "gambler_goblin"
+      "buffType": "dice_type_gambler",
+      "buffValue": 0,
+      "unlockPrice": 200,
+      "descriptionKey": "gambler_goblin",
+      "unlockCurrency": "diamonds"
     },
     {
       "id": 4,
@@ -39,11 +42,11 @@
       "icon": "👑",
       "isFree": false,
       "buffKey": "king_goblin",
-      "buffType": "soldier_bonus",
-      "buffValue": 10,
-      "unlockPrice": 2000,
+      "buffType": "dice_type_king",
+      "buffValue": 0,
+      "unlockPrice": 999,
       "descriptionKey": "king_goblin",
-      "unlockCurrency": "diamonds"
+      "unlockCurrency": "usd"
     },
     {
       "id": 5,
@@ -51,16 +54,28 @@
       "icon": "🧙",
       "isFree": false,
       "buffKey": "wizard_goblin",
-      "buffType": "magic_bag_fill",
-      "buffValue": 1,
-      "unlockPrice": 2000,
+      "buffType": "dice_type_wizard",
+      "buffValue": 0,
+      "unlockPrice": 999,
       "descriptionKey": "wizard_goblin",
-      "unlockCurrency": "diamonds"
+      "unlockCurrency": "usd"
+    },
+    {
+      "id": 6,
+      "nameKey": "athlete_goblin",
+      "icon": "🏃",
+      "isFree": false,
+      "buffKey": "athlete_goblin",
+      "buffType": "dice_type_athlete",
+      "buffValue": 0,
+      "unlockPrice": 999,
+      "descriptionKey": "athlete_goblin",
+      "unlockCurrency": "usd"
     }
   ],
   "config": {
-    "defaultUnlockedIds": [1, 2, 3],
-    "maxGoblins": 5,
+    "defaultUnlockedIds": [1],
+    "maxGoblins": 6,
     "enableBuffEffects": true
   }
 }

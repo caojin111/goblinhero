@@ -11,7 +11,7 @@ import CoreText
 class FontManager {
     static let shared = FontManager()
     
-    private var fibberishFontName: String?
+    private var englishFontName: String?
     private var chineseFontName: String?
     
     private init() {
@@ -20,8 +20,8 @@ class FontManager {
     
     /// 加载自定义字体
     private func loadCustomFonts() {
-        // 加载英文字体 fibberish.ttf
-        loadFont(fileName: "fibberish", fontNameKey: &fibberishFontName, displayName: "Fibberish")
+        // 加载英文字体 Calistoga-Regular.ttf
+        loadFont(fileName: "Calistoga-Regular", fontNameKey: &englishFontName, displayName: "Calistoga-Regular")
         
         // 加载中文字体 猫啃什锦黑.ttf
         loadFont(fileName: "猫啃什锦黑", fontNameKey: &chineseFontName, displayName: "猫啃什锦黑")
@@ -84,26 +84,26 @@ class FontManager {
         }
     }
     
-    /// 获取自定义字体（中文使用猫啃什锦黑，英文使用 fibberish）
+    /// 获取自定义字体（中文使用猫啃什锦黑，英文使用 Calistoga-Regular）
     func customFont(size: CGFloat) -> Font {
-        // 检查当前语言，中文使用猫啃什锦黑，英文使用 fibberish
+        // 检查当前语言，中文使用猫啃什锦黑，英文使用 Calistoga-Regular
         let currentLanguage = LocalizationManager.shared.currentLanguage
         
         if currentLanguage == "zh" {
             // 中文使用猫啃什锦黑字体
             if let fontName = chineseFontName {
-                return .custom(fontName, size: size)
-            } else {
-                // 如果字体未找到，使用系统字体
+            return .custom(fontName, size: size)
+        } else {
+            // 如果字体未找到，使用系统字体
                 print("⚠️ [字体] 中文字体未加载，使用系统字体")
                 return .system(size: size)
             }
         } else {
-            // 英文使用 fibberish 字体
-        if let fontName = fibberishFontName {
-            return .custom(fontName, size: size)
-        } else {
-            // 如果字体未找到，使用系统字体
+            // 英文使用 Calistoga-Regular 字体
+            if let fontName = englishFontName {
+                return .custom(fontName, size: size)
+            } else {
+                // 如果字体未找到，使用系统字体
                 print("⚠️ [字体] 英文字体未加载，使用系统字体")
             return .system(size: size)
             }

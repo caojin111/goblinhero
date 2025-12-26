@@ -112,10 +112,20 @@ struct GameView: View {
                 .allowsHitTesting(false) // 不拦截点击事件
             }
             
-            // 哥布林buff气泡提示
+            // 哥布林buff气泡提示（使用通用符号弹窗样式，不带颜色描边）
             if viewModel.showGoblinBuffTip, let goblin = viewModel.selectedGoblin {
+                ZStack {
+                    // 背景遮罩，点击后关闭弹窗
+                    Color.black.opacity(0.3)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            viewModel.dismissGoblinBuffTip()
+                        }
+                    
+                    // 哥布林提示弹窗
                 GoblinBuffTipView(goblin: goblin, isDismissing: viewModel.isTipDismissing)
                     .transition(.scale.combined(with: .opacity))
+                }
             }
             
             // 符号buff气泡提示（带背景遮罩，点击关闭）
@@ -137,7 +147,12 @@ struct GameView: View {
             
             // 骰子动画
             if viewModel.showDiceAnimation {
-                DiceAnimationView(diceResult: viewModel.diceResult, diceCount: viewModel.currentDiceCount, individualResults: viewModel.individualDiceResults)
+                DiceAnimationView(
+                    diceResult: viewModel.diceResult,
+                    diceCount: viewModel.currentDiceCount,
+                    individualResults: viewModel.individualDiceResults,
+                    selectedGoblin: viewModel.selectedGoblin
+                )
                     .transition(.scale.combined(with: .opacity))
             }
             
@@ -218,8 +233,8 @@ struct GameView: View {
             } else {
                 // 结算完成，恢复原状
                 performZoomOut()
+                }
             }
-        }
             .animation(.spring(), value: viewModel.showSymbolSelection)
             .animation(.spring(), value: viewModel.showGameOver)
             // 移除收益气泡的全局动画，避免影响主布局
@@ -338,10 +353,16 @@ struct TopInfoBar: View {
         switch goblin.nameKey {
         case "warrior_goblin":
             return "avatar_bravegoblin"
+        case "craftsman_goblin":
+            return "avatar_artisangoblin"
+        case "gambler_goblin":
+            return "avatar_gamblergoblin"
         case "king_goblin":
             return "avatar_kinggoblin"
         case "wizard_goblin":
             return "avatar_wizardgoblin"
+        case "athlete_goblin":
+            return "avatar_athletegoblin"
         default:
             return nil
         }
@@ -359,39 +380,27 @@ struct TopInfoBar: View {
                         viewModel.showGoblinBuffInfo()
                     }) {
                         ZStack {
-                            // 如果有对应的头像图片，显示头像+头像框
+                            // 如果有对应的头像图片，显示头像（在下方）
                             if let avatarName = getGoblinAvatarName(for: goblin) {
-                                // 头像图片（放大1.5倍）
+                                // 头像图片（保持原有大小，在下方）
                                 Image(avatarName)
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: 75, height: 75)
+                                    .zIndex(0) // 背景层，在头像框下方
+                            } else {
+                                // 没有头像图片的哥布林，使用emoji显示（保持原有大小，在下方）
+                                Text(goblin.icon)
+                                    .font(.system(size: 30))
+                                    .zIndex(0) // 背景层，在头像框下方
+                            }
                                 
-                                // 头像框（放大1.5倍，覆盖背景）
+                            // 头像框（固定大小，保持布局不变，作为前景层）
                                 Image("avatar_frame")
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: 105, height: 105)
-                            } else {
-                                // 没有头像图片的哥布林，使用原来的emoji显示
-                                ZStack {
-                                    Circle()
-                                        .fill(
-                                            LinearGradient(
-                                                gradient: Gradient(colors: [
-                                                    Color.white.opacity(0.3),
-                                                    Color.white.opacity(0.1)
-                                                ]),
-                                                startPoint: .topLeading,
-                                                endPoint: .bottomTrailing
-                                            )
-                                        )
-                                        .frame(width: 50, height: 50)
-                                    
-                                    Text(goblin.icon)
-                                        .font(.system(size: 30))
-                                }
-                            }
+                                .zIndex(1) // 前景层，确保在头像图片上方
                         }
                         .offset(x: 0) // 左移30像素（30 - 30 = 0）
                     }
@@ -902,7 +911,7 @@ struct ActiveBondsView: View {
                     .fontWeight(.semibold)
                     .foregroundColor(.white)
                 
-                // 羁绊卡片列表
+                // 羁绊卡片列表（添加顶部 padding 为对话气泡留出空间）
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
                         ForEach(activeBonds) { bondBuff in
@@ -910,7 +919,9 @@ struct ActiveBondsView: View {
                         }
                     }
                     .padding(.horizontal, 4)
+                    .padding(.top, 40) // 为对话气泡留出空间
                 }
+                .padding(.top, -40) // 抵消 padding，保持布局不变
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 7) // 从10减少到7（减少约1/3）
@@ -937,6 +948,11 @@ struct BondCardView: View {
         viewModel.flashingBondIDs.contains(bondBuff.id)
     }
     
+    // 检查是否有加成（用于显示对话气泡）
+    private var hasBonus: Bool {
+        viewModel.bondsWithBonus.contains(bondBuff.id)
+    }
+    
     var body: some View {
         Button(action: {
             // 注意：羁绊卡片点击不播放 click 音效，因为用户要求只有 start 按钮外的其他按钮才播放
@@ -946,7 +962,7 @@ struct BondCardView: View {
         }) {
             // 只显示羁绊名称
             Text(bondBuff.name)
-                .font(customFont(size: localizationManager.currentLanguage == "zh" ? 19 : 24)) // 中文19号，英文24号（增加5号）
+                .font(customFont(size: localizationManager.currentLanguage == "zh" ? 19 : 19)) // 中文19号，英文19号（减小5号）
                 .fontWeight(.bold)
                 .foregroundColor(.white)
                 .textStroke() // 添加黑色描边
@@ -966,6 +982,19 @@ struct BondCardView: View {
         .shadow(color: Color.yellow.opacity(isFlashing ? 0.9 : 0.0), radius: isFlashing ? 10 : 0, x: 0, y: 0)
         .animation(.easeInOut(duration: 0.4), value: isFlashing)
         .buttonStyle(PlainButtonStyle())
+        .overlay(alignment: .top) {
+            // 对话气泡（单独一层，覆盖在羁绊卡片之上，不被裁剪）
+            if hasBonus {
+                Image("emoji5")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 50, height: 50)
+                    .offset(y: -30) // 在卡片顶部上方
+                    .transition(.scale.combined(with: .opacity))
+                    .animation(.spring(response: 0.3, dampingFraction: 0.7), value: hasBonus)
+                    .zIndex(1000) // 确保在最上层
+            }
+        }
     }
 }
 
@@ -1150,8 +1179,8 @@ struct SymbolSelectionView: View {
                                                 .scaledToFit()
                                                 .frame(width: 40, height: 40)
                                         } else {
-                                            Text(symbol.icon)
-                                                .font(.system(size: 40))
+                            Text(symbol.icon)
+                                .font(.system(size: 40))
                                         }
                                         
                                         // Type标签（支持多行）
@@ -1222,6 +1251,11 @@ struct SymbolSelectionView: View {
             }
             .frame(maxHeight: geometry.size.height * 0.9) // 最大高度不超过屏幕的90%
         .padding(40)
+        }
+        .onAppear {
+            // 符号三选一界面出现时播放音效
+            print("🎵 [符号选择] 播放 symbol_select.wav")
+            audioManager.playSoundEffect("symbol_select", fileExtension: "wav")
         }
     }
 }
@@ -1299,7 +1333,7 @@ struct GameOverView: View {
             
             VStack(spacing: 15) {
                 // Back home 按钮
-                Button(action: {
+            Button(action: {
                     audioManager.playSoundEffect("click", fileExtension: "wav")
                     viewModel.exitToHome()
                 }) {
@@ -1322,22 +1356,22 @@ struct GameOverView: View {
                 // Play again 按钮
                 Button(action: {
                     audioManager.playSoundEffect("click", fileExtension: "wav")
-                    viewModel.restartGame()
-                }) {
-                    Text(localizationManager.localized("game_over.play_again"))
-                        .font(.title3)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(
-                            LinearGradient(
-                                gradient: Gradient(colors: [Color.blue, Color.purple]),
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
+                viewModel.restartGame()
+            }) {
+                Text(localizationManager.localized("game_over.play_again"))
+                    .font(.title3)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(
+                        LinearGradient(
+                            gradient: Gradient(colors: [Color.yellow, Color.black]),
+                            startPoint: .leading,
+                            endPoint: .trailing
                         )
-                        .cornerRadius(15)
+                    )
+                    .cornerRadius(15)
                 }
             }
         }
@@ -1392,8 +1426,8 @@ struct EarningsTipView: View {
             // 主文本：+数量 和 coin_icon
             HStack(spacing: 8) {
                 Text("+\(coinAmount)")
-                    .font(.title2)
-                    .fontWeight(.bold)
+                .font(.title2)
+                .fontWeight(.bold)
                     .foregroundColor(.yellow) // 使用与金币一致的黄色
                     .textStroke() // 黑色描边
                 
@@ -1411,7 +1445,7 @@ struct EarningsTipView: View {
                             .scaledToFill()
                             .clipped()
                     }
-                    .shadow(color: .black.opacity(0.4), radius: 12, x: 0, y: 6)
+                        .shadow(color: .black.opacity(0.4), radius: 12, x: 0, y: 6)
                 )
         }
         .offset(y: offset - 50) // 整体上移50像素
@@ -1450,6 +1484,7 @@ struct DiceAnimationView: View {
     let diceResult: Int
     let diceCount: Int
     let individualResults: [Int] // 每个骰子的单独结果
+    let selectedGoblin: Goblin? // 选中的哥布林
     @State private var currentFrame: Int = 1 // 当前动画帧（1-6循环）
     @State private var animationTimer: Timer?
     @State private var scale: CGFloat = 0.5
@@ -1457,10 +1492,77 @@ struct DiceAnimationView: View {
     @State private var showResult: Bool = false
     @State private var diceSoundPlayer: AVAudioPlayer? = nil // 骰子音效播放器
     
-    init(diceResult: Int, diceCount: Int = 1, individualResults: [Int] = []) {
+    init(diceResult: Int, diceCount: Int = 1, individualResults: [Int] = [], selectedGoblin: Goblin? = nil) {
         self.diceResult = diceResult
         self.diceCount = diceCount
         self.individualResults = individualResults
+        self.selectedGoblin = selectedGoblin
+    }
+    
+    /// 获取骰子类型前缀（用于图片资源）
+    private func getDiceImagePrefix() -> String {
+        guard let goblin = selectedGoblin else {
+            return "" // 默认骰子，使用 dice_XX 格式
+        }
+        
+        switch goblin.buffType {
+        case "dice_type_artisan":
+            return "artisan_dice"
+        case "dice_type_gambler":
+            return "gambler_dice"
+        case "dice_type_king":
+            return "king_dice"
+        case "dice_type_wizard":
+            return "wizard_dice"
+        case "dice_type_athlete":
+            return "athlete_dice"
+        default:
+            return "" // 经典骰子，使用 dice_XX 格式
+        }
+    }
+    
+    /// 获取骰子图片名称
+    private func getDiceImageName(for value: Int, isAnimation: Bool = false, currentFrame: Int = 1) -> String {
+        let prefix = getDiceImagePrefix()
+        if prefix.isEmpty {
+            // 经典骰子：dice_01 到 dice_06
+            return "dice_\(String(format: "%02d", value))"
+        } else {
+            // 特殊骰子：根据哥布林类型和骰子值返回对应的图片
+            let typeName = prefix.replacingOccurrences(of: "_dice", with: "")
+            
+            if isAnimation {
+                // 动画阶段：根据类型使用不同的循环范围
+                let animationValue: Int
+                switch typeName {
+                case "artisan":
+                    // 工匠：1-8循环
+                    animationValue = ((currentFrame - 1) % 8) + 1
+                case "gambler":
+                    // 赌徒：1或6循环
+                    animationValue = (currentFrame % 2 == 0) ? 6 : 1
+                case "king":
+                    // 国王：奇数1,3,5,7,9循环
+                    let oddValues = [1, 3, 5, 7, 9]
+                    animationValue = oddValues[(currentFrame - 1) % oddValues.count]
+                case "wizard":
+                    // 巫师：偶数2,4,6,8,10循环
+                    let evenValues = [2, 4, 6, 8, 10]
+                    animationValue = evenValues[(currentFrame - 1) % evenValues.count]
+                case "athlete":
+                    // 运动员：0,1,2,6,7,8循环
+                    let athleteValues = [0, 1, 2, 6, 7, 8]
+                    animationValue = athleteValues[(currentFrame - 1) % athleteValues.count]
+                default:
+                    animationValue = min(max(currentFrame, 1), 6)
+                }
+                // 直接使用imageset名称，不需要文件夹路径
+                return "dice_\(animationValue)_\(typeName)"
+            } else {
+                // 结果阶段：直接使用实际值，直接使用imageset名称
+                return "dice_\(value)_\(typeName)"
+            }
+        }
     }
     
     var body: some View {
@@ -1468,11 +1570,13 @@ struct DiceAnimationView: View {
             Spacer()
             
             ZStack {
-                // 旋转阶段：循环播放 dice_01 到 dice_06 动画
+                // 旋转阶段：循环播放骰子动画
                 if !showResult {
                     HStack(spacing: 10) {
                         ForEach(0..<min(diceCount, 3), id: \.self) { _ in
-                            Image("dice_\(String(format: "%02d", currentFrame))")
+                            // 使用当前帧的图片（1-6循环）
+                            let imageName = getDiceImageName(for: currentFrame, isAnimation: true, currentFrame: currentFrame)
+                            Image(imageName)
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: diceCount == 1 ? 100 : 70, height: diceCount == 1 ? 100 : 70)
@@ -1494,7 +1598,8 @@ struct DiceAnimationView: View {
                             // 显示每个骰子的结果图片
                             ForEach(0..<min(individualResults.count, 3), id: \.self) { index in
                                 let result = individualResults[index]
-                                Image("dice_\(String(format: "%02d", result))")
+                                let imageName = getDiceImageName(for: result, isAnimation: false)
+                                Image(imageName)
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: diceCount == 1 ? 100 : 70, height: diceCount == 1 ? 100 : 70)
@@ -1726,8 +1831,8 @@ struct SymbolBuffTipView: View {
                         .background(Color.white.opacity(0.3))
                     
                     RichTextView(symbol.description, defaultColor: .white, font: .body, multilineTextAlignment: .center)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .padding(.horizontal, 10)
+                            .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, 10)
                 }
             }
             .padding(25)
@@ -1771,16 +1876,44 @@ struct SymbolBuffTipView: View {
 struct GoblinBuffTipView: View {
     let goblin: Goblin
     let isDismissing: Bool
+    @ObservedObject var localizationManager = LocalizationManager.shared
     @State private var offset: CGFloat = 30
     @State private var opacity: Double = 0
     @State private var scale: CGFloat = 0.8
     
+    // 获取哥布林对应的头像图片名称
+    private func getGoblinAvatarName(for goblin: Goblin) -> String? {
+        switch goblin.nameKey {
+        case "warrior_goblin":
+            return "avatar_bravegoblin"
+        case "craftsman_goblin":
+            return "avatar_artisangoblin"
+        case "gambler_goblin":
+            return "avatar_gamblergoblin"
+        case "king_goblin":
+            return "avatar_kinggoblin"
+        case "wizard_goblin":
+            return "avatar_wizardgoblin"
+        case "athlete_goblin":
+            return "avatar_athletegoblin"
+        default:
+            return nil
+        }
+    }
+    
     var body: some View {
         VStack {
             VStack(spacing: 12) {
-                // 哥布林图标
+                // 哥布林图标（使用头像或emoji）
+                if let avatarName = getGoblinAvatarName(for: goblin) {
+                    Image(avatarName)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 100, height: 100)
+                } else {
                 Text(goblin.icon)
-                    .font(.system(size: 50))
+                        .font(.system(size: 100))
+                }
                 
                 // 哥布林名称
                 Text(goblin.name)
@@ -1788,37 +1921,23 @@ struct GoblinBuffTipView: View {
                     .fontWeight(.bold)
                     .foregroundColor(.white)
                 
-                // buff描述
-                HStack(spacing: 8) {
-                    Text("⭐")
-                        .font(.body)
+                // 详细描述（使用RichTextView支持富文本和颜色标记）
+                // 使用 localizationManager 确保多语言更新时视图会刷新
+                if !localizationManager.localized("goblins.\(goblin.nameKey).description").isEmpty {
+                    Divider()
+                        .background(Color.white.opacity(0.3))
                     
-                    Text(goblin.buff)
-                        .font(.body)
-                        .foregroundColor(.yellow)
-                        .multilineTextAlignment(.center)
+                    RichTextView(localizationManager.localized("goblins.\(goblin.nameKey).description"), defaultColor: .white, font: .body, multilineTextAlignment: .center)
                         .fixedSize(horizontal: false, vertical: true)
+                        .padding(.horizontal, 10)
                 }
-                .padding(.horizontal, 10)
             }
             .padding(25)
             .background(
                 RoundedRectangle(cornerRadius: 25)
-                    .fill(
-                        LinearGradient(
-                            gradient: Gradient(colors: [
-                                Color.purple.opacity(0.95),
-                                Color.blue.opacity(0.9)
-                            ]),
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
+                    .fill(Color(hex: "363739"))
                     .shadow(color: .black.opacity(0.4), radius: 15, x: 0, y: 8)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 25)
-                            .stroke(Color.white.opacity(0.3), lineWidth: 2)
-                    )
+                    // 不带颜色描边（去掉 .overlay 的 stroke）
             )
             .padding(.horizontal, 30)
         }
@@ -1843,7 +1962,6 @@ struct GoblinBuffTipView: View {
                 }
             }
         }
-        .allowsHitTesting(false) // 不阻挡其他UI交互
     }
 }
 

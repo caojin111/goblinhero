@@ -10,12 +10,12 @@ id,nameKey,icon,rarity,types,baseValue,bondID,weight,effect,effectType,effectPar
 9,starlight_fairy,symbol_09.png,rare,elf;forest,3,,800,消除符号池里所有'森林妖精'，每消灭1个获得100金币,eliminate_multiple,"{""""targetSymbols"""": [""""森林妖精""""], """"bonus"""": 100}",starlight_fairy
 10,healer,symbol_10.png,normal,human;live or dead,2,,1000,获得圣瓶，电池，医疗包各一个,cure_negative_effect,{""targetType"": ""monster""},healer
 11,paladin,symbol_11.png,epic,human;live or dead,3,,800,获得3个随机人类符号。消除符号池里所有怪物，每有 1 个怪物获得金币 100,eliminate_bonus,"{""""eliminateType"""": """"monster"""", """"bonus"""": 50}",paladin
-12,nun,symbol_12.png,normal,human;vampire note,2,,1000,获得1个十字架,conditional_bonus,"{""""condition"""": """"monster_not_eliminated"""", """"bonus"""": 5}",nun
+12,nun,symbol_12.png,normal,human;V's diary,2,,1000,获得1个十字架,conditional_bonus,"{""""condition"""": """"monster_not_eliminated"""", """"bonus"""": 5}",nun
 13,ancient_tree_elder,symbol_13.png,rare,monster;forest,3,,800,生成一个'土元素'到符号池,spawn_specific,{""symbol"": ""土元素""},ancient_tree_elder
 14,thief,symbol_14.png,normal,human;classic tale,2,,1000,获得 2个未拥有的tool符号,conditional_multiplier,"{""""triggerSymbol"""": """"商人"""", """"multiplier"""": 2}",thief
 15,princess,symbol_15.png,rare,human;classic tale,3,,800,如果符号池里有5 个不一样的人类符号，获得一个圣骑士,group_multiplier,"{""""targetType"""": """"human"""", """"multiplier"""": 2}",princess
-16,vampire,symbol_16.png,epic,monster;vampire note,5,,300,消除符号池里5 个人类，获得 10 个任意材料符号,round_start_penalty,{""penalty"": 50},vampire
-17,hunter,symbol_17.png,normal,human;vampire note,2,,1000,获得 2个随机#equipment符号。从消除符号池的'吸血鬼'和自身，获得200金币,eliminate_pair_bonus,"{""""targetSymbol"""": """"吸血鬼"""", """"bonus"""": 100}",hunter
+16,vampire,symbol_16.png,epic,monster;V's diary,5,,300,消除符号池里5 个人类，获得 10 个任意材料符号,round_start_penalty,{""penalty"": 50},vampire
+17,hunter,symbol_17.png,normal,human;V's diary,2,,1000,获得 2个随机#equipment符号。从消除符号池的'吸血鬼'和自身，获得200金币,eliminate_pair_bonus,"{""""targetSymbol"""": """"吸血鬼"""", """"bonus"""": 100}",hunter
 18,female_ninja,symbol_18.png,normal,human;ninja,2,,1000,不会出现在矿洞里（weight=0）。如果符号池里同时存在'男忍者'，则清除符号池里所有'丧尸',round_start_eliminate,"{""""requireSymbol"""": """"男忍者"""", """"targetSymbols"""": [""""丧尸""""]}",female_ninja
 19,male_ninja,symbol_19.png,normal,human;ninja,2,,1000,不会出现在矿洞里（weight=0）。如果符号池里同时存在'女忍者'，则在每回合开始时清除符号池里所有'丧尸'（回合开始时触发）,round_start_eliminate,"{""""requireSymbol"""": """"女忍者"""", """"targetSymbols"""": [""""丧尸""""]}",male_ninja
 20,god_of_strength,symbol_20.png,rare,god;worship,3,,800,下次金币收益+300。被挖出后从符号池移除（消除自身）,next_round_bonus,"{""""bonus"""": 300, """"eliminateSelf"""": true}",god_of_strength
@@ -29,7 +29,7 @@ id,nameKey,icon,rarity,types,baseValue,bondID,weight,effect,effectType,effectPar
 28,ice_element,symbol_28.png,normal,element;made a wish,2,,1000,生成一个除'冰元素'之外的随机元素到符号池。,spawn_random_element,{""excludeSelf"": true},ice_element
 29,earth_element,symbol_29.png,normal,element;made a wish,2,,1000,生成一个除'土元素'之外的随机元素到符号池。,spawn_random_element,{""excludeSelf"": true},earth_element
 30,rock,symbol_30.png,normal,material;forest,2,,1000,如果符号池里有tool符号，从符号池移除自身，获得 2 个随机#材料符号,conditional_self_eliminate,"{""""conditionType"""": """"has_tool"""", """"bonus"""": 20}",rock
-31,cross,symbol_31.png,normal,tool;vampire note,2,,1000,获得一个猎人,global_buff,"{""""buffType"""": """"weight_multiplier"""", """"targetSymbol"""": """"猎人"""", """"multiplier"""": 2, """"isPersistent"""": true}",cross
+31,cross,symbol_31.png,normal,tool;V's diary,2,,1000,获得一个猎人,global_buff,"{""""buffType"""": """"weight_multiplier"""", """"targetSymbol"""": """"猎人"""", """"multiplier"""": 2, """"isPersistent"""": true}",cross
 32,book_of_the_dead,symbol_32.png,rare,tool;live or dead,3,,800,从符号池移除自身和十字架，生成一个死神到符号池,spawn_specific,"{""""symbol"""": """"死神"""", """"eliminateSelf"""": true}",book_of_the_dead
 33,hypnosis_pendulum,symbol_33.png,rare,equipment;fantacy,3,,800,从符号池移除自身，随机生成'公主'或'女忍者'或'修女'中的一个到符号池,spawn_random_from_list,"{""""symbols"""": [""""公主"""", """"女忍者"""", """"修女""""], """"eliminateSelf"""": true}",hypnosis_pendulum
 34,dragon_fire_gun,symbol_34.png,normal,equipment;weapon,2,,1000,如果本次挖出中有'士兵'，额外获得5金币,none,{},dragon_fire_gun
@@ -49,7 +49,7 @@ id,nameKey,icon,rarity,types,baseValue,bondID,weight,effect,effectType,effectPar
 48,coin,symbol_48.png,normal,material;trading,3,,1000,消除自身，获得2个随机材料符号,none,{},coin
 49,pillow,symbol_49.png,normal,material;cozy life,2,,1000,消除两个除#cozy life之外的符号,conditional_bonus_eliminate,"{""""triggerSymbol"""": """"儿童"""", """"bonus"""": 20}",pillow
 50,eye_mask,symbol_50.png,normal,material;cozy life,2,,1000,消除两个除#cozy life之外的符号,conditional_bonus_eliminate,"{""""triggerSymbol"""": """"儿童"""", """"bonus"""": 10}",eye_mask
-51,talisman_paper,symbol_51.png,normal,material;vampire note,2,,1000,消除狼人和自身，获得 100 金币,eliminate_pair_bonus,"{""""targetSymbol"""": """"狼人"""", """"bonus"""": 100}",talisman_paper
+51,talisman_paper,symbol_51.png,normal,material;V's diary,2,,1000,消除狼人和自身，获得 100 金币,eliminate_pair_bonus,"{""""targetSymbol"""": """"狼人"""", """"bonus"""": 100}",talisman_paper
 52,pumpkin_head,symbol_52.png,normal,tool;trading,2,,1000,无效果,none,{},pumpkin_head
 53,snowflake,symbol_53.png,normal,material;festival,2,,1000,获得一个农民,count_bonus,"{""""countType"""": """"human"""", """"bonusPerCount"""": 5, """"nameFilter"""": """"农民""""}",snowflake
 54,firecracker,symbol_54.png,normal,material;festival,2,,1000,获得一个号角,count_bonus,"{""""countType"""": """"human"""", """"bonusPerCount"""": 10, """"nameFilter"""": """"农民""""}",firecracker
@@ -65,8 +65,8 @@ id,nameKey,icon,rarity,types,baseValue,bondID,weight,effect,effectType,effectPar
 64,silver_key,symbol_64.png,rare,box;tool,3,,800,从符号池消除一个'银箱子'，获得100金币,unlock_bonus,"{""""unlockSymbol"""": """"银箱子"""", """"bonus"""": 20}",silver_key
 65,master_key,symbol_65.png,epic,box;tool,5,,300,从符号池消除一个较高等级的箱子（优先银箱子），获得箱子双倍的金币,universal_unlock,"{""""unlockTypes"""": [""""box""""], """"bonusMultiplier"""": 2}",master_key
 66,flower_fairy,symbol_66.png,normal,monster;forest,2,,1000,消除符号池里的3个'花精'，获得1个'森林妖精',none,{},flower_fairy
-67,werewolf,symbol_67.png,normal,monster;vampire note,2,,1000,消除符号池里2 个人类，获得 10 个任意tool符号,round_start_penalty,{""penalty"": 20},werewolf
-68,zombie,symbol_68.png,rare,monster;vampire note,3,,800,消灭1个随机人类符号,eliminate_random_human,{""targetType"": ""human""},zombie
+67,werewolf,symbol_67.png,normal,monster;V's diary,2,,1000,消除符号池里2 个人类，获得 10 个任意tool符号,round_start_penalty,{""penalty"": 20},werewolf
+68,zombie,symbol_68.png,rare,monster;V's diary,3,,800,消灭1个随机人类符号,eliminate_random_human,{""targetType"": ""human""},zombie
 69,one_eyed_monster,symbol_69.png,rare,monster;classic tale,6,,800,第一次被挖出30金币，第二次20金币，一直递减到0（每回合重置）,diminishing_value,"{""""initialValue"""": 30, """"decrement"""": 10, """"minValue"""": 0}",one_eyed_monster
 70,gomorrah,symbol_70.png,epic,monster;Extinction,5,,300,从符号池随机消除一个除自身以外的符号，获得50金币,random_eliminate_bonus,"{""""excludeSelf"""": true, """"bonus"""": 30}",gomorrah
 71,ray_gun,symbol_71.png,normal,alien;weapon,2,,1000,获得随机一个#alien符号,combo_bonus,"{""""comboSymbols"""": [""""外星头盔"""", """"宇宙飞船""""], """"bonus"""": 40, """"onceOnly"""": true}",ray_gun

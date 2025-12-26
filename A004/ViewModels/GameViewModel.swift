@@ -88,6 +88,37 @@ class GameViewModel: ObservableObject {
     }
     @Published var flashingSymbolIDs: Set<UUID> = [] // 新增符号闪光提示
     @Published var flashingBondIDs: Set<String> = [] // 新增羁绊闪光提示
+    @Published var bondsWithBonus: Set<String> = [] // 本次结算有加成的羁绊ID列表（用于显示对话气泡）
+    
+    // MARK: - 钻石宝箱红点提示
+    @Published var freeDiamondsClaimDate: Date? = nil // 每日免费钻石领取日期（用于触发红点更新）
+    /// 检查钻石宝箱是否可领取（用于显示红点）
+    var canClaimFreeDiamonds: Bool {
+        // 优先使用 @Published 属性，如果没有则从 UserDefaults 读取
+        let lastClaimDate = freeDiamondsClaimDate ?? UserDefaults.standard.object(forKey: "lastFreeDiamondsClaimDate") as? Date
+        let calendar = Calendar.current
+        
+        // 检查是否已经领取过（需要检查是否是今天）
+        if let lastDate = lastClaimDate {
+            // 如果最后领取日期是今天，则已领取
+            if calendar.isDateInToday(lastDate) {
+                return false
+            }
+            // 如果最后领取日期不是今天，检查是否需要刷新（跨天）
+            let today = calendar.startOfDay(for: Date())
+            let lastDay = calendar.startOfDay(for: lastDate)
+            if today > lastDay {
+                // 跨天了，可以领取
+                return true
+            }
+        }
+        return true // 如果没有领取记录，可以领取
+    }
+    
+    /// 更新钻石宝箱领取状态（用于触发红点更新）
+    func updateFreeDiamondsClaimStatus() {
+        freeDiamondsClaimDate = UserDefaults.standard.object(forKey: "lastFreeDiamondsClaimDate") as? Date
+    }
     // 符号池重排控制
     private var suppressSymbolPoolReorder = false
     private var isReorderingSymbolPool = false
@@ -111,7 +142,7 @@ class GameViewModel: ObservableObject {
                     requiredCount: nil,
                     cardColor: bond.backgroundColor
                 )
-            }
+    }
         }
         
         // 检测新出现的羁绊并添加闪光效果
@@ -163,6 +194,7 @@ class GameViewModel: ObservableObject {
     // MARK: - 羁绊详情弹窗
     @Published var showBondDescription: Bool = false // 显示羁绊详情弹窗
     @Published var selectedBondForDescription: BondBuff? = nil // 当前选中查看的羁绊
+    private var isBondDescriptionAnimating: Bool = false // 是否正在显示/隐藏动画中
     
     // MARK: - 测试模式
     @Published var showDebugPanel: Bool = false // 显示调试面板
@@ -231,6 +263,9 @@ class GameViewModel: ObservableObject {
         // 初始化签到系统
         loadSignInStatus()
         startSignInStatusTimer()
+        
+        // 初始化钻石宝箱状态（在所有存储属性初始化后）
+        freeDiamondsClaimDate = UserDefaults.standard.object(forKey: "lastFreeDiamondsClaimDate") as? Date
     }
     
     /// 加载游戏设置
@@ -331,7 +366,6 @@ class GameViewModel: ObservableObject {
         
         // 重置buff标记
         wizardBuffUsedThisRound = false
-        craftsmanBuffUsed = false
         
         // 重置羁绊闪光状态
         previousActiveBondIDs.removeAll()
@@ -379,14 +413,18 @@ class GameViewModel: ObservableObject {
         totalEarnings = 0
         currentRoundMinedCells = []
         
+        // 根据选中的哥布林确定骰子类型和可投掷的值
+        let diceType = getDiceType(for: selectedGoblin)
+        let possibleValues = getPossibleDiceValues(for: diceType)
+        
         // 掷多个骰子并求和
         var totalPoints = 0
         var results: [Int] = []
         for i in 1...diceCount {
-            let point = Int.random(in: 1...6)
+            let point = possibleValues.randomElement() ?? 1
             totalPoints += point
             results.append(point)
-            print("🎲 [骰子\(i)] 点数: \(point)")
+            print("🎲 [骰子\(i)] 点数: \(point) (哥布林类型: \(diceType))")
         }
 
         diceResult = totalPoints
@@ -444,16 +482,11 @@ class GameViewModel: ObservableObject {
             print("🔍 [速之神] 标记状态: false (未激活)")
         }
         
-        // 验证：确保每个骰子的点数都在1-6范围内
+        // 验证：确保每个骰子的点数都在合理范围内（根据哥布林类型）
         for (index, point) in individualDiceResults.enumerated() {
-            if point < 1 || point > 6 {
-                print("❌ [错误] 骰子\(index + 1)的点数异常: \(point) (应该在1-6范围内)")
+            if !possibleValues.contains(point) {
+                print("❌ [错误] 骰子\(index + 1)的点数异常: \(point) (应该在\(possibleValues)范围内)")
             }
-        }
-        
-        // 验证：如果只有一个骰子，结果不应该超过6（除非有速之神效果）
-        if diceCount == 1 && totalPoints > 6 {
-            print("⚠️ [警告] 单个骰子但点数超过6: \(totalPoints) (可能是速之神效果翻倍导致)")
         }
         
         // 显示骰子动画
@@ -704,6 +737,9 @@ class GameViewModel: ObservableObject {
         settlementLogs.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
         settlementLogs.append("🎯 开始结算 - 回合\(currentRound)")
         settlementLogs.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+        
+        // 清除之前的有加成羁绊状态
+        bondsWithBonus.removeAll()
         
         totalEarnings = 0
         settlementSequence.removeAll()
@@ -1042,13 +1078,20 @@ class GameViewModel: ObservableObject {
 
         // 显示收益气泡
         showEarningsTip(text: "+\(totalEarnings)\(localizationManager.localized("earnings.coins"))")
-
+        
+        // 如果有羁绊加成，2秒后清除对话气泡显示
+        if !bondsWithBonus.isEmpty {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) { [weak self] in
+                self?.bondsWithBonus.removeAll()
+            }
+        }
+        
         // 更新金币
         currentCoins += totalEarnings
         spinsRemaining -= 1
-
+        
         print("💰 [结算完成] 当前金币: \(currentCoins), 剩余旋转: \(spinsRemaining)")
-
+        
         // 等待收益气泡消失后再显示下一流程弹窗（2秒后）
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.3) { [weak self] in
             guard let self = self else { return }
@@ -1089,8 +1132,9 @@ class GameViewModel: ObservableObject {
                 print("\(goblin.icon) [\(goblin.name)] 消除\(eliminatedSymbolCount)个符号，额外获得\(bonusCoins)金币")
             }
             
-        case "extra_symbol_choice": // 工匠哥布林：每回合增加N次获得符号3选1的机会
-            print("\(goblin.icon) [\(goblin.name)] buff将在回合结束时生效")
+        // 已废弃：extra_symbol_choice - 工匠哥布林额外符号选择功能已移除
+        // case "extra_symbol_choice": // 工匠哥布林：每回合增加N次获得符号3选1的机会
+        //     print("\(goblin.icon) [\(goblin.name)] buff将在回合结束时生效")
             
         case "dice_probability_boost": // 赌徒哥布林：挖到骰子概率翻N倍
             print("\(goblin.icon) [\(goblin.name)] 骰子概率提升\(goblin.buffValue)倍效果已激活")
@@ -1329,16 +1373,11 @@ class GameViewModel: ObservableObject {
         print("🎯 [回合选择] 生成3个可选符号: \(availableSymbols.map { $0.name })")
         showSymbolSelection = true
         
-        // 额外符号选择（包括速之神、工匠哥布林等）
+        // 额外符号选择（包括速之神等）
         extraSymbolChoicesPending += effectProcessor.consumeExtraSymbolChoices()
-        if let goblin = selectedGoblin, goblin.id == 2 {
-            extraSymbolChoicesPending += 1
-            print("🔨 [工匠哥布林] 本回合额外+1次符号选择，累计：\(extraSymbolChoicesPending)")
-        }
     }
     
-    // 记录本回合工匠哥布林是否已使用buff
-    private var craftsmanBuffUsed = false
+    // 已废弃：craftsmanBuffUsed - 工匠哥布林额外符号选择功能已移除
     
     // 记录本回合是否已添加魔法袋（防止重复添加）
     private var wizardBuffUsedThisRound = false
@@ -1583,6 +1622,7 @@ class GameViewModel: ObservableObject {
     /// 计算羁绊收益加成（如浣熊市的丧尸数量奖励）
     private func calculateBondEarningsBonus() -> Int {
         var bonus = 0
+        var bondsWithBonusThisSettlement: Set<String> = [] // 本次结算有加成的羁绊ID
         let bondBuffs = BondBuffConfigManager.shared.getActiveBondBuffs(symbolPool: symbolPool)
         
         for bondBuff in bondBuffs {
@@ -1592,13 +1632,61 @@ class GameViewModel: ObservableObject {
                 let zombieCount = symbolPool.filter { $0.nameKey == "zombie" }.count
                 if zombieCount > 0 {
                     bonus += zombieCount * 20
+                    bondsWithBonusThisSettlement.insert(bondBuff.id) // 记录有加成的羁绊ID
                     print("🧟 [羁绊Buff] 浣熊市：符号池有\(zombieCount)个丧尸，额外+\(zombieCount * 20)金币")
                     settlementLogs.append("🧟 [羁绊Buff] 浣熊市：符号池有\(zombieCount)个丧尸，额外+\(zombieCount * 20)金币")
                 }
             }
         }
         
+        // 保存有加成的羁绊ID，用于显示对话气泡
+        bondsWithBonus = bondsWithBonusThisSettlement
+        
         return bonus
+    }
+    
+    /// 获取骰子类型（根据选中的哥布林）
+    private func getDiceType(for goblin: Goblin?) -> String {
+        guard let goblin = goblin else {
+            return "classic" // 默认经典6面骰子
+        }
+        
+        switch goblin.buffType {
+        case "dice_type_classic":
+            return "classic"
+        case "dice_type_artisan":
+            return "artisan"
+        case "dice_type_gambler":
+            return "gambler"
+        case "dice_type_king":
+            return "king"
+        case "dice_type_wizard":
+            return "wizard"
+        case "dice_type_athlete":
+            return "athlete"
+        default:
+            return "classic"
+        }
+    }
+    
+    /// 获取骰子可投掷的值（根据骰子类型）
+    private func getPossibleDiceValues(for diceType: String) -> [Int] {
+        switch diceType {
+        case "classic":
+            return [1, 2, 3, 4, 5, 6] // 勇者哥布林：经典6面骰子
+        case "artisan":
+            return [1, 2, 3, 4, 5, 6, 7, 8] // 工匠哥布林：8面骰子
+        case "gambler":
+            return [1, 6] // 赌徒哥布林：只能投掷1或6
+        case "king":
+            return [1, 3, 5, 7, 9] // 国王哥布林：奇数骰子
+        case "wizard":
+            return [2, 4, 6, 8, 10] // 巫师哥布林：偶数骰子
+        case "athlete":
+            return [0, 1, 2, 6, 7, 8] // 运动员哥布林：极限骰子
+        default:
+            return [1, 2, 3, 4, 5, 6] // 默认经典6面骰子
+        }
     }
     
     /// 手动掷骰子挖矿
@@ -1682,7 +1770,6 @@ class GameViewModel: ObservableObject {
     func restartGame() {
         print("🔄 [重新开始] 重置游戏（保留哥布林）")
         // 不重置哥布林选择，但需要重新进行符号选择
-        craftsmanBuffUsed = false
         
         // 重置效果处理器
         effectProcessor.resetRoundState()
@@ -1733,7 +1820,6 @@ class GameViewModel: ObservableObject {
         goblinSelectionCompleted = false
         selectedGoblin = nil
         showGoblinSelection = false
-        craftsmanBuffUsed = false
         
         // 清空羁绊状态（特别是 classic tale）
         BondBuffRuntime.shared.activeTypeBonds.removeAll()
@@ -1794,7 +1880,6 @@ class GameViewModel: ObservableObject {
         
         // 重置buff标记
         wizardBuffUsedThisRound = false
-        craftsmanBuffUsed = false
         
         // 重新启动体力恢复定时器（返回首页后需要继续恢复体力）
         startStaminaRecoveryTimer()
@@ -1928,8 +2013,32 @@ class GameViewModel: ObservableObject {
         showTip(.goblinBuff)
     }
     
+    /// 关闭哥布林buff提示（用户手动关闭）
+    func dismissGoblinBuffTip() {
+        // 如果当前显示的是哥布林buff提示，则关闭它
+        if case .goblinBuff = currentTipType {
+            dismissTip()
+        }
+    }
+    
     /// 显示符号buff气泡
     func showSymbolBuffInfo(for symbol: Symbol) {
+        // 如果当前已经显示同一个符号的弹窗，忽略重复点击
+        if showSymbolBuffTip && selectedSymbolForTip?.id == symbol.id {
+            print("⚠️ [符号弹窗] 当前已显示该符号弹窗，忽略重复点击")
+            return
+        }
+        
+        // 如果当前显示的是其他符号的弹窗，先关闭
+        if showSymbolBuffTip {
+            dismissSymbolBuffTip()
+            // 等待关闭动画完成后再显示新的
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { [weak self] in
+                self?.showTip(.symbolBuff(symbol))
+            }
+            return
+        }
+        
         showTip(.symbolBuff(symbol))
     }
     
@@ -1943,14 +2052,90 @@ class GameViewModel: ObservableObject {
     
     /// 显示羁绊详情弹窗
     func showBondDescriptionView(bondBuff: BondBuff) {
-        selectedBondForDescription = bondBuff
-        showBondDescription = true
+        // 如果当前已经显示同一个羁绊的弹窗，忽略重复点击
+        // 注意：只检查 showBondDescription，不检查 selectedBondForDescription，因为关闭动画期间 selectedBondForDescription 可能还没清空
+        if showBondDescription && selectedBondForDescription?.id == bondBuff.id {
+            print("⚠️ [羁绊弹窗] 当前已显示该羁绊弹窗，忽略重复点击")
+            return
+        }
+        
+        // 如果当前显示的是其他羁绊的弹窗，或者正在关闭动画中，先立即重置状态
+        if showBondDescription || selectedBondForDescription != nil {
+            // 立即重置状态，不等待动画
+            showBondDescription = false
+            selectedBondForDescription = nil
+            isBondDescriptionAnimating = false
+        }
+        
+        // 确保状态完全重置后再显示（稍微延迟，确保状态完全清空）
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
+            guard let self = self else { return }
+            
+            // 再次检查，确保状态已清空
+            guard !self.showBondDescription && self.selectedBondForDescription == nil else {
+                // 如果状态还没清空，再等一会儿
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+                    self?.showBondDescriptionView(bondBuff: bondBuff)
+                }
+                return
+            }
+            
+            // 设置动画标志
+            self.isBondDescriptionAnimating = true
+            
+            // 设置选中的羁绊
+            self.selectedBondForDescription = bondBuff
+            
+            // 显示弹窗
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                self.showBondDescription = true
+            }
+            
+            // 动画完成后重置标志
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                self?.isBondDescriptionAnimating = false
+            }
+        }
     }
     
     /// 关闭羁绊详情弹窗
-    func dismissBondDescriptionView() {
-        showBondDescription = false
-        selectedBondForDescription = nil
+    func dismissBondDescriptionView(immediate: Bool = false, completion: (() -> Void)? = nil) {
+        // 如果弹窗没有显示，直接执行完成回调并重置状态
+        guard showBondDescription else {
+            // 确保状态完全重置（即使弹窗没显示，也要清空状态，防止残留）
+            selectedBondForDescription = nil
+            isBondDescriptionAnimating = false
+            completion?()
+            return
+        }
+        
+        // 关闭弹窗
+        if immediate {
+            // 立即关闭，重置所有状态
+            showBondDescription = false
+            selectedBondForDescription = nil
+            isBondDescriptionAnimating = false
+            completion?()
+        } else {
+            // 先立即清空 selectedBondForDescription，避免检查逻辑误判
+            // 但保留 showBondDescription 用于动画
+            let previousBond = selectedBondForDescription
+            selectedBondForDescription = nil
+            
+            // 动画关闭
+            withAnimation(.easeOut(duration: 0.3)) {
+                showBondDescription = false
+            }
+            
+            // 动画完成后清理（稍微延长一点时间，确保动画完全完成）
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { [weak self] in
+                guard let self = self else { return }
+                // 再次确保状态清空
+                self.selectedBondForDescription = nil
+                self.isBondDescriptionAnimating = false
+                completion?()
+            }
+        }
     }
     
     // MARK: - 测试功能
@@ -2152,13 +2337,18 @@ class GameViewModel: ObservableObject {
         return true
     }
     
-    /// 解锁哥布林（使用钻石）
+    /// 解锁哥布林（使用钻石或USD购买）
     func unlockGoblin(goblinId: Int, cost: Int) -> Bool {
-        guard spendDiamonds(cost) else {
-            return false
+        // 如果 cost 为 0（USD购买），直接解锁，不消耗钻石
+        if cost > 0 {
+            guard spendDiamonds(cost) else {
+                return false
+            }
+            print("🎭 [解锁哥布林] 解锁ID: \(goblinId)，消耗\(cost)钻石")
+        } else {
+            print("🎭 [解锁哥布林] 解锁ID: \(goblinId)，USD购买（不消耗钻石）")
         }
         unlockedGoblinIds.insert(goblinId)
-        print("🎭 [解锁哥布林] 解锁ID: \(goblinId)，消耗\(cost)钻石")
         return true
     }
     

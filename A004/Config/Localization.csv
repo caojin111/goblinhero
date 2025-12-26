@@ -26,7 +26,7 @@ store.diamonds.coming_soon,Coming Soon,功能开发中
 store.diamonds.description,Diamond purchase feature will be available soon!,钻石购买功能即将上线！
 store.diamonds.free,FREE,免费
 store.diamonds.claim,Claim,领取
-store.diamonds.claimed,Claimed Today,今日已领取
+store.diamonds.claimed,Claimed,今日已领取
 store.diamonds.buy,Buy,购买
 store.diamonds.purchase,Purchase,购买
 store.diamonds.purchase_title,Purchase Diamonds,购买钻石
@@ -214,19 +214,22 @@ sign_in.reward_type.stamina,Stamina,体力
 sign_in.reward_detail,Reward Details,奖励详情
 goblins.warrior_goblin.name,Warrior Goblin,勇者哥布林
 goblins.warrior_goblin.buff,+1 coin for each symbol eliminated,每有一个符号被消除，则+1金币
-goblins.warrior_goblin.description,A brave warrior who earns extra coins for each symbol eliminated,勇猛的战士，每次消除符号都能额外获得金币奖励
+goblins.warrior_goblin.description,Own a classic six-sided die that can roll numbers from <color=#B9625F>1</color> to <color=#B9625F>6</color>.,拥有最经典的6面骰子，可以投掷出<color=#B9625F>1</color>到<color=#B9625F>6</color>的数字
 goblins.craftsman_goblin.name,Craftsman Goblin,工匠哥布林
 goblins.craftsman_goblin.buff,Extra symbol choice opportunity each round,每回合增加一次获得符号3选1的机会
-goblins.craftsman_goblin.description,A skilled craftsman who provides extra symbol choice opportunities each round,技艺精湛的工匠，能在每回合提供额外的符号选择机会
+goblins.craftsman_goblin.description,He modified the dice into powerful 8-sided dice that could roll numbers from <color=#B9625F>1</color> to <color=#B9625F>8</color>.,把骰子改造为强大的8面骰子，可以投掷出<color=#B9625F>1</color>到<color=#B9625F>8</color>的数字
 goblins.gambler_goblin.name,Gambler Goblin,赌徒哥布林
 goblins.gambler_goblin.buff,Double dice probability,挖到骰子概率翻倍
-goblins.gambler_goblin.description,A lucky gambler who doubles the probability of finding dice,运气极佳的赌徒，能够提高挖到骰子的概率
+goblins.gambler_goblin.description,He's a complete gambling addict, only able to roll <color=#B9625F>1</color> or <color=#B9625F>6</color>.,他是个彻底的赌徒，只能投掷出<color=#B9625F>1</color>或<color=#B9625F>6</color>
 goblins.king_goblin.name,King Goblin,国王哥布林
 goblins.king_goblin.buff,+10 coins for each soldier,每有一个士兵，额外获得10金币
-goblins.king_goblin.description,A noble king whose soldiers create wealth for him,尊贵的国王，麾下每个士兵都能为其创造财富
+goblins.king_goblin.description,The eccentric king, who only likes odd numbers, can roll a <color=#B9625F>1</color>, <color=#B9625F>3</color>, <color=#B9625F>5</color>, <color=#B9625F>7</color>, or <color=#B9625F>9</color>.,古怪的国王，只喜欢奇数，可以投掷出<color=#B9625F>1</color>、<color=#B9625F>3</color>、<color=#B9625F>5</color>、<color=#B9625F>7</color>或<color=#B9625F>9</color>
 goblins.wizard_goblin.name,Wizard Goblin,巫师哥布林
 goblins.wizard_goblin.buff,Randomly fill 1 magic bag before mining each round,每回合挖矿之前随机填充1个魔法袋
-goblins.wizard_goblin.description,A mysterious wizard who fills magic bags before mining each round,神秘的巫师，在挖矿前会施展魔法填充魔法袋
+goblins.wizard_goblin.description,He believes even number saves the world. Can roll a <color=#B9625F>2</color>, <color=#B9625F>4</color>, <color=#B9625F>6</color>, <color=#B9625F>8</color>, <color=#B9625F>10</color>.,古怪的巫师，相信只有偶数才能拯救世界。可以投掷出<color=#B9625F>2</color>、<color=#B9625F>4</color>、<color=#B9625F>6</color>、<color=#B9625F>8</color>或<color=#B9625F>10</color>
+goblins.athlete_goblin.name,Athlete Goblin,运动员哥布林
+goblins.athlete_goblin.buff,Extreme dice (0, 1, 2, 6, 7, 8),极限骰子，可以掷出0,1,2,6,7,8
+goblins.athlete_goblin.description,An athlete who pushes the limits. Capable of throwing scores of <color=#B9625F>0</color>, <color=#B9625F>1</color>, <color=#B9625F>2</color>, <color=#B9625F>6</color>, <color=#B9625F>7</color>, or <color=#B9625F>8</color>.,一个挑战极限的运动员。要么生，要么死！可以投掷出<color=#B9625F>0</color>、<color=#B9625F>1</color>、<color=#B9625F>2</color>、<color=#B9625F>6</color>、<color=#B9625F>7</color>或<color=#B9625F>8</color>
 symbols.child.name,Child,儿童
 symbols.child.description,Obtain 1 <color=#080909>Nun</color>,获得一个<color=#080909>修女</color>
 symbols.merchant.name,Merchant,商人
@@ -380,7 +383,7 @@ symbols.meteorite.description,"If there is a <color=#AA2ABB>Gomora</color> in th
 symbols.dice.name,Dice,骰子
 symbols.dice.description,Permanently increase the number of <color=#AA2ABB>Dice</color> by 1. Removed from the symbol pool after being dug up.,永久增加1个<color=#AA2ABB>骰子</color>（骰子数量+1）。被挖出后从符号池移除。
 symbols.magic_bag.name,Magic Bag,魔法袋
-symbols.magic_bag.description,Randomly generate 3~5 random symbols into the symbol pool.,随机生成3~5个随机符号到符号池
+symbols.magic_bag.description,Remove itself and randomly generate 3~5 random symbols into the symbol pool.,消除自身，随机生成3~5个随机符号到符号池
 symbols.artwork.name,Art Work,艺术品
 symbols.artwork.description,Generate 5 <color=#080909>Merchants</color>.,生成5个<color=#080909>商人</color>
 bonds.child_merchant_bond.name,Child & Merchant Bond,儿童与商人羁绊

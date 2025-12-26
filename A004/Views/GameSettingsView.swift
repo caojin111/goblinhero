@@ -99,7 +99,7 @@ struct GameSettingsView: View {
                         )
                     }
                     .buttonStyle(PlainButtonStyle())
-                    
+
                     // 图鉴按钮
                     Button(action: {
                         showSymbolBook = true

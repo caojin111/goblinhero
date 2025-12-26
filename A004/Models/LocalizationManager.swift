@@ -27,7 +27,45 @@ class LocalizationManager: ObservableObject {
     
     /// 加载语言设置
     private func loadLanguage() {
-        currentLanguage = UserDefaults.standard.string(forKey: "selectedLanguage") ?? "en"
+        // 如果用户已经手动选择过语言，使用保存的语言
+        if let savedLanguage = UserDefaults.standard.string(forKey: "selectedLanguage") {
+            currentLanguage = savedLanguage
+            print("🌐 [多语言] 使用用户保存的语言: \(savedLanguage)")
+            return
+        }
+        
+        // 首次启动，根据系统语言自动设置
+        let systemLanguage = detectSystemLanguage()
+        currentLanguage = systemLanguage
+        print("🌐 [多语言] 检测到系统语言，设置为: \(systemLanguage)")
+    }
+    
+    /// 检测系统语言
+    private func detectSystemLanguage() -> String {
+        // 获取系统首选语言列表
+        let preferredLanguages = Locale.preferredLanguages
+        
+        // 遍历首选语言列表，查找支持的语言
+        for languageCode in preferredLanguages {
+            // 提取语言代码（例如 "zh-Hans" -> "zh", "en-US" -> "en"）
+            let languagePrefix = languageCode.prefix(2).lowercased()
+            
+            // 如果是中文（包括简体中文 zh-Hans 和繁体中文 zh-Hant）
+            if languagePrefix == "zh" {
+                print("🌐 [多语言] 检测到中文系统语言: \(languageCode)")
+                return "zh"
+            }
+            
+            // 如果是英文
+            if languagePrefix == "en" {
+                print("🌐 [多语言] 检测到英文系统语言: \(languageCode)")
+                return "en"
+            }
+        }
+        
+        // 默认返回英文
+        print("🌐 [多语言] 未检测到支持的语言，默认使用英文")
+        return "en"
     }
     
     /// 保存语言设置

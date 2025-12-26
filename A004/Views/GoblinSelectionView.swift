@@ -22,6 +22,7 @@ struct GoblinSelectionView: View {
     @State private var dragOffset: CGFloat = 0
     @State private var showUnlockAlert: Bool = false
     @State private var goblinToUnlock: Goblin?
+    @State private var backgroundOpacity: Double = 0 // 背景遮罩透明度，用于渐现/渐隐效果
     
     // Figma设计尺寸：1203x1369
     private let designWidth: CGFloat = 1204
@@ -42,23 +43,29 @@ struct GoblinSelectionView: View {
         return height * (windowHeight / designHeight)
     }
     
-    // 获取哥布林对应的图片名称
+    // 获取哥布林对应的图片名称（全身像，如果没有图片，返回nil，UI会使用emoji）
     private func getGoblinImageName(for goblin: Goblin) -> String? {
         switch goblin.nameKey {
         case "warrior_goblin":
             return "brave_goblin"
+        case "craftsman_goblin":
+            return "artisan_goblin"
+        case "gambler_goblin":
+            return "gambler_goblin"
         case "king_goblin":
             return "king_goblin"
         case "wizard_goblin":
             return "wazard_goblin" // 注意拼写
+        case "athlete_goblin":
+            return "athlete_goblin"
         default:
             return nil
         }
     }
     
-    // 过滤出有图片的哥布林
+    // 显示所有哥布林（不再过滤）
     private var displayGoblins: [Goblin] {
-        return Goblin.allGoblins.filter { getGoblinImageName(for: $0) != nil }
+        return Goblin.allGoblins
     }
     
     var body: some View {
@@ -69,13 +76,18 @@ struct GoblinSelectionView: View {
             let windowHeight = windowWidth * (designHeight / designWidth)
             
             ZStack {
-                // 半透明背景遮罩
-                Color.black.opacity(0.5)
-            .ignoresSafeArea()
+                // 半透明背景遮罩（带渐现/渐隐效果）
+                Color.black.opacity(backgroundOpacity)
+                    .ignoresSafeArea()
                     .onTapGesture {
                         print("🎭 [哥布林选择] 点击背景关闭界面")
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-                            isPresented = false
+                        withAnimation(.easeOut(duration: 0.3)) {
+                            backgroundOpacity = 0
+                        }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                                isPresented = false
+                            }
                         }
                     }
                 
@@ -102,31 +114,39 @@ struct GoblinSelectionView: View {
                                 // 当前显示的哥布林
                                 if currentIndex < displayGoblins.count {
                                     let goblin = displayGoblins[currentIndex]
-                                    let isUnlocked = goblin.isFree || unlockedGoblinIds.contains(goblin.id)
+                                    // 暂时在选择界面解锁所有哥布林
+                                    let isUnlocked = true // goblin.isFree || unlockedGoblinIds.contains(goblin.id)
                                     
                                     VStack(spacing: scaleHeight(40, windowHeight: windowHeight)) {
-                                        // 哥布林图片
-                                        if let imageName = getGoblinImageName(for: goblin) {
+                                        // 哥布林图片或emoji
                 ZStack {
-                                                // 锁定遮罩
+                                            // 锁定遮罩（暂时不显示，因为所有哥布林都已解锁）
                                                 if !isUnlocked {
                                                     Color.black.opacity(0.5)
                                                         .frame(width: scaleSize(400, windowWidth: windowWidth), height: scaleSize(600, windowWidth: windowWidth))
                                                         .cornerRadius(scaleSize(20, windowWidth: windowWidth))
                                                 }
                                                 
+                                            if let imageName = getGoblinImageName(for: goblin) {
+                                                // 有图片的哥布林，显示图片
                                                 Image(imageName)
                                                     .resizable()
                                                     .scaledToFit()
                                                     .frame(width: scaleSize(400, windowWidth: windowWidth), height: scaleSize(600, windowWidth: windowWidth))
                                                     .opacity(isUnlocked ? 1.0 : 0.5)
+                                            } else {
+                                                // 没有图片的哥布林，显示emoji图标
+                                                Text(goblin.icon)
+                                                    .font(.system(size: scaleSize(200, windowWidth: windowWidth)))
+                                                    .frame(width: scaleSize(400, windowWidth: windowWidth), height: scaleSize(600, windowWidth: windowWidth))
+                                                    .opacity(isUnlocked ? 1.0 : 0.5)
+                                            }
                                                 
                                                 // 锁定图标（只保留系统图标锁）
                                                 if !isUnlocked {
                                                     Image(systemName: "lock.fill")
                                                         .font(.system(size: scaleSize(60, windowWidth: windowWidth)))
                                                         .foregroundColor(.white)
-                                                }
                                             }
                                         }
                                         
@@ -136,21 +156,19 @@ struct GoblinSelectionView: View {
                                             .foregroundColor(.white)
                                             .textStroke() // 添加黑色描边
                                         
-                                        // Buff描述（扩大1.5倍，去掉标题和星星，字号增加5，扩展上下各一行）
+                                        // 详细描述（扩大1.5倍，去掉标题和星星，字号增加5，扩展上下各一行，使用RichTextView支持颜色标记）
+                                        // 使用 localizationManager 确保多语言更新时视图会刷新
                                         VStack(alignment: .leading, spacing: scaleHeight(15, windowHeight: windowHeight) * 1.5) {
-                                            Text(goblin.buff)
-                                                .font(customFont(size: scaleSize(24, windowWidth: windowWidth) * 1.5 + 5))
-                                                .foregroundColor(.white)
-                                                .multilineTextAlignment(.leading)
+                                            RichTextView(localizationManager.localized("goblins.\(goblin.nameKey).description"), defaultColor: .white, font: customFont(size: scaleSize(24, windowWidth: windowWidth) * 1.5 + 5), multilineTextAlignment: .leading)
                                                 .lineSpacing(scaleHeight(8, windowHeight: windowHeight) * 1.5)
                                                 .lineLimit(nil)
                                                 .fixedSize(horizontal: false, vertical: true)
                                         }
                                         .padding(.top, scaleSize(30, windowWidth: windowWidth) * 1.5 + (scaleSize(24, windowWidth: windowWidth) * 1.5 + 5) * 1.2) // 向上扩展一行
                                         .padding(.bottom, scaleSize(30, windowWidth: windowWidth) * 1.5 + (scaleSize(24, windowWidth: windowWidth) * 1.5 + 5) * 1.2) // 向下扩展一行
-                                        .padding(.horizontal, scaleSize(30, windowWidth: windowWidth) * 1.5)
+                                        .padding(.horizontal, scaleSize(30, windowWidth: windowWidth) * 1.5 + 5) // 左右各拓展5像素
                                         .frame(maxWidth: scaleSize(600, windowWidth: windowWidth) * 1.5)
-                                        .frame(minHeight: (scaleSize(24, windowWidth: windowWidth) * 1.5 + 5) * 1.2 * 3) // 至少能展示三行文本
+                                        .frame(minHeight: (scaleSize(24, windowWidth: windowWidth) * 1.5 + 5) * 1.2 * 3 + 20) // 至少能展示三行文本，扩大20像素高度
                                         .background(
                                             RoundedRectangle(cornerRadius: scaleSize(20, windowWidth: windowWidth) * 1.5)
                                                 .fill(Color.black.opacity(0.3))
@@ -191,6 +209,7 @@ struct GoblinSelectionView: View {
                                     HStack {
                                         Button(action: {
                                             print("🎭 [哥布林选择] 向左翻页")
+                                            audioManager.playSoundEffect("click", fileExtension: "wav")
                                             withAnimation(.spring()) {
                                                 currentIndex = (currentIndex - 1 + displayGoblins.count) % displayGoblins.count
                                             }
@@ -214,6 +233,7 @@ struct GoblinSelectionView: View {
                 
                 Button(action: {
                                             print("🎭 [哥布林选择] 向右翻页")
+                                            audioManager.playSoundEffect("click", fileExtension: "wav")
                                             withAnimation(.spring()) {
                                                 currentIndex = (currentIndex + 1) % displayGoblins.count
                                             }
@@ -242,7 +262,8 @@ struct GoblinSelectionView: View {
                     // 底部确认按钮（移到弹窗之外，下移50像素，使用confirm图片）
                     if currentIndex < displayGoblins.count {
                         let currentGoblin = displayGoblins[currentIndex]
-                        let isUnlocked = currentGoblin.isFree || unlockedGoblinIds.contains(currentGoblin.id)
+                        // 暂时在选择界面解锁所有哥布林
+                        let isUnlocked = true // currentGoblin.isFree || unlockedGoblinIds.contains(currentGoblin.id)
                         
                         HStack {
                             Spacer()
@@ -250,8 +271,8 @@ struct GoblinSelectionView: View {
                                 let goblin = displayGoblins[currentIndex]
                     print("🎭 [哥布林选择] 玩家选择了: \(goblin.name)")
                     
-                    // 检查是否已解锁
-                    if goblin.isFree || unlockedGoblinIds.contains(goblin.id) {
+                    // 暂时在选择界面解锁所有哥布林，直接选择
+                    if true { // goblin.isFree || unlockedGoblinIds.contains(goblin.id)
                         // 免费或已解锁，播放开始音效并选择
                         audioManager.playSoundEffect("start", fileExtension: "wav")
                         selectedGoblin = goblin
@@ -356,6 +377,18 @@ struct GoblinSelectionView: View {
             print("🎭 [哥布林选择] 界面显示，当前索引: \(currentIndex)，共 \(displayGoblins.count) 个哥布林")
             if !displayGoblins.isEmpty {
                 print("🎭 [哥布林选择] 当前显示: \(displayGoblins[currentIndex].name)")
+            }
+            // 背景遮罩渐现效果
+            withAnimation(.easeIn(duration: 0.3)) {
+                backgroundOpacity = 0.5
+            }
+        }
+        .onChange(of: isPresented) { newValue in
+            if !newValue {
+                // 界面关闭时，背景遮罩渐隐效果
+                withAnimation(.easeOut(duration: 0.3)) {
+                    backgroundOpacity = 0
+                }
             }
         }
     }

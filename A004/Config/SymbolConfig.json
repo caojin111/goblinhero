@@ -232,7 +232,7 @@
       "rarity": "normal",
       "types": [
         "human",
-        "vampire note"
+        "V's diary"
       ],
       "baseValue": 2,
       "weight": 1000,
@@ -307,7 +307,7 @@
       "rarity": "epic",
       "types": [
         "monster",
-        "vampire note"
+        "V's diary"
       ],
       "baseValue": 5,
       "weight": 300,
@@ -325,7 +325,7 @@
       "rarity": "normal",
       "types": [
         "human",
-        "vampire note"
+        "V's diary"
       ],
       "baseValue": 2,
       "weight": 1000,
@@ -589,7 +589,7 @@
       "rarity": "normal",
       "types": [
         "tool",
-        "vampire note"
+        "V's diary"
       ],
       "baseValue": 2,
       "weight": 1000,
@@ -973,7 +973,7 @@
       "rarity": "normal",
       "types": [
         "material",
-        "vampire note"
+        "V's diary"
       ],
       "baseValue": 2,
       "weight": 1000,
@@ -1271,7 +1271,7 @@
       "rarity": "normal",
       "types": [
         "monster",
-        "vampire note"
+        "V's diary"
       ],
       "baseValue": 2,
       "weight": 1000,
@@ -1289,7 +1289,7 @@
       "rarity": "rare",
       "types": [
         "monster",
-        "vampire note"
+        "V's diary"
       ],
       "baseValue": 3,
       "weight": 800,

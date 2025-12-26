@@ -20,3 +20,4 @@ ID,NameKey,DesKey,Effect,BondMember,requiredCount,CardColor
 19,bonds.classictale_2_bond.name,bonds.classictale_2_bond.description,随机一处生成特殊格子。此格子上的金币收益翻倍,type:classic tale,2,#806651
 20,bonds.classictale_4_bond.name,bonds.classictale_4_bond.description,每次挖到四个角的矿坑 其中之一，则金币奖励200,type:classic tale,4,#C0C0C0
 21,bonds.classictale_6_bond.name,bonds.classictale_6_bond.description,挖到最中心的矿坑，则金币奖励 400,type:classic tale,6,#FFD700
+22,bonds.dark_forest_3_bond.name,bonds.dark_forest_3_bond.description,每回合获得一个魔法袋,type:forest,3,#FFD700

@@ -8,3 +8,4 @@ ID,NameKey,DesKey,Effect,BondMember,CardColor
 7,bonds.apocalypse_bond.name,bonds.apocalypse_bond.description,如果哥莫拉，丧尸，狼人，吸血鬼同时在符号池内， 下个回合开始时，随机消灭一半的符号，获得 2000 金币,16;67;68;70,E9DF5A
 8,bonds.human_extinction_bond.name,bonds.human_extinction_bond.description,如果光线枪，外星头盔，宇宙飞船，精神控制器同时在符号池内， 下个回合开始时，消灭一个人类，获得 300 金币,71;72;73;74,E9DF5A
 9,bonds.raccoon_city_bond.name,bonds.raccoon_city_bond.description,每次挖矿前感染一个人类变成丧尸。每有一个丧尸，额外金币增加5,68,E9DF5A
+10,bonds.dark_forest_3_bond.name,bonds.dark_forest_3_bond.description,每回合获得一个魔法袋,type:forest,3,E9DF5A
