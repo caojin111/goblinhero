@@ -228,7 +228,8 @@ struct Goblin: Identifiable, Codable, Equatable {
     let buffValue: Double // buff数值
     let unlockPrice: Int // 解锁价格（免费角色为0）
     let descriptionKey: String // 详细描述键名
-    let unlockCurrency: String // 解锁货币类型："coins" 或 "diamonds"
+    let unlockCurrency: String // 解锁货币类型："coins" 或 "diamonds" 或 "usd"
+    let productId: String? // StoreKit product identifier (用于 USD 购买)
 
     // 兼容性属性：返回本地化的名称
     var name: String {
@@ -245,7 +246,7 @@ struct Goblin: Identifiable, Codable, Equatable {
         return LocalizationManager.shared.localized("goblins.\(nameKey).description")
     }
     
-    init(id: Int, nameKey: String, icon: String, isFree: Bool, buffKey: String, buffType: String = "", buffValue: Double = 0, unlockPrice: Int = 0, descriptionKey: String = "", unlockCurrency: String = "coins") {
+    init(id: Int, nameKey: String, icon: String, isFree: Bool, buffKey: String, buffType: String = "", buffValue: Double = 0, unlockPrice: Int = 0, descriptionKey: String = "", unlockCurrency: String = "coins", productId: String? = nil) {
         self.id = id
         self.nameKey = nameKey
         self.icon = icon
@@ -256,6 +257,7 @@ struct Goblin: Identifiable, Codable, Equatable {
         self.unlockPrice = unlockPrice
         self.descriptionKey = descriptionKey
         self.unlockCurrency = unlockCurrency
+        self.productId = productId
     }
     
     // 从配置文件加载所有哥布林

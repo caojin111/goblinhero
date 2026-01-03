@@ -223,8 +223,13 @@ struct PaidStoreView: View {
 struct GoblinsStoreView: View {
     @ObservedObject var viewModel: GameViewModel
     @ObservedObject var localizationManager: LocalizationManager
+    @ObservedObject var storeKitManager = StoreKitManager.shared
     @State private var showUnlockAlert: Bool = false
     @State private var goblinToUnlock: Goblin?
+    @State private var showPurchaseSuccessAlert: Bool = false
+    @State private var showPurchaseError: Bool = false
+    @State private var purchaseErrorMessage: String = ""
+    @State private var isPurchasing: Bool = false
     @Binding var showGoblinDetail: Bool
     @Binding var selectedGoblinForDetail: Goblin?
     let scaleX: CGFloat
@@ -283,16 +288,46 @@ struct GoblinsStoreView: View {
                 if goblin.unlockCurrency == "usd" {
                     // USD购买：显示确认按钮，实际购买通过StoreKit处理
                     Button(localizationManager.localized("confirmations.confirm")) {
-                        print("🛒 [商店] 确认购买USD哥布林: \(goblin.name), 价格: $\(Double(goblin.unlockPrice) / 100.0)")
-                        // TODO: 这里应该调用 StoreKit 购买流程
-                        // StoreKitManager.shared.purchase(productId: goblin.productId) { success in
-                        //     if success {
-                        //         viewModel.unlockGoblin(goblinId: goblin.id, cost: 0) // USD购买不需要消耗钻石
-                        //     }
-                        // }
-                        // 临时：直接解锁（实际应该等StoreKit购买成功后再解锁）
-                        viewModel.unlockGoblin(goblinId: goblin.id, cost: 0)
+                        guard let productId = goblin.productId else {
+                            print("❌ [商店] 哥布林没有 productId: \(goblin.name)")
+                            purchaseErrorMessage = localizationManager.localized("store.product_config_error")
+                            showPurchaseError = true
+                            return
+                        }
+                        
+                        isPurchasing = true
+                        Task {
+                            let success = await storeKitManager.purchase(productId: productId)
+                            isPurchasing = false
+                            
+                            if success {
+                                // 购买成功，解锁哥布林
+                                // 检查是否已经解锁（防止重复购买）
+                                if !viewModel.unlockedGoblinIds.contains(goblin.id) {
+                        if viewModel.unlockGoblin(goblinId: goblin.id, cost: 0) {
+                            showPurchaseSuccessAlert = true
+                                        print("✅ [商店] 成功购买并解锁哥布林: \(goblin.name)")
+                                    } else {
+                                        purchaseErrorMessage = localizationManager.localized("store.unlock_failed")
+                                        showPurchaseError = true
+                                    }
+                                } else {
+                                    // 已经解锁，显示成功提示
+                                    showPurchaseSuccessAlert = true
+                                    print("✅ [商店] 哥布林已解锁: \(goblin.name)")
+                                }
+                            } else {
+                                // 购买失败
+                                if let error = storeKitManager.purchaseError {
+                                    purchaseErrorMessage = error
+                                } else {
+                                    purchaseErrorMessage = localizationManager.localized("store.purchase_failed")
+                                }
+                                showPurchaseError = true
+                            }
+                        }
                     }
+                    .disabled(isPurchasing)
                     Button(localizationManager.localized("confirmations.cancel"), role: .cancel) { }
                 } else {
                     // 钻石购买：检查钻石数量
@@ -300,6 +335,7 @@ struct GoblinsStoreView: View {
                         Button(localizationManager.localized("confirmations.confirm")) {
                             if viewModel.unlockGoblin(goblinId: goblin.id, cost: goblin.unlockPrice) {
                                 print("🛒 [商店] 成功解锁哥布林: \(goblin.name)")
+                                showPurchaseSuccessAlert = true
                             }
                         }
                         Button(localizationManager.localized("confirmations.cancel"), role: .cancel) { }
@@ -311,9 +347,11 @@ struct GoblinsStoreView: View {
         } message: {
             if let goblin = goblinToUnlock {
                 if goblin.unlockCurrency == "usd" {
-                    // USD购买：显示USD价格
+                    // USD购买：显示USD价格，去掉钻石emoji
                     let priceText = String(format: "$%.2f", Double(goblin.unlockPrice) / 100.0)
-                    Text(localizationManager.localized("store.goblins.unlock_message").replacingOccurrences(of: "{name}", with: goblin.name).replacingOccurrences(of: "{price}", with: priceText))
+                    Text(localizationManager.localized("store.goblins.unlock_confirm_usd")
+                        .replacingOccurrences(of: "{price}", with: priceText)
+                        .replacingOccurrences(of: "{name}", with: goblin.name))
                 } else {
                     // 钻石购买：检查钻石数量
                     if viewModel.diamonds >= goblin.unlockPrice {
@@ -321,6 +359,32 @@ struct GoblinsStoreView: View {
                     } else {
                         Text(localizationManager.localized("store.goblins.insufficient_diamonds").replacingOccurrences(of: "{price}", with: "\(goblin.unlockPrice)").replacingOccurrences(of: "{current}", with: "\(viewModel.diamonds)"))
                     }
+                }
+            }
+        }
+        .alert(localizationManager.localized("store.goblins.purchase_success"), isPresented: $showPurchaseSuccessAlert) {
+            Button(localizationManager.localized("confirmations.confirm"), role: .cancel) { }
+        }
+        .alert(localizationManager.localized("store.purchase_failed"), isPresented: $showPurchaseError) {
+            Button(localizationManager.localized("confirmations.confirm"), role: .cancel) { }
+        } message: {
+            Text(purchaseErrorMessage)
+        }
+        .overlay {
+            if isPurchasing {
+                ZStack {
+                    Color.black.opacity(0.3)
+                        .ignoresSafeArea()
+                    VStack(spacing: 20) {
+                        ProgressView()
+                            .scaleEffect(1.5)
+                        Text(localizationManager.localized("store.processing_purchase"))
+                            .foregroundColor(.white)
+                            .font(.headline)
+                    }
+                    .padding(30)
+                    .background(Color.black.opacity(0.8))
+                    .cornerRadius(15)
                 }
             }
         }
@@ -364,18 +428,6 @@ struct GoblinStoreCard: View {
         let cornerRadius = 30 * scaleX
         
         return ZStack {
-            // 购买按钮 - 触摸区域包含整个卡片（包括商品卡片图标区域）
-            Button(action: {
-                print("🛒 [商店] 点击购买哥布林: \(goblin.name), 价格: \(goblin.unlockPrice), 当前钻石: \(viewModel.diamonds)")
-                onUnlock() // 始终调用，让alert来处理钻石不足的情况
-            }) {
-                Color.clear
-                    .frame(width: cardWidth, height: cardHeight + 156 * scaleY)
-                    .contentShape(Rectangle()) // 确保整个区域可点击
-            }
-            .buttonStyle(PlainButtonStyle())
-            .zIndex(0) // 购买按钮在底层
-            
             VStack(spacing: 0) {
                 // 标题栏 (Figma: x: 134, y: 168, width: 966, height: 114)
                 // 名字条再往下移动 10 像素（更贴近商品卡片），整体再往下移动 8 像素（盖住价格条）
@@ -388,69 +440,73 @@ struct GoblinStoreCard: View {
                             .frame(height: 114 * scaleY)
                         
                         Text(goblin.name)
-                            .font(customFont(size: (localizationManager.currentLanguage == "zh" ? 97 : 100) * scaleX)) // 中文时减少3号
+                            .font(customFont(size: (localizationManager.currentLanguage == "zh" ? 85 : 100) * scaleX)) // 中文时减少15号（原95再减10）
                             .foregroundColor(.white)
                             .textStroke()
                     }
                 }
                 .buttonStyle(PlainButtonStyle())
+                .zIndex(3) // 标题栏在最上层，优先响应点击
                 .offset(y: (13 + 10 + 8) * scaleY) // 之前13 + 再往下10 + 整体再往下8 = 31 像素
                 
                 // 哥布林图片区域 - 新的一体化图片（分辨率：1094*729）
                 // 图片宽度与购买按钮一致（即 cardWidth）
                 // 整个图片区域可点击，显示详情（优先于购买按钮）
                 // 商品卡片整体再往下移动 8 像素（盖住价格条）
-                Button(action: {
-                    onShowDetail()
-                }) {
-                    ZStack {
-                        // 哥布林一体化图片（包含角色、背景和文字）
-                        if goblin.nameKey == "king_goblin" {
-                            Image("king")
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: cardWidth, height: cardHeight)
-                            .clipShape(
-                                TopRoundedRectangle(cornerRadius: cornerRadius)
-                            )
-                        } else if goblin.nameKey == "wizard_goblin" {
-                            Image("wizard")
+                ZStack {
+                    Button(action: {
+                        onShowDetail()
+                    }) {
+                        ZStack {
+                            // 哥布林一体化图片（包含角色、背景和文字）
+                            if goblin.nameKey == "king_goblin" {
+                                Image("king")
                                 .resizable()
                                 .scaledToFill()
                                 .frame(width: cardWidth, height: cardHeight)
                                 .clipShape(
                                     TopRoundedRectangle(cornerRadius: cornerRadius)
                                 )
-                        } else if goblin.nameKey == "athlete_goblin" {
-                            Image("athlete")
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: cardWidth, height: cardHeight)
-                                .clipShape(
-                                    TopRoundedRectangle(cornerRadius: cornerRadius)
-                                )
-                        } else if goblin.nameKey == "craftsman_goblin" {
-                            Image("craftsman")
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: cardWidth, height: cardHeight)
-                                .clipShape(
-                                    TopRoundedRectangle(cornerRadius: cornerRadius)
-                                )
-                        } else if goblin.nameKey == "gambler_goblin" {
-                            Image("gambler")
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: cardWidth, height: cardHeight)
-                                .clipShape(
-                                    TopRoundedRectangle(cornerRadius: cornerRadius)
-                                )
+                            } else if goblin.nameKey == "wizard_goblin" {
+                                Image("wizard")
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: cardWidth, height: cardHeight)
+                                    .clipShape(
+                                        TopRoundedRectangle(cornerRadius: cornerRadius)
+                                    )
+                            } else if goblin.nameKey == "athlete_goblin" {
+                                Image("athlete")
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: cardWidth, height: cardHeight)
+                                    .clipShape(
+                                        TopRoundedRectangle(cornerRadius: cornerRadius)
+                                    )
+                            } else if goblin.nameKey == "craftsman_goblin" {
+                                Image("craftsman")
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: cardWidth, height: cardHeight)
+                                    .clipShape(
+                                        TopRoundedRectangle(cornerRadius: cornerRadius)
+                                    )
+                            } else if goblin.nameKey == "gambler_goblin" {
+                                Image("gambler")
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: cardWidth, height: cardHeight)
+                                    .clipShape(
+                                        TopRoundedRectangle(cornerRadius: cornerRadius)
+                                    )
+                            }
                         }
+                        .frame(width: cardWidth, height: cardHeight)
                     }
-                    .frame(width: cardWidth, height: cardHeight)
+                    .buttonStyle(PlainButtonStyle())
+                    
                 }
-                .buttonStyle(PlainButtonStyle())
-                .zIndex(2) // 哥布林图片在上层，优先响应点击
+                .zIndex(3) // 哥布林图片在最上层，优先响应点击
                 .offset(y: (8 + 8) * scaleY) // 之前8 + 整体再往下8 = 16 像素，盖住价格条
                 // 移除标题栏和图片之间的间距，让名字条和卡片紧贴
                 
@@ -484,8 +540,42 @@ struct GoblinStoreCard: View {
                     }
                 }
                 .frame(width: cardWidth, height: 156 * scaleY)
-                .zIndex(1) // 价格栏在中间层
+                .zIndex(2) // 价格栏在上层，但低于标题和图片按钮
             }
+            
+            // 购买按钮 - 触摸区域包含整个卡片（包括商品卡片图标区域），但排除info按钮区域
+            Button(action: {
+                print("🛒 [商店] 点击购买哥布林: \(goblin.name), 价格: \(goblin.unlockPrice), 当前钻石: \(viewModel.diamonds)")
+                onUnlock() // 始终调用，让alert来处理钻石不足的情况
+            }) {
+                Color.clear
+                    .frame(width: cardWidth, height: cardHeight + 156 * scaleY)
+                    .contentShape(Rectangle()) // 确保整个区域可点击
+            }
+            .buttonStyle(PlainButtonStyle())
+            .zIndex(1) // 购买按钮在底层
+            
+            // Info 按钮 - 哥布林卡片右上角，独立处理，不被购买按钮遮挡
+            VStack {
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        print("🛒 [商店] 点击info按钮查看哥布林详情: \(goblin.name)")
+                        onShowDetail()
+                    }) {
+                        Image("info")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 125 * scaleX, height: 125 * scaleY) // 再缩小1.2倍：150/1.2=125
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .padding(.top, 30 * scaleY) // 向下移动10像素：20+10=30
+                    .padding(.trailing, 75 * scaleX) // 向左移动10像素：40-10=30
+                }
+                Spacer()
+            }
+            .zIndex(10) // Info按钮在最上层，确保可点击
+            .allowsHitTesting(true) // 确保info按钮可以接收点击事件
         }
         .frame(width: cardWidth) // 确保整个卡片宽度一致
         .cornerRadius(20 * scaleX)
@@ -503,6 +593,7 @@ struct StaminaStoreView: View {
     @ObservedObject var localizationManager = LocalizationManager.shared
     @State private var showPurchaseAlert: Bool = false
     @State private var selectedStaminaPack: StaminaPack?
+    @State private var showPurchaseSuccessAlert: Bool = false
     let scaleX: CGFloat
     let scaleY: CGFloat
     
@@ -583,6 +674,7 @@ struct StaminaStoreView: View {
                     Button(localizationManager.localized("confirmations.confirm")) {
                         if viewModel.purchaseStamina(amount: pack.stamina, cost: pack.diamonds) {
                             print("🛒 [商店] 成功购买体力: \(pack.stamina)")
+                            showPurchaseSuccessAlert = true
                         }
                     }
                     Button(localizationManager.localized("confirmations.cancel"), role: .cancel) { }
@@ -598,6 +690,9 @@ struct StaminaStoreView: View {
                     Text(localizationManager.localized("store.stamina.insufficient_diamonds").replacingOccurrences(of: "{diamonds}", with: "\(pack.diamonds)").replacingOccurrences(of: "{current}", with: "\(viewModel.diamonds)"))
                 }
             }
+        }
+        .alert(localizationManager.localized("store.goblins.purchase_success"), isPresented: $showPurchaseSuccessAlert) {
+            Button(localizationManager.localized("confirmations.confirm"), role: .cancel) { }
         }
     }
 }
@@ -810,10 +905,15 @@ struct BottomRoundedRectangle: Shape {
 struct DiamondsStoreView: View {
     @ObservedObject var viewModel: GameViewModel
     @ObservedObject var localizationManager = LocalizationManager.shared
+    @ObservedObject var storeKitManager = StoreKitManager.shared
     @State private var showPurchaseAlert: Bool = false
     @State private var selectedProduct: DiamondProduct?
     @State private var showRewardAlert: Bool = false
     @State private var rewardDiamonds: Int = 0
+    @State private var showPurchaseSuccessAlert: Bool = false
+    @State private var showPurchaseError: Bool = false
+    @State private var purchaseErrorMessage: String = ""
+    @State private var isPurchasing: Bool = false
     let refreshTrigger: UUID // 用于触发子视图刷新（从父视图传入）
     let scaleX: CGFloat
     let scaleY: CGFloat
@@ -957,8 +1057,35 @@ struct DiamondsStoreView: View {
                     }
                 } else {
                     Button(localizationManager.localized("store.diamonds.purchase")) {
-                        purchaseDiamonds(product: product)
+                        guard let productId = product.productId else {
+                            print("❌ [商店] 钻石商品没有 productId: \(product.id)")
+                            purchaseErrorMessage = localizationManager.localized("store.product_config_error")
+                            showPurchaseError = true
+                            return
+                        }
+                        
+                        isPurchasing = true
+                        Task {
+                            let success = await storeKitManager.purchase(productId: productId)
+                            isPurchasing = false
+                            
+                            if success {
+                                // 购买成功，添加钻石
+                                viewModel.addDiamonds(product.diamonds)
+                        showPurchaseSuccessAlert = true
+                                print("✅ [商店] 成功购买钻石: \(product.diamonds)钻石")
+                            } else {
+                                // 购买失败
+                                if let error = storeKitManager.purchaseError {
+                                    purchaseErrorMessage = error
+                                } else {
+                                    purchaseErrorMessage = localizationManager.localized("store.purchase_failed")
+                                }
+                                showPurchaseError = true
+                            }
+                        }
                     }
+                    .disabled(isPurchasing)
                     Button(localizationManager.localized("confirmations.cancel"), role: .cancel) { }
                 }
             }
@@ -975,12 +1102,38 @@ struct DiamondsStoreView: View {
                 }
             }
         }
+        .alert(localizationManager.localized("store.purchase_failed"), isPresented: $showPurchaseError) {
+            Button(localizationManager.localized("confirmations.confirm"), role: .cancel) { }
+        } message: {
+            Text(purchaseErrorMessage)
+        }
+        .overlay {
+            if isPurchasing {
+                ZStack {
+                    Color.black.opacity(0.3)
+                        .ignoresSafeArea()
+                    VStack(spacing: 20) {
+                        ProgressView()
+                            .scaleEffect(1.5)
+                        Text(localizationManager.localized("store.processing_purchase"))
+                            .foregroundColor(.white)
+                            .font(.headline)
+                    }
+                    .padding(30)
+                    .background(Color.black.opacity(0.8))
+                    .cornerRadius(15)
+                }
+            }
+        }
         .alert(localizationManager.localized("store.diamonds.reward_title"), isPresented: $showRewardAlert) {
             Button(localizationManager.localized("confirmations.confirm")) {
                 showRewardAlert = false
             }
         } message: {
             Text(localizationManager.localized("store.diamonds.reward_message").replacingOccurrences(of: "{diamonds}", with: "\(rewardDiamonds)"))
+        }
+        .alert(localizationManager.localized("store.goblins.purchase_success"), isPresented: $showPurchaseSuccessAlert) {
+            Button(localizationManager.localized("confirmations.confirm"), role: .cancel) { }
         }
     }
     
@@ -1040,24 +1193,6 @@ struct DiamondsStoreView: View {
         }
     }
     
-    /// 购买钻石（模拟，实际需要集成 StoreKit）
-    private func purchaseDiamonds(product: DiamondProduct) {
-        // TODO: 这里应该集成 StoreKit 进行实际支付
-        // 使用 productId 进行 StoreKit 购买
-        if let productId = product.productId {
-            print("💎 [购买钻石] 准备购买商品ID: \(productId), \(product.diamonds)钻石，价格$\(product.priceUSD)")
-            // TODO: 调用 StoreKit 购买流程
-            // StoreKitManager.shared.purchase(productId: productId) { success in
-            //     if success {
-            //         viewModel.addDiamonds(product.diamonds)
-            //     }
-            // }
-        }
-        
-        // 目前先模拟购买，直接添加钻石
-        viewModel.addDiamonds(product.diamonds)
-        print("💎 [购买钻石] 购买\(product.diamonds)钻石，价格$\(product.priceUSD)，商品ID: \(product.productId ?? "N/A")")
-    }
     
     /// 检查每日免费是否可领取
     func canClaimFreeDaily() -> Bool {

@@ -109,5 +109,15 @@ class FontManager {
             }
         }
     }
+    
+    /// 获取 Calistoga-Regular 字体（用于特定场景，如版本号）
+    func calistogaFont(size: CGFloat) -> Font {
+        if let fontName = englishFontName {
+            return .custom(fontName, size: size)
+        } else {
+            // 如果字体未找到，尝试直接使用字体名称
+            return .custom("Calistoga-Regular", size: size)
+        }
+    }
 }
 

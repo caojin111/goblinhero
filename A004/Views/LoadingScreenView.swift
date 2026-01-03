@@ -67,6 +67,15 @@ struct LoadingScreenView: View {
                         x: (53 + 300/2) * (geometry.size.width / figmaWidth),
                         y: (654 + 114/2) * (geometry.size.height / figmaHeight)
                     )
+                
+                // 版本号显示 - 页面下方
+                VStack {
+                    Spacer()
+                    Text("ver1.0.0")
+                        .font(FontManager.shared.calistogaFont(size: 14))
+                        .foregroundColor(.white.opacity(0.7))
+                        .padding(.bottom, 30)
+                }
             }
         }
         .ignoresSafeArea()

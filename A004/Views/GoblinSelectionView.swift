@@ -114,13 +114,13 @@ struct GoblinSelectionView: View {
                                 // 当前显示的哥布林
                                 if currentIndex < displayGoblins.count {
                                     let goblin = displayGoblins[currentIndex]
-                                    // 暂时在选择界面解锁所有哥布林
-                                    let isUnlocked = true // goblin.isFree || unlockedGoblinIds.contains(goblin.id)
+                                    // 检查哥布林是否已解锁
+                                    let isUnlocked = goblin.isFree || viewModel.unlockedGoblinIds.contains(goblin.id)
                                     
                                     VStack(spacing: scaleHeight(40, windowHeight: windowHeight)) {
                                         // 哥布林图片或emoji
                 ZStack {
-                                            // 锁定遮罩（暂时不显示，因为所有哥布林都已解锁）
+                                            // 锁定遮罩
                                                 if !isUnlocked {
                                                     Color.black.opacity(0.5)
                                                         .frame(width: scaleSize(400, windowWidth: windowWidth), height: scaleSize(600, windowWidth: windowWidth))
@@ -262,8 +262,8 @@ struct GoblinSelectionView: View {
                     // 底部确认按钮（移到弹窗之外，下移50像素，使用confirm图片）
                     if currentIndex < displayGoblins.count {
                         let currentGoblin = displayGoblins[currentIndex]
-                        // 暂时在选择界面解锁所有哥布林
-                        let isUnlocked = true // currentGoblin.isFree || unlockedGoblinIds.contains(currentGoblin.id)
+                        // 检查哥布林是否已解锁
+                        let isUnlocked = currentGoblin.isFree || viewModel.unlockedGoblinIds.contains(currentGoblin.id)
                         
                         HStack {
                             Spacer()
@@ -271,8 +271,8 @@ struct GoblinSelectionView: View {
                                 let goblin = displayGoblins[currentIndex]
                     print("🎭 [哥布林选择] 玩家选择了: \(goblin.name)")
                     
-                    // 暂时在选择界面解锁所有哥布林，直接选择
-                    if true { // goblin.isFree || unlockedGoblinIds.contains(goblin.id)
+                    // 检查哥布林是否已解锁
+                    if goblin.isFree || viewModel.unlockedGoblinIds.contains(goblin.id) {
                         // 免费或已解锁，播放开始音效并选择
                         audioManager.playSoundEffect("start", fileExtension: "wav")
                         selectedGoblin = goblin

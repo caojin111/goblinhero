@@ -14,6 +14,7 @@
         "personal_records": "🏆 Personal Records",
         "best_round": "Best Round",
         "best_level": "best level:",
+        "best_single_game_coins": "Best Single Game Coins",
         "goblin": "[Goblin]",
         "start": "Start",
         "shop": "shop",
@@ -24,6 +25,15 @@
         "stamina_insufficient": "Insufficient Stamina",
         "rank": "Rank",
         "achievement": "Achievement"
+      },
+      "share": {
+        "challenge_text": "Can you beat me?",
+        "button": "Share"
+      },
+      "player_name": {
+        "title": "Enter Your Name",
+        "placeholder": "Your name (max 10 characters)",
+        "confirm": "Confirm"
       },
       "stores": {
         "paid_store": "Paid Store",
@@ -40,7 +50,24 @@
           "all_unlocked": "All goblins are unlocked!",
           "unlock_title": "Unlock Goblin",
           "unlock_message": "Spend {price} 💎 to unlock {name}?",
-          "insufficient_diamonds": "Insufficient diamonds! Need {price} 💎, currently have {current} 💎."
+          "insufficient_diamonds": "Insufficient diamonds! Need {price} 💎, currently have {current} 💎.",
+          "purchase_success": "Purchase successful!",
+          "unlock_confirm_usd": "Spend {price} to unlock {name}?"
+        },
+        "purchase_failed": "Purchase Failed",
+        "processing_purchase": "Processing purchase...",
+        "product_config_error": "Product configuration error",
+        "unlock_failed": "Unlock failed",
+        "storekit": {
+          "error": {
+            "user_cancelled": "User cancelled the purchase",
+            "pending": "Purchase is pending",
+            "unverified": "Transaction verification failed",
+            "unknown": "Unknown error",
+            "load_products_failed": "Failed to load products: {error}",
+            "product_not_found": "Product not found: {productId}",
+            "restore_failed": "Failed to restore purchases: {error}"
+          }
         },
         "stamina": {
           "current": "Current Stamina",
@@ -85,7 +112,20 @@
         "contact_us_description": "Get in touch with us",
         "contact_us_content": "We'd love to hear from you!\n\nIf you have any questions, feedback, or need support, please reach out to us via email.",
         "restore": "Restore Purchases",
-        "book": "Book"
+        "rate_us": "Rate Us",
+        "book": "Book",
+        "redeem_code": "Redeem Code"
+      },
+      "redeem_code": {
+        "title": "Redeem Code",
+        "enter_code": "Enter 6-digit code",
+        "redeem": "Redeem",
+        "success_title": "Success",
+        "success_message": "You have successfully redeemed!",
+        "error_title": "Error",
+        "error_invalid_code": "Invalid code",
+        "error_already_used": "This code has already been used",
+        "error_invalid_format": "Please enter a 6-digit code"
       },
       "book": {
         "title": "Book",
@@ -98,7 +138,7 @@
         "step1_title": "Symbol Pool",
         "step1_description": "All symbols you choose will appear here.",
         "step2_title": "Mine Board",
-        "step2_description": "Symbols from your pool may appear in the mines. Dig them out to trigger their effects!",
+        "step2_description": "Symbols here may appear in the mines. Dig them out to trigger their effects!",
         "step3_title": "Game Info",
         "step3_description": "This shows your current coins, level, and the coin goal for the current level.",
         "step4_title": "Roll Dice",
@@ -209,7 +249,10 @@
         "survival_rounds": "Survival Rounds",
         "final_coins": "Final Coins",
         "total_coins": "Total Coins",
-        "play_again": "Play Again!"
+        "round_reward_diamonds": "Round Reward Diamonds",
+        "play_again": "Play Again!",
+        "insufficient_coins_message": "Insufficient coins! Cannot reach the goal of {amount} coins.",
+        "death_blessing_ended": "Death's blessing has ended. Game forced to end."
       },
       "confirmations": {
         "exit_game": "Exit Game",
@@ -281,7 +324,7 @@
         "day": "Day",
         "button": {
           "sign_in": "Sign In",
-          "signed": "Already Signed In"
+          "signed": "SIGNED"
         },
         "hint": {
           "can_sign": "Tap to claim today's reward",
@@ -465,7 +508,7 @@
         },
         "dragon_fire_gun": {
           "name": "Dragon Firearm",
-          "description": "Eliminate a random <color=#E74875>#Monster</color> from the symbol pool to get 50 gold coins."
+          "description": "Eliminate itself, eliminate a random <color=#E74875>#Monster</color> from the symbol pool, and get 50 gold coins."
         },
         "rune_armor": {
           "name": "Rune Armor",
@@ -748,6 +791,7 @@
         "personal_records": "🏆 个人记录",
         "best_round": "最佳进度",
         "best_level": "最佳进度:",
+        "best_single_game_coins": "最佳单局金币",
         "goblin": "[哥布林]",
         "start": "开始",
         "shop": "商店",
@@ -758,6 +802,15 @@
         "rank": "排行榜",
         "achievement": "成就",
         "stamina_insufficient": "体力不足"
+      },
+      "share": {
+        "challenge_text": "你能赢过我吗？",
+        "button": "分享"
+      },
+      "player_name": {
+        "title": "请输入你的名字",
+        "placeholder": "你的名字（最多10个字符）",
+        "confirm": "确认"
       },
       "stores": {
         "paid_store": "付费商城",
@@ -774,7 +827,24 @@
           "all_unlocked": "所有哥布林已解锁！",
           "unlock_title": "解锁哥布林",
           "unlock_message": "是否花费 {price} 💎 解锁 {name}？",
-          "insufficient_diamonds": "钻石不足！需要 {price} 💎，当前只有 {current} 💎。"
+          "insufficient_diamonds": "钻石不足！需要 {price} 💎，当前只有 {current} 💎。",
+          "purchase_success": "购买成功！",
+          "unlock_confirm_usd": "是否花费 {price} 解锁 {name}？"
+        },
+        "purchase_failed": "购买失败",
+        "processing_purchase": "正在处理购买...",
+        "product_config_error": "商品配置错误",
+        "unlock_failed": "解锁失败",
+        "storekit": {
+          "error": {
+            "user_cancelled": "用户取消了购买",
+            "pending": "购买正在处理中",
+            "unverified": "交易验证失败",
+            "unknown": "未知错误",
+            "load_products_failed": "加载产品失败：{error}",
+            "product_not_found": "找不到产品：{productId}",
+            "restore_failed": "恢复购买失败：{error}"
+          }
         },
         "stamina": {
           "current": "当前体力",
@@ -813,13 +883,26 @@
         "sound_effects_description": "开启游戏音效",
         "privacy_policy": "隐私政策",
         "privacy_policy_description": "查看我们的隐私政策",
-        "privacy_policy_content": "Lucky Goblin 隐私政策\n\n最后更新：2025年12月26日\n\n本隐私政策描述了 Lazycat（\"我们\"、\"我们的\"或\"我方\"）在您使用我们的手机游戏 \"Lucky Goblin\"（\"游戏\"）时如何收集、使用和保护您的信息。\n\n1. 我们收集的信息\n我们收集您直接提供给我们的信息，例如当您创建账户、进行购买或联系我们寻求支持时。\n\n2. 我们如何使用您的信息\n我们使用收集的信息来提供、维护和改进我们的服务，处理交易，并与您沟通。\n\n3. 信息共享\n未经您同意，我们不会向第三方出售、交易或以其他方式转让您的个人信息。\n\n4. 数据安全\n我们实施适当的安全措施来保护您的个人信息。\n\n5. 您的权利\n您有权随时访问、更新或删除您的个人信息。\n\n6. 联系我们\n如果您对此隐私政策有任何疑问，请通过 dxycj250@gmail.com 联系我们。",
+        "privacy_policy_content": "Lucky Goblin 隐私政策\n\n最后更新：2025年12月26日\n\n本隐私政策描述了 LazyCat（\"我们\"、\"我们的\"或\"我方\"）在您使用我们的手机游戏 \"Lucky Goblin\"（\"游戏\"）时如何收集、使用和保护您的信息。\n\n1. 我们收集的信息\n我们收集您直接提供给我们的信息，例如当您创建账户、进行购买或联系我们寻求支持时。\n\n2. 我们如何使用您的信息\n我们使用收集的信息来提供、维护和改进我们的服务，处理交易，并与您沟通。\n\n3. 信息共享\n未经您同意，我们不会向第三方出售、交易或以其他方式转让您的个人信息。\n\n4. 数据安全\n我们实施适当的安全措施来保护您的个人信息。\n\n5. 您的权利\n您有权随时访问、更新或删除您的个人信息。\n\n6. 联系我们\n如果您对此隐私政策有任何疑问，请通过 dxycj250@gmail.com 联系我们。",
         "terms_of_service": "使用条款",
         "contact_us": "联系我们",
         "contact_us_description": "与我们取得联系",
         "contact_us_content": "我们很乐意听到您的声音！\n\n如果您有任何问题、反馈或需要支持，请通过电子邮件与我们联系。",
         "restore": "恢复购买",
-        "book": "图鉴"
+        "rate_us": "给我们评分",
+        "book": "图鉴",
+        "redeem_code": "兑换码"
+      },
+      "redeem_code": {
+        "title": "兑换码",
+        "enter_code": "请输入6位兑换码",
+        "redeem": "兑换",
+        "success_title": "成功",
+        "success_message": "您已兑换成功！",
+        "error_title": "错误",
+        "error_invalid_code": "无效的兑换码",
+        "error_already_used": "该兑换码已使用过",
+        "error_invalid_format": "请输入6位兑换码"
       },
       "book": {
         "title": "图鉴",
@@ -832,7 +915,7 @@
         "step1_title": "符号池",
         "step1_description": "每次你选择的符号都会出现在这里。",
         "step2_title": "矿坑棋盘",
-        "step2_description": "符号池的符号有概率出现在矿坑，挖出符号来触发符号的效果！",
+        "step2_description": "这里的符号可能会出现在矿坑中。挖出它们来触发它们的效果！",
         "step3_title": "游戏信息",
         "step3_description": "这是你当前金币，关卡，以及当前关卡的金币目标",
         "step4_title": "投掷骰子",
@@ -975,7 +1058,10 @@
         "survival_rounds": "存活回合",
         "final_coins": "最终金币",
         "total_coins": "累计金币",
-        "play_again": "再来一次！"
+        "round_reward_diamonds": "关卡完成奖励",
+        "play_again": "再来一次！",
+        "insufficient_coins_message": "金币不足！无法达成 {amount} 金币的目标",
+        "death_blessing_ended": "死神的眷顾已结束，游戏强制结束"
       },
       "confirmations": {
         "exit_game": "退出游戏",
@@ -1199,7 +1285,7 @@
         },
         "dragon_fire_gun": {
           "name": "龙火枪",
-          "description": "消灭符号池随机一个<color=#E74875>#怪物</color>，获得 50 金币"
+          "description": "消除自身，消灭符号池随机一个<color=#E74875>#怪物</color>，获得 50 金币"
         },
         "rune_armor": {
           "name": "符文护甲",

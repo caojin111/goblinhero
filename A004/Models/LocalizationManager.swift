@@ -8,21 +8,34 @@
 import Foundation
 
 class LocalizationManager: ObservableObject {
-    static let shared = LocalizationManager()
+    static let shared: LocalizationManager = {
+        let instance = LocalizationManager()
+        return instance
+    }()
     
+    private var isInitializing: Bool = false
     @Published var currentLanguage: String = "en" {
         didSet {
             saveLanguage()
-            // 通知签到配置管理器更新语言
-            DailySignInConfigManager.shared.updateLanguage()
+            // 只有在初始化完成后才通知签到配置管理器更新语言
+            if !isInitializing {
+                DailySignInConfigManager.shared.updateLanguage()
+            }
         }
     }
     
     private var translations: [String: Any] = [:]
     
     private init() {
+        // 标记正在初始化，避免触发 didSet 中的 updateLanguage
+        isInitializing = true
+        
+        // 初始化操作（Bundle.main 访问需要在主线程）
         loadLanguage()
         loadTranslations()
+        
+        // 初始化完成
+        isInitializing = false
     }
     
     /// 加载语言设置

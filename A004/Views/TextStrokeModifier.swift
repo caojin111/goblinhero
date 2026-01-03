@@ -27,5 +27,18 @@ extension View {
     func textStroke() -> some View {
         modifier(TextStrokeModifier())
     }
+    
+    /// 添加自定义颜色和宽度的描边
+    func textStroke(color: Color, width: CGFloat) -> some View {
+        self
+            .shadow(color: color, radius: 0, x: -width, y: 0)
+            .shadow(color: color, radius: 0, x: width, y: 0)
+            .shadow(color: color, radius: 0, x: 0, y: -width)
+            .shadow(color: color, radius: 0, x: 0, y: width)
+            .shadow(color: color, radius: 0, x: -width, y: -width)
+            .shadow(color: color, radius: 0, x: width, y: -width)
+            .shadow(color: color, radius: 0, x: -width, y: width)
+            .shadow(color: color, radius: 0, x: width, y: width)
+    }
 }
 

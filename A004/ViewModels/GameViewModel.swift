@@ -15,6 +15,7 @@ class GameViewModel: ObservableObject {
     private let effectProcessor = SymbolEffectProcessor()
     private let bondEffectProcessor = BondEffectProcessor()
     private let localizationManager = LocalizationManager.shared
+    private let roundRewardConfigManager = RoundRewardConfigManager.shared
     
     // MARK: - 游戏状态
     @Published var currentCoins: Int = 10 // 初始金币
@@ -37,6 +38,8 @@ class GameViewModel: ObservableObject {
     @Published var bestSpinInRound: Int = 0 // 最佳转动次数（在最佳回合中的转动次数）
     @Published var bestDifficulty: String = "" // 最佳记录的难度
     @Published var bestCoins: Int = 0 // 历史最多金币
+    @Published var bestSingleGameCoins: Int = 0 // 最佳单局金币（单局游戏中获得的总金币数）
+    @Published var playerName: String = "" // 玩家名字
 
     // MARK: - 体力系统
     @Published var stamina: Int = 300 // 当前体力值
@@ -44,7 +47,7 @@ class GameViewModel: ObservableObject {
     private var staminaTimer: Timer? = nil // 体力恢复定时器
     
     let maxStamina = 300 // 最大体力
-    private let staminaPerGame = 1 // 每次游戏消耗体力
+    private let staminaPerGame = 30 // 每次游戏消耗体力
     private let staminaRecoveryInterval: TimeInterval = 5 * 60 // 5分钟恢复1点体力
     
     // MARK: - 钻石系统
@@ -58,9 +61,10 @@ class GameViewModel: ObservableObject {
     
     // MARK: - 哥布林相关
     @Published var selectedGoblin: Goblin? = nil // 当前选择的哥布林
-    @Published var unlockedGoblinIds: Set<Int> // 已解锁的哥布林ID
+    @Published var unlockedGoblinIds: Set<Int> = [] // 已解锁的哥布林ID（从UserDefaults加载）
     @Published var showGoblinSelection: Bool = false // 显示哥布林选择界面
     @Published var showLetterView: Bool = false // 显示信页面
+    @Published var showPlayerNameInput: Bool = false // 显示玩家名字输入弹窗
     @Published var goblinSelectionCompleted: Bool = false // 哥布林选择是否完成
     
     // MARK: - 符号池
@@ -173,6 +177,7 @@ class GameViewModel: ObservableObject {
     private var hasCompletedFirstSymbolSelection: Bool = false // 是否完成了第一次符号选择
     @Published var showGameOver: Bool = false
     @Published var gameOverMessage: String = ""
+    @Published var roundRewardDiamonds: Int = 0 // 当前关卡完成的钻石奖励（只有在正常游戏结束时才设置）
     @Published private var extraSymbolChoicesPending: Int = 0
     // 额外掷骰/挖矿辅助标记
     private var autoMineAllUnopened: Bool = false
@@ -244,14 +249,31 @@ class GameViewModel: ObservableObject {
     init() {
         print("🎮 [游戏初始化] 开始初始化游戏")
         
+        // iPad 上禁用游戏内新手引导
+        let isPad = UIDevice.current.userInterfaceIdiom == .pad
+        if isPad {
+            showGameTutorial = false
+            print("📱 [游戏初始化] 检测到 iPad 设备，禁用游戏内新手引导")
+        }
+        
         // 从配置文件加载默认解锁的哥布林
-        self.unlockedGoblinIds = GoblinConfigManager.shared.getDefaultUnlockedIds()
-        print("🎭 [哥布林配置] 默认解锁哥布林: \(unlockedGoblinIds)")
+        let defaultUnlockedIds = GoblinConfigManager.shared.getDefaultUnlockedIds()
+        // 从UserDefaults加载已购买的哥布林
+        loadUnlockedGoblins()
+        // 合并默认解锁和已购买的哥布林
+        self.unlockedGoblinIds = defaultUnlockedIds.union(unlockedGoblinIds)
+        print("🎭 [哥布林配置] 默认解锁哥布林: \(defaultUnlockedIds), 已购买哥布林: \(unlockedGoblinIds), 合并后: \(self.unlockedGoblinIds)")
         
         loadGameSettings()
         // 不立即开始游戏，等待选择哥布林
         goblinSelectionCompleted = false
         showGoblinSelection = false
+        
+        // 加载最佳记录
+        loadBestRecords()
+        
+        // 加载玩家名字
+        loadPlayerName()
         
         // 初始化体力系统
         loadStamina()
@@ -266,6 +288,154 @@ class GameViewModel: ObservableObject {
         
         // 初始化钻石宝箱状态（在所有存储属性初始化后）
         freeDiamondsClaimDate = UserDefaults.standard.object(forKey: "lastFreeDiamondsClaimDate") as? Date
+        
+        // 检查并恢复已购买的哥布林（延迟执行，等待 StoreKit 初始化完成）
+        Task { @MainActor in
+            // 等待 StoreKit 加载产品
+            try? await Task.sleep(nanoseconds: 1_000_000_000) // 等待1秒
+            await restorePurchasedItems()
+        }
+    }
+    
+    /// 恢复已购买的物品（哥布林和钻石）
+    @MainActor
+    private func restorePurchasedItems() async {
+        let storeKitManager = StoreKitManager.shared
+        let allGoblins = Goblin.allGoblins
+        
+        // 恢复已购买的哥布林
+        for goblin in allGoblins {
+            if let productId = goblin.productId,
+               storeKitManager.isPurchased(productId),
+               !unlockedGoblinIds.contains(goblin.id) {
+                // 恢复这个哥布林
+                unlockGoblin(goblinId: goblin.id, cost: 0)
+                print("✅ [恢复购买] 启动时恢复哥布林: \(goblin.name) (productId: \(productId))")
+            }
+        }
+    }
+    
+    /// 加载最佳记录（优先从 iCloud 加载，合并本地和云端数据）
+    private func loadBestRecords() {
+        // 先加载本地数据
+        let localBestRound = UserDefaults.standard.integer(forKey: "bestRound")
+        let localBestSpinInRound = UserDefaults.standard.integer(forKey: "bestSpinInRound")
+        let localBestDifficulty = UserDefaults.standard.string(forKey: "bestDifficulty") ?? ""
+        let localBestCoins = UserDefaults.standard.integer(forKey: "bestCoins")
+        let localBestSingleGameCoins = UserDefaults.standard.integer(forKey: "bestSingleGameCoins")
+        
+        let localRecords = (
+            bestRound: localBestRound,
+            bestSpinInRound: localBestSpinInRound,
+            bestDifficulty: localBestDifficulty,
+            bestCoins: localBestCoins,
+            bestSingleGameCoins: localBestSingleGameCoins
+        )
+        
+        // 尝试从 iCloud 加载
+        if let cloudRecords = CloudSyncManager.shared.loadBestRecords() {
+            // 合并本地和云端数据（取更好的记录）
+            let merged = CloudSyncManager.shared.mergeBestRecords(local: localRecords, cloud: cloudRecords)
+            bestRound = merged.bestRound
+            bestSpinInRound = merged.bestSpinInRound
+            bestDifficulty = merged.bestDifficulty
+            bestCoins = merged.bestCoins
+            bestSingleGameCoins = merged.bestSingleGameCoins
+            
+            // 如果合并后的数据与本地不同，保存到本地
+            if merged.bestRound != localBestRound || merged.bestSpinInRound != localBestSpinInRound ||
+               merged.bestDifficulty != localBestDifficulty || merged.bestCoins != localBestCoins ||
+               merged.bestSingleGameCoins != localBestSingleGameCoins {
+                saveBestRecords()
+            }
+            
+            print("📊 [记录加载] 已合并本地和云端数据: \(bestRound)-\(bestSpinInRound) [\(bestDifficulty)], 历史最多金币: \(bestCoins), 最佳单局金币: \(bestSingleGameCoins)")
+        } else {
+            // 没有云端数据，使用本地数据
+            bestRound = localBestRound
+            bestSpinInRound = localBestSpinInRound
+            bestDifficulty = localBestDifficulty
+            bestCoins = localBestCoins
+            bestSingleGameCoins = localBestSingleGameCoins
+            print("📊 [记录加载] 仅使用本地数据: \(bestRound)-\(bestSpinInRound) [\(bestDifficulty)], 历史最多金币: \(bestCoins), 最佳单局金币: \(bestSingleGameCoins)")
+        }
+        
+        // 监听 iCloud 数据变化
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleCloudDataChange),
+            name: .cloudDataDidChange,
+            object: nil
+        )
+    }
+    
+    /// 处理 iCloud 数据变化
+    @objc private func handleCloudDataChange() {
+        print("☁️ [云同步] 检测到 iCloud 数据变化，重新加载最佳记录")
+        loadBestRecords()
+    }
+    
+    /// 保存最佳记录（同时保存到本地和 iCloud）
+    private func saveBestRecords() {
+        // 保存到本地
+        UserDefaults.standard.set(bestRound, forKey: "bestRound")
+        UserDefaults.standard.set(bestSpinInRound, forKey: "bestSpinInRound")
+        UserDefaults.standard.set(bestDifficulty, forKey: "bestDifficulty")
+        UserDefaults.standard.set(bestCoins, forKey: "bestCoins")
+        UserDefaults.standard.set(bestSingleGameCoins, forKey: "bestSingleGameCoins")
+        
+        // 保存到 iCloud
+        CloudSyncManager.shared.saveBestRecords(
+            bestRound: bestRound,
+            bestSpinInRound: bestSpinInRound,
+            bestDifficulty: bestDifficulty,
+            bestCoins: bestCoins,
+            bestSingleGameCoins: bestSingleGameCoins
+        )
+        
+        print("💾 [记录保存] 最佳回合: \(bestRound)-\(bestSpinInRound) [\(bestDifficulty)], 历史最多金币: \(bestCoins), 最佳单局金币: \(bestSingleGameCoins)")
+    }
+    
+    /// 加载玩家名字（优先从 iCloud 加载）
+    private func loadPlayerName() {
+        // 先加载本地数据
+        let localName = UserDefaults.standard.string(forKey: "playerName") ?? ""
+        
+        // 尝试从 iCloud 加载
+        if let cloudName = CloudSyncManager.shared.loadPlayerName(), !cloudName.isEmpty {
+            // 优先使用云端数据
+            playerName = cloudName
+            // 如果本地数据不同，更新本地
+            if localName != cloudName {
+                UserDefaults.standard.set(cloudName, forKey: "playerName")
+            }
+            print("👤 [玩家名字] 从 iCloud 加载: \(cloudName)")
+        } else if !localName.isEmpty {
+            // 没有云端数据，使用本地数据
+            playerName = localName
+            // 将本地数据同步到 iCloud
+            CloudSyncManager.shared.savePlayerName(localName)
+            print("👤 [玩家名字] 从本地加载并同步到 iCloud: \(localName)")
+        } else {
+            // 都没有数据
+            playerName = ""
+            print("👤 [玩家名字] 未设置")
+        }
+    }
+    
+    /// 保存玩家名字（同时保存到本地和 iCloud）
+    func savePlayerName(_ name: String) {
+        // 限制最多10个字符
+        let trimmedName = String(name.prefix(10))
+        playerName = trimmedName
+        
+        // 保存到本地
+        UserDefaults.standard.set(trimmedName, forKey: "playerName")
+        
+        // 保存到 iCloud
+        CloudSyncManager.shared.savePlayerName(trimmedName)
+        
+        print("👤 [玩家名字] 保存: \(trimmedName)")
     }
     
     /// 加载游戏设置
@@ -327,6 +497,13 @@ class GameViewModel: ObservableObject {
     /// 开始新游戏
     func startNewGame() {
         print("🎮 [新游戏] 初始化游戏状态")
+        
+        // iPad 上禁用游戏内新手引导
+        let isPad = UIDevice.current.userInterfaceIdiom == .pad
+        if isPad {
+            showGameTutorial = false
+            print("📱 [新游戏] 检测到 iPad 设备，禁用游戏内新手引导")
+        }
         
         // 重置第一次符号选择标记
         hasCompletedFirstSymbolSelection = false
@@ -451,6 +628,12 @@ class GameViewModel: ObservableObject {
             if bonus > 0 {
                 currentCoins += bonus
                 print("👥 [人类10羁绊] 人类\(humanCount)个，本次掷骰额外+\(bonus)金币")
+                // 添加人类10羁绊到 bondsWithBonus，用于显示对话气泡
+                let bondBuffs = BondBuffConfigManager.shared.getActiveBondBuffs(symbolPool: symbolPool)
+                if let human10Bond = bondBuffs.first(where: { $0.nameKey.contains("human_10_bond") }) {
+                    bondsWithBonus.insert(human10Bond.id)
+                    print("👥 [人类10羁绊] 添加到 bondsWithBonus: \(human10Bond.id)")
+                }
             }
         }
         
@@ -763,8 +946,20 @@ class GameViewModel: ObservableObject {
                 .map { $0.nameKey }
             effectProcessor.applyGlobalBuff(buffType: humanBonusBuffType, targetSymbols: humanTargets, baseValueBonus: 10)
             let humanCount = humanTargets.count
-            if humanCount > 0 {
+            // 只有在符号池不为空且有人类符号时才显示气泡
+            if !symbolPool.isEmpty && humanCount > 0 {
                 settlementLogs.append("👥 [人类5羁绊] 为\(humanCount)个人类符号应用基础值+10buff")
+                // 添加人类5羁绊到 bondsWithBonus，用于显示对话气泡
+                let bondBuffs = BondBuffConfigManager.shared.getActiveBondBuffs(symbolPool: symbolPool)
+                if let human5Bond = bondBuffs.first(where: { bondBuff in
+                    let nameKey = bondBuff.nameKey.contains(".") ? 
+                        String(bondBuff.nameKey.split(separator: ".").dropLast().last ?? "") : 
+                        bondBuff.nameKey
+                    return nameKey == "human_5_bond"
+                }) {
+                    bondsWithBonus.insert(human5Bond.id)
+                    print("👥 [人类5羁绊] 添加到 bondsWithBonus: \(human5Bond.id)")
+                }
             }
         }
         for index in currentRoundMinedCells {
@@ -1312,7 +1507,8 @@ class GameViewModel: ObservableObject {
             } else {
                 // 游戏失败
                 print("❌ [游戏结束] 金币不足，无法达成目标")
-                gameOver(message: "金币不足！无法达成 \(rentAmount) 金币的目标")
+                let message = localizationManager.localized("game_over.insufficient_coins_message").replacingOccurrences(of: "{amount}", with: "\(rentAmount)")
+                gameOver(message: message)
             }
         } else {
             // 等待玩家手动点击"挖矿x1"按钮
@@ -1334,9 +1530,26 @@ class GameViewModel: ObservableObject {
         let roundStartBonus = effectProcessor.processRoundStart(symbolPool: &symbolPool, currentRound: currentRound)
         currentCoins += roundStartBonus
         
+        // 检查人类3羁绊是否生效（生成随机人类），如果生效则添加到 bondsWithBonus
+        let bondBuffs = BondBuffConfigManager.shared.getActiveBondBuffs(symbolPool: symbolPool)
+        for bondBuff in bondBuffs {
+            let nameKey = bondBuff.nameKey.contains(".") ? 
+                String(bondBuff.nameKey.split(separator: ".").dropLast().last ?? "") : 
+                bondBuff.nameKey
+            if nameKey == "human_3_bond" {
+                let humanCount = symbolPool.filter { $0.types.contains("human") }.count
+                if humanCount >= 3 {
+                    // 人类3羁绊生效，添加到 bondsWithBonus
+                    bondsWithBonus.insert(bondBuff.id)
+                    print("👥 [人类3羁绊] 添加到 bondsWithBonus: \(bondBuff.id)")
+                }
+            }
+        }
+        
         // **新功能：检查是否需要游戏结束（死神的眷顾）**
         if effectProcessor.shouldEndGame() {
-            gameOver(message: "死神的眷顾已结束，游戏强制结束")
+            let message = localizationManager.localized("game_over.death_blessing_ended")
+            gameOver(message: message)
             return
         }
 
@@ -1393,6 +1606,9 @@ class GameViewModel: ObservableObject {
         let startingSymbolCount = SymbolLibrary.startingSymbols.count
         if !hasCompletedFirstSymbolSelection && currentRound == 1 && symbolPool.count == startingSymbolCount + 1 {
             hasCompletedFirstSymbolSelection = true
+            // iPad 上不显示游戏内新手引导
+            let isPad = UIDevice.current.userInterfaceIdiom == .pad
+            if !isPad {
             // 检查是否已经完成过游戏内新手引导
             let hasCompletedGameTutorial = UserDefaults.standard.bool(forKey: "hasCompletedGameTutorial")
             if !hasCompletedGameTutorial {
@@ -1403,6 +1619,9 @@ class GameViewModel: ObservableObject {
                 }
             } else {
                 print("📚 [游戏内引导] 第一次符号选择完成，但用户已完成过引导，跳过")
+                }
+            } else {
+                print("📱 [游戏内引导] 检测到 iPad 设备，跳过游戏内新手引导")
             }
         }
         
@@ -1619,15 +1838,19 @@ class GameViewModel: ObservableObject {
         }
     }
     
-    /// 计算羁绊收益加成（如浣熊市的丧尸数量奖励）
+    /// 计算羁绊收益加成（如浣熊市的丧尸数量奖励、人类羁绊等）
     private func calculateBondEarningsBonus() -> Int {
         var bonus = 0
         var bondsWithBonusThisSettlement: Set<String> = [] // 本次结算有加成的羁绊ID
         let bondBuffs = BondBuffConfigManager.shared.getActiveBondBuffs(symbolPool: symbolPool)
         
         for bondBuff in bondBuffs {
+            let nameKey = bondBuff.nameKey.contains(".") ? 
+                String(bondBuff.nameKey.split(separator: ".").dropLast().last ?? "") : 
+                bondBuff.nameKey
+            
             // 浣熊市：每有一个丧尸，额外金币增加20
-            if bondBuff.nameKey.contains("raccoon_city_bond") {
+            if nameKey.contains("raccoon_city_bond") {
                 // 使用 nameKey 来匹配，因为 name 可能是本地化的
                 let zombieCount = symbolPool.filter { $0.nameKey == "zombie" }.count
                 if zombieCount > 0 {
@@ -1635,6 +1858,16 @@ class GameViewModel: ObservableObject {
                     bondsWithBonusThisSettlement.insert(bondBuff.id) // 记录有加成的羁绊ID
                     print("🧟 [羁绊Buff] 浣熊市：符号池有\(zombieCount)个丧尸，额外+\(zombieCount * 20)金币")
                     settlementLogs.append("🧟 [羁绊Buff] 浣熊市：符号池有\(zombieCount)个丧尸，额外+\(zombieCount * 20)金币")
+                }
+            }
+            
+            // 人类5羁绊：人类基础价值+10（在结算时应用，这里只标记有加成）
+            if nameKey == "human_5_bond" {
+                let humanCount = symbolPool.filter { $0.types.contains("human") }.count
+                // 只有在符号池不为空且有人类符号时才显示气泡
+                if !symbolPool.isEmpty && humanCount > 0 {
+                    bondsWithBonusThisSettlement.insert(bondBuff.id) // 记录有加成的羁绊ID
+                    print("👥 [羁绊Buff] 人类5羁绊生效：为\(humanCount)个人类符号应用基础值+10buff")
                 }
             }
         }
@@ -1723,10 +1956,29 @@ class GameViewModel: ObservableObject {
             print("💰 [新记录] 历史最多金币更新: \(bestCoins)")
         }
         
+        // 更新最佳单局金币记录（单局游戏中获得的总金币数）
+        let singleGameCoins = totalCoins
+        if singleGameCoins > bestSingleGameCoins {
+            bestSingleGameCoins = singleGameCoins
+            print("💰 [新记录] 最佳单局金币更新: \(bestSingleGameCoins)")
+        }
+        
+        // 计算并设置关卡完成钻石奖励（只有在正常游戏结束时才设置）
+        let rewardDiamonds = roundRewardConfigManager.getDiamondsForRound(currentRound)
+        roundRewardDiamonds = rewardDiamonds
+        
+        // 发放钻石奖励（只有在正常游戏结束时才发放）
+        if rewardDiamonds > 0 {
+            addDiamonds(rewardDiamonds)
+            print("💎 [关卡奖励] 完成第\(currentRound)关，获得\(rewardDiamonds)钻石")
+        }
+        
+        // 保存最佳记录
+        saveBestRecords()
+        
         // 提交单局最高金币数到Game Center排行榜
         // 注意：这里使用accumulatedCoins（累计金币 = 当前金币 + 已支付的房租）
         // 这代表玩家在这局游戏中获得的总金币数
-        let singleGameCoins = totalCoins
         print("🎮 [Game Center] 准备提交单局最高金币数: \(singleGameCoins)")
         GameCenterManager.shared.submitScore(Int64(singleGameCoins))
 
@@ -1789,6 +2041,7 @@ class GameViewModel: ObservableObject {
         currentRound = 1  // 先设置回合数
         isSpinning = false  // 确保没有在掷骰子
         showGameOver = false  // 隐藏失败界面
+        roundRewardDiamonds = 0  // 重置关卡奖励钻石
         
         // 重新加载游戏设置（会使用currentRound来计算房租）
         loadGameSettings()
@@ -1864,6 +2117,22 @@ class GameViewModel: ObservableObject {
         } else {
             print("💰 [退出时检查] 累计金币\(totalCoins)未超过最佳\(bestCoins)")
         }
+        
+        // 更新最佳单局金币记录（每次游玩后刷新）
+        let singleGameCoins = totalCoins
+        let previousBestSingleGameCoins = bestSingleGameCoins
+        if singleGameCoins > bestSingleGameCoins {
+            bestSingleGameCoins = singleGameCoins
+            print("💰 [退出时更新] 最佳单局金币: \(previousBestSingleGameCoins) → \(bestSingleGameCoins)")
+        } else {
+            print("💰 [退出时检查] 单局金币\(singleGameCoins)未超过最佳\(bestSingleGameCoins)")
+        }
+        
+        // 保存最佳记录
+        saveBestRecords()
+        
+        // 重置关卡奖励钻石（强制退出不发放奖励）
+        roundRewardDiamonds = 0
         
         // 重置游戏状态
         goblinSelectionCompleted = false
@@ -2206,8 +2475,11 @@ class GameViewModel: ObservableObject {
             let staminaToRecover = Int(timePassed / staminaRecoveryInterval)
             
             if staminaToRecover > 0 {
-                stamina = min(maxStamina, stamina + staminaToRecover)
-                print("⚡ [体力恢复] 离线恢复\(staminaToRecover)点体力，当前: \(stamina)")
+                // 只有当前体力小于maxStamina时才恢复，但恢复后可以超过maxStamina
+                if stamina < maxStamina {
+                    stamina = min(maxStamina, stamina + staminaToRecover)
+                    print("⚡ [体力恢复] 离线恢复\(staminaToRecover)点体力，当前: \(stamina)")
+                }
             }
         }
         
@@ -2256,7 +2528,7 @@ class GameViewModel: ObservableObject {
             return
         }
         
-        stamina = min(maxStamina, stamina + 1)
+        stamina += 1 // 允许超过maxStamina（但自然恢复不会超过）
         saveStamina()
         print("⚡ [体力恢复] 恢复1点体力，当前: \(stamina)/\(maxStamina)")
         
@@ -2331,7 +2603,7 @@ class GameViewModel: ObservableObject {
         guard spendDiamonds(cost) else {
             return false
         }
-        stamina = min(maxStamina, stamina + amount)
+        stamina += amount // 允许超过maxStamina
         saveStamina()
         print("⚡ [购买体力] 购买\(amount)体力，消耗\(cost)钻石，当前体力: \(stamina)/\(maxStamina)")
         return true
@@ -2339,6 +2611,12 @@ class GameViewModel: ObservableObject {
     
     /// 解锁哥布林（使用钻石或USD购买）
     func unlockGoblin(goblinId: Int, cost: Int) -> Bool {
+        // 检查是否已经解锁（防止重复解锁）
+        if unlockedGoblinIds.contains(goblinId) {
+            print("⚠️ [解锁哥布林] 哥布林已解锁，跳过: \(goblinId)")
+            return false
+        }
+        
         // 如果 cost 为 0（USD购买），直接解锁，不消耗钻石
         if cost > 0 {
             guard spendDiamonds(cost) else {
@@ -2349,7 +2627,26 @@ class GameViewModel: ObservableObject {
             print("🎭 [解锁哥布林] 解锁ID: \(goblinId)，USD购买（不消耗钻石）")
         }
         unlockedGoblinIds.insert(goblinId)
+        saveUnlockedGoblins()
         return true
+    }
+    
+    /// 加载已解锁的哥布林（从UserDefaults）
+    private func loadUnlockedGoblins() {
+        if let savedIds = UserDefaults.standard.array(forKey: "unlockedGoblinIds") as? [Int] {
+            unlockedGoblinIds = Set(savedIds)
+            print("🎭 [哥布林加载] 从UserDefaults加载已解锁哥布林: \(unlockedGoblinIds)")
+        } else {
+            unlockedGoblinIds = Set<Int>()
+            print("🎭 [哥布林加载] UserDefaults中没有已解锁哥布林记录，初始化为空")
+        }
+    }
+    
+    /// 保存已解锁的哥布林（到UserDefaults）
+    private func saveUnlockedGoblins() {
+        let idsArray = Array(unlockedGoblinIds)
+        UserDefaults.standard.set(idsArray, forKey: "unlockedGoblinIds")
+        print("🎭 [哥布林保存] 保存已解锁哥布林到UserDefaults: \(idsArray)")
     }
     
     // MARK: - 签到系统
@@ -2398,6 +2695,11 @@ class GameViewModel: ObservableObject {
                     signInDay = 1
                     saveSignInStatus()
                     print("📅 [签到系统] 超过1天未签到，重置到第1天")
+                } else if daysSinceLastSignIn == 1 {
+                    // 新的一天开始（00:00后），重置到第1天
+                    signInDay = 1
+                    saveSignInStatus()
+                    print("📅 [签到系统] 新的一天开始，重置到第1天")
                 }
             }
         } else {
@@ -2436,7 +2738,7 @@ class GameViewModel: ObservableObject {
         case .coins:
             currentCoins += reward.amount
         case .stamina:
-            stamina = min(maxStamina, stamina + reward.amount)
+            stamina += reward.amount // 允许超过maxStamina
             saveStamina()
         }
         
@@ -2459,12 +2761,82 @@ class GameViewModel: ObservableObject {
         
         // 如果配置加载失败，返回默认奖励
         print("⚠️ [签到] 无法从配置获取第\(day)天奖励，使用默认值")
-        return SignInReward(day: day, type: .diamonds, amount: 10, description: "10 💎")
+        let typeName = localizationManager.localized("sign_in.reward_type.diamonds")
+        return SignInReward(day: day, type: .diamonds, amount: 10, description: "10 💎 \(typeName)")
     }
     
     /// 获取所有7天的奖励（用于显示）
     func getAllSignInRewards() -> [SignInReward] {
         return DailySignInConfigManager.shared.getAllRewards()
+    }
+    
+    /// 测试用：跳到下一天（模拟跨天）
+    func advanceToNextDay() {
+        // 注意：如果今天已经签到，signInDay 已经在 performSignIn() 中更新为下一天了
+        // 所以这里只需要重置签到状态，允许签到，不需要再次增加天数
+        // 如果今天还没签到，说明 signInDay 还是今天应该签的天数，也不需要改变
+        
+        // 重置签到状态，允许签到
+        canSignInToday = true
+        lastSignInDate = nil // 清除上次签到日期，模拟新的一天
+        
+        saveSignInStatus()
+        print("🧪 [测试] 跳到下一天，当前签到天数: \(signInDay), 可签到: \(canSignInToday)")
+    }
+    
+    // MARK: - 兑换码系统
+    
+    /// 兑换码配置
+    private let redeemCodes: [String: Int] = [
+        "GBLOK1": 100,  // 100钻石
+        "GBLXYE": 150,  // 150钻石
+        "GBLHHW": 350,  // 350钻石
+        "GBLYSG": 600   // 600钻石
+    ]
+    
+    /// 兑换码结果
+    struct RedeemCodeResult {
+        let success: Bool
+        let message: String
+    }
+    
+    /// 兑换码
+    func redeemCode(_ code: String) -> RedeemCodeResult {
+        let upperCode = code.uppercased().trimmingCharacters(in: .whitespaces)
+        
+        // 检查兑换码是否存在
+        guard let diamonds = redeemCodes[upperCode] else {
+            print("🎫 [兑换码] 无效的兑换码: \(upperCode)")
+            return RedeemCodeResult(
+                success: false,
+                message: LocalizationManager.shared.localized("redeem_code.error_invalid_code")
+            )
+        }
+        
+        // 检查是否已使用过
+        let usedCodesKey = "usedRedeemCodes"
+        var usedCodes = Set<String>(UserDefaults.standard.stringArray(forKey: usedCodesKey) ?? [])
+        
+        if usedCodes.contains(upperCode) {
+            print("🎫 [兑换码] 兑换码已使用: \(upperCode)")
+            return RedeemCodeResult(
+                success: false,
+                message: LocalizationManager.shared.localized("redeem_code.error_already_used")
+            )
+        }
+        
+        // 发放奖励
+        addDiamonds(diamonds)
+        
+        // 标记为已使用
+        usedCodes.insert(upperCode)
+        UserDefaults.standard.set(Array(usedCodes), forKey: usedCodesKey)
+        
+        print("🎫 [兑换码] 兑换成功: \(upperCode), 获得\(diamonds)钻石")
+        return RedeemCodeResult(
+            success: true,
+            message: LocalizationManager.shared.localized("redeem_code.success_message")
+        )
     }
 }
 

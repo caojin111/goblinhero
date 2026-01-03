@@ -310,25 +310,13 @@ class SymbolConfigManager {
         let bondBuffs = BondBuffConfigManager.shared.getActiveBondBuffs(symbolPool: symbolPool)
         let hasJusticeBond = bondBuffs.contains { $0.nameKey.contains("justice_bond") }
         
-        // **新功能2：应用全局权重buff（如十字架的猎人权重翻倍）**
-        // 检查符号池中是否有十字架（使用nameKey匹配）
-        let hasCross = symbolPool.contains { $0.nameKey == "cross" }
-        
-        if hasJusticeBond || hasCross {
+        // **新功能2：应用全局权重buff（正义必胜羁绊的猎人权重翻倍）**
+        if hasJusticeBond {
             // 为猎人符号创建权重翻倍的副本（用于权重计算，使用nameKey匹配）
             adjustedPool = pool.map { symbol in
                 if symbol.nameKey == "hunter" {
-                    var weightMultiplier = 1.0
-                    
                     // 正义必胜羁绊：权重×2
-                    if hasJusticeBond {
-                        weightMultiplier *= 2.0
-                    }
-                    
-                    // 十字架全局buff：权重×2
-                    if hasCross {
-                        weightMultiplier *= 2.0
-                    }
+                    let weightMultiplier = 2.0
                     
                     // 创建权重翻倍的副本
                     return Symbol(
@@ -349,12 +337,7 @@ class SymbolConfigManager {
                 return symbol
             }
             
-            if hasJusticeBond {
-                print("⚖️ [羁绊Buff] 正义必胜：猎人权重翻倍应用于随机选择")
-            }
-            if hasCross {
-                print("⚖️ [全局Buff] 十字架：猎人权重翻倍应用于随机选择")
-            }
+            print("⚖️ [羁绊Buff] 正义必胜：猎人权重翻倍应用于随机选择")
         }
         
         let totalWeight = adjustedPool.reduce(0) { $0 + $1.weight }

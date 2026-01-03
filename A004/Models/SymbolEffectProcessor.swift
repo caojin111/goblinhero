@@ -821,6 +821,10 @@ class SymbolEffectProcessor {
             spawnSpecific("cross", symbolPool: &symbolPool, count: 1, logCallback: logCallback)
             logCallback?("   ✓ 修女：生成十字架")
             return 0
+        case "cross":
+            spawnSpecific("hunter", symbolPool: &symbolPool, count: 1, logCallback: logCallback)
+            logCallback?("   ✓ 十字架：生成猎人")
+            return 0
         case "soldier":
             // 获得一个符文铠甲或外星头盔（随机）
             spawnOneOf(["rune_armor", "alien_helmet"], symbolPool: &symbolPool, logCallback: logCallback)
@@ -889,12 +893,18 @@ class SymbolEffectProcessor {
             return 0
         // 装备/材料类
         case "dragon_fire_gun":
+            // 消除自身
+            if let selfIndex = symbolPool.firstIndex(where: { $0.id == symbol.id }) {
+                symbolPool.remove(at: selfIndex)
+                logCallback?("   ✓ 龙火枪：消除自身")
+            }
+            // 消灭符号池随机一个#怪物
             let monsters = symbolPool.enumerated().filter { $0.element.types.contains("monster") }
             if let target = monsters.randomElement() {
                 symbolPool.remove(at: target.offset)
-                logCallback?("   ✓ 龙火枪：消灭怪物 \(target.element.name)")
+                logCallback?("   ✓ 龙火枪：消灭怪物 \(target.element.name)，获得50金币")
             } else {
-                logCallback?("   ⚠️ 龙火枪：无怪物可消灭")
+                logCallback?("   ⚠️ 龙火枪：无怪物可消灭，但仍获得50金币")
             }
             return 50
         case "rune_armor":
@@ -998,6 +1008,53 @@ class SymbolEffectProcessor {
         case "artwork":
             spawnSpecific("merchant", symbolPool: &symbolPool, count: 5, logCallback: logCallback)
             logCallback?("   ✓ 艺术品：生成5个商人")
+            return 0
+        case "hypnosis_pendulum":
+            // 催眠钟摆：从符号池移除自身，随机生成'公主'或'女忍者'或'修女'中的一个到符号池
+            let symbols = ["princess", "female_ninja", "nun"] // 使用 nameKey
+            if let randomSymbolNameKey = symbols.randomElement(),
+               let newSymbol = SymbolLibrary.getSymbol(byName: randomSymbolNameKey) {
+                symbolPool.append(newSymbol)
+                logCallback?("   🎭 催眠钟摆：随机生成 \(newSymbol.name) (nameKey: \(randomSymbolNameKey))")
+                
+                // 消除自身
+                let beforeCount = symbolPool.count
+                symbolPool.removeAll { $0.nameKey == symbol.nameKey }
+                let afterCount = symbolPool.count
+                eliminatedSymbolCount += 1
+                logCallback?("   ✗ 催眠钟摆被消耗，从符号池中移除 (移除前: \(beforeCount), 移除后: \(afterCount))")
+            } else {
+                logCallback?("   ❌ 催眠钟摆：无法生成符号")
+            }
+            return 0
+        case "book_of_the_dead":
+            // 死亡之书：从符号池移除自身和十字架，生成一个死神到符号池
+            // 先移除十字架
+            let beforeCrossCount = symbolPool.count
+            symbolPool.removeAll { $0.nameKey == "cross" }
+            let afterCrossCount = symbolPool.count
+            let removedCrossCount = beforeCrossCount - afterCrossCount
+            if removedCrossCount > 0 {
+                eliminatedSymbolCount += removedCrossCount
+                logCallback?("   ✗ 死亡之书：移除\(removedCrossCount)个十字架")
+            } else {
+                logCallback?("   ⚠️ 死亡之书：符号池中没有十字架")
+            }
+            
+            // 生成死神
+            if let death = SymbolLibrary.getSymbol(byName: "death") {
+                symbolPool.append(death)
+                logCallback?("   🎁 死亡之书：生成死神 \(death.name)")
+            } else {
+                logCallback?("   ❌ 死亡之书：无法生成死神")
+            }
+            
+            // 消除自身
+            let beforeSelfCount = symbolPool.count
+            symbolPool.removeAll { $0.nameKey == symbol.nameKey }
+            let afterSelfCount = symbolPool.count
+            eliminatedSymbolCount += 1
+            logCallback?("   ✗ 死亡之书被消耗，从符号池中移除 (移除前: \(beforeSelfCount), 移除后: \(afterSelfCount))")
             return 0
         default:
             return nil
@@ -1517,16 +1574,18 @@ class SymbolEffectProcessor {
         guard let initialValue = symbol.effectParams["initialValue"] as? Int,
               let decrement = symbol.effectParams["decrement"] as? Int,
               let minValue = symbol.effectParams["minValue"] as? Int else {
+            print("❌ [递减价值] 参数缺失: initialValue=\(symbol.effectParams["initialValue"] ?? "nil"), decrement=\(symbol.effectParams["decrement"] ?? "nil"), minValue=\(symbol.effectParams["minValue"] ?? "nil")")
             return 0
         }
         
-        let key = symbol.name
+        // 使用 nameKey 作为 key，确保所有相同符号实例共享同一个计数器
+        let key = symbol.nameKey
         let currentCount = cyclopsCounters[key, default: 0]
         let value = max(initialValue - (currentCount * decrement), minValue)
         
         cyclopsCounters[key] = currentCount + 1
         
-        let msg = "   🔽 第\(currentCount + 1)次挖出，价值: \(value)金币"
+        let msg = "   🔽 [独眼怪] 第\(currentCount + 1)次挖出，价值: \(value)金币 (初始: \(initialValue), 递减: \(decrement), 当前计数: \(currentCount))"
         print(msg)
         logCallback?(msg)
         
@@ -1680,7 +1739,7 @@ class SymbolEffectProcessor {
         
         // 支持不同类型的全局buff
         if buffType == "weight_multiplier" {
-            // 权重倍数buff（如十字架的猎人权重翻倍）
+            // 权重倍数buff（如正义必胜羁绊的猎人权重翻倍）
             guard let targetSymbol = symbol.effectParams["targetSymbol"] as? String,
                   let multiplier = symbol.effectParams["multiplier"] as? Double else {
                 return 0

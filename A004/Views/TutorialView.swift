@@ -9,6 +9,7 @@ import SwiftUI
 
 struct TutorialView: View {
     @ObservedObject var localizationManager = LocalizationManager.shared
+    @ObservedObject var viewModel: GameViewModel
     @Binding var isPresented: Bool
     @State private var currentStep: Int = 0
     
@@ -117,7 +118,15 @@ struct TutorialView: View {
     private func completeTutorial() {
         print("📚 [新手教程] 用户完成教程")
         markTutorialCompleted()
+        // 关闭教程
         isPresented = false
+        // 检查是否需要显示名字输入弹窗
+        if viewModel.playerName.isEmpty {
+            print("👤 [名字输入] 教程完成，名字为空，显示名字输入弹窗")
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                viewModel.showPlayerNameInput = true
+            }
+        }
     }
     
     /// 标记教程已完成
@@ -250,6 +259,7 @@ struct TutorialTipCard: View {
 
 #Preview {
     TutorialView(
+        viewModel: GameViewModel(),
         isPresented: .constant(true),
         steps: [
             TutorialStep(

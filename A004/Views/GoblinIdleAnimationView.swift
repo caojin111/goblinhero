@@ -17,6 +17,7 @@ struct GoblinIdleAnimationView: View {
     @State private var showEmoji: Bool = false
     @State private var currentEmoji: Int = 1 // 当前显示的 emoji 编号（1-5）
     @State private var emojiTimer: Timer?
+    @Binding var triggerEmoji1: Bool // 外部触发显示emoji1
     
     var body: some View {
         GeometryReader { geometry in
@@ -31,7 +32,8 @@ struct GoblinIdleAnimationView: View {
                     .frame(width: geometry.size.width, height: geometry.size.height)
                     .clipped()
                 
-                // 对话气泡（单独一层，覆盖在哥布林动画之上，不被裁剪）
+                // 对话气泡（单独一层，覆盖在哥布林动画之上，不被裁剪，跟随哥布林一起浮动）
+                // 注意：不单独应用 FloatingAnimation，让它跟随外层的 FloatingAnimation 一起浮动
                 if showEmoji {
                     Image("emoji\(currentEmoji)")
                         .resizable()
@@ -59,12 +61,39 @@ struct GoblinIdleAnimationView: View {
             stopAnimation()
             hideEmoji()
         }
+        .onChange(of: triggerEmoji1) { triggered in
+            if triggered {
+                showEmoji1()
+                // 重置触发标志
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    triggerEmoji1 = false
+                }
+            }
+        }
     }
     
     /// 显示随机 emoji
     private func showRandomEmoji() {
         // 随机选择 1-5 的 emoji
         currentEmoji = Int.random(in: 1...5)
+        showEmoji = true
+        
+        // 取消之前的定时器
+        emojiTimer?.invalidate()
+        
+        // 2秒后自动消失
+        emojiTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { _ in
+            hideEmoji()
+        }
+        // 将定时器添加到 common mode，确保在滚动等操作时也能正常运行
+        if let timer = emojiTimer {
+            RunLoop.current.add(timer, forMode: .common)
+        }
+    }
+    
+    /// 显示 emoji1
+    private func showEmoji1() {
+        currentEmoji = 1
         showEmoji = true
         
         // 取消之前的定时器
@@ -116,7 +145,7 @@ struct GoblinIdleAnimationView: View {
 }
 
 #Preview {
-    GoblinIdleAnimationView()
+    GoblinIdleAnimationView(triggerEmoji1: .constant(false))
         .frame(width: 200, height: 200)
 }
 

@@ -225,6 +225,7 @@ struct SymbolBookItemView: View {
                     .textStroke()
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
+                    .minimumScaleFactor(localizationManager.currentLanguage == "en" ? 0.7 : 1.0) // 英文时允许缩小到70%
                     .frame(height: 36)
                 
                 // 稀有度标签

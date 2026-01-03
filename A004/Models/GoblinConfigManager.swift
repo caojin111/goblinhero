@@ -23,7 +23,8 @@ struct GoblinConfig: Codable {
     let buffValue: Double
     let unlockPrice: Int
     let descriptionKey: String
-    let unlockCurrency: String? // "coins" 或 "diamonds"，默认为 "coins"
+    let unlockCurrency: String? // "coins" 或 "diamonds" 或 "usd"，默认为 "coins"
+    let productId: String? // StoreKit product identifier (用于 USD 购买)
 }
 
 struct GoblinSystemConfig: Codable {
@@ -77,7 +78,8 @@ class GoblinConfigManager {
                 buffValue: config.buffValue,
                 unlockPrice: config.unlockPrice,
                 descriptionKey: config.descriptionKey,
-                unlockCurrency: config.unlockCurrency ?? "coins"
+                unlockCurrency: config.unlockCurrency ?? "coins",
+                productId: config.productId
             )
         }
     }

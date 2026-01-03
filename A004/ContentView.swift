@@ -9,7 +9,8 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var viewModel = GameViewModel()
-    @State private var showLaunchScreen = true
+    @State private var showLogoView = true
+    @State private var showLaunchScreen = false
     @State private var showStoryIntro = false
     @State private var showLoadingScreen = false
     @State private var showHomeView = false
@@ -24,6 +25,13 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
+            // Logo页面（最先显示）
+            if showLogoView {
+                LogoView(isPresented: $showLogoView)
+                    .transition(.opacity)
+                    .zIndex(100)
+            }
+            
             // 启动页（只显示 icon，不显示 loading）
             if showLaunchScreen {
                 LaunchScreenView()
@@ -97,7 +105,9 @@ struct ContentView: View {
             // 初始化Game Center认证
             _ = GameCenterManager.shared
             print("🎮 [Game Center] 初始化Game Center管理器")
+            // 注意：iPad 设备检测和教程标记已在 AppDelegate 中完成，这里不需要重复
         }
+        .animation(.easeInOut(duration: 0.3), value: showLogoView)
         .animation(.easeInOut(duration: 0.3), value: showLaunchScreen)
         .animation(.easeInOut(duration: 0.3), value: showStoryIntro)
         .animation(.easeInOut(duration: 0.3), value: showLoadingScreen)
@@ -105,17 +115,23 @@ struct ContentView: View {
         .animation(.easeInOut(duration: 0.3), value: viewModel.goblinSelectionCompleted)
         .animation(.easeInOut(duration: 0.3), value: viewModel.showGoblinSelection)
         .animation(.easeInOut(duration: 0.3), value: viewModel.showLetterView)
-        .onAppear {
-            // 启动页显示2秒后决定下一步
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+        .onChange(of: showLogoView) { newValue in
+            // Logo页面关闭后，显示LaunchScreen
+            if !newValue {
                 withAnimation {
-                    showLaunchScreen = false
-                    // 如果是首次启动，显示故事介绍；否则直接显示 LoadingScreen
-                    if isFirstLaunch {
-                        showStoryIntro = true
-                    } else {
-                        // 老玩家：LaunchScreen → LoadingScreen
-                        showLoadingScreen = true
+                    showLaunchScreen = true
+                }
+                // LaunchScreen显示2秒后决定下一步
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                    withAnimation {
+                        showLaunchScreen = false
+                        // 如果是首次启动，显示故事介绍；否则直接显示 LoadingScreen
+                        if isFirstLaunch {
+                            showStoryIntro = true
+                        } else {
+                            // 老玩家：LaunchScreen → LoadingScreen
+                            showLoadingScreen = true
+                        }
                     }
                 }
             }

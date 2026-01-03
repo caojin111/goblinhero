@@ -20,7 +20,7 @@
       "buffKey": "craftsman_goblin",
       "buffType": "dice_type_artisan",
       "buffValue": 0,
-      "unlockPrice": 200,
+      "unlockPrice": 1000,
       "descriptionKey": "craftsman_goblin",
       "unlockCurrency": "diamonds"
     },
@@ -32,7 +32,7 @@
       "buffKey": "gambler_goblin",
       "buffType": "dice_type_gambler",
       "buffValue": 0,
-      "unlockPrice": 200,
+      "unlockPrice": 1000,
       "descriptionKey": "gambler_goblin",
       "unlockCurrency": "diamonds"
     },
@@ -46,7 +46,8 @@
       "buffValue": 0,
       "unlockPrice": 999,
       "descriptionKey": "king_goblin",
-      "unlockCurrency": "usd"
+      "unlockCurrency": "usd",
+      "productId": "king_goblin_9.99"
     },
     {
       "id": 5,
@@ -58,7 +59,8 @@
       "buffValue": 0,
       "unlockPrice": 999,
       "descriptionKey": "wizard_goblin",
-      "unlockCurrency": "usd"
+      "unlockCurrency": "usd",
+      "productId": "wizard_goblin_9.99"
     },
     {
       "id": 6,
@@ -70,7 +72,8 @@
       "buffValue": 0,
       "unlockPrice": 999,
       "descriptionKey": "athlete_goblin",
-      "unlockCurrency": "usd"
+      "unlockCurrency": "usd",
+      "productId": "athlete_goblin_9.99"
     }
   ],
   "config": {

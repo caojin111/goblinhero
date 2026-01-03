@@ -205,8 +205,8 @@ struct GameView: View {
                 }
             }
             
-            // 游戏内新手引导
-            if viewModel.showGameTutorial {
+            // 游戏内新手引导（iPad上不显示）
+            if viewModel.showGameTutorial && UIDevice.current.userInterfaceIdiom != .pad {
                 GameTutorialView(
                     isPresented: $viewModel.showGameTutorial,
                     viewModel: viewModel,
@@ -2266,26 +2266,38 @@ struct GameTutorialView: View {
                     let step = steps[currentStep]
                     // 对话框位置：第一步和第四步在上方，第二步和第三步在下方
                     let spacing: CGFloat = 30 // 对话框与聚焦区域的间距
-                    let dialogContentHeight: CGFloat = 300 // 对话框内容总高度（头像120 + 卡片 + 按钮 + 间距）
+                    // 对话框内容总高度：第二步不显示头像，所以高度不同
+                    let dialogContentHeight: CGFloat = currentStep == 1 
+                        ? 180 // 第二步：只有卡片和按钮（不包含头像120）
+                        : 300 // 其他步骤：头像120 + 卡片 + 按钮 + 间距
                     
                     // 计算对话框中心位置
                     // 第一步和第四步：对话框在聚焦区域上方；第二步和第三步：对话框在聚焦区域下方
-                    // 第二步：仅对话区域向上移动10像素
+                    // 第二步：对话框向下移动100像素（不显示头像）
                     let tipCardY: CGFloat = {
                         let baseY = (currentStep == 0 || currentStep == 3) 
                             ? step.highlightFrame.minY - spacing - dialogContentHeight / 2
                             : step.highlightFrame.maxY + spacing + dialogContentHeight / 2
-                        // 第二步：仅对话区域向上移动10像素
-                        return currentStep == 1 ? baseY - 10 : baseY
+                        // 第二步：对话框向下移动100像素
+                        if currentStep == 1 {
+                            // 第二步不显示头像，对话框向下移动100像素
+                            return baseY + 20 // 向下移动100像素
+                        }
+                        return baseY
                     }()
                     
+                    // 第二步不显示头像，其他步骤显示
+                    let showAvatar = currentStep != 1
+                    
                     VStack(spacing: 0) {
-                        // 头像图片
-                        Image("tutorial_avatar")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 120, height: 120)
-                            .padding(.bottom, 0)
+                        // 头像图片（第二步不显示）
+                        if showAvatar {
+                            Image("tutorial_avatar")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 120, height: 120)
+                                .padding(.bottom, 0)
+                        }
                         
                         // 提示卡片
                         TutorialTipCard(

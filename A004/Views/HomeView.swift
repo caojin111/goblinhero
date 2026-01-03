@@ -7,6 +7,7 @@
 
 import SwiftUI
 import UIKit
+import CoreMotion
 
 // 用于标识要打开的商城标签页
 struct StoreTabIdentifier: Identifiable {
@@ -23,10 +24,27 @@ struct HomeView: View {
     @State private var showDailySignIn = false
     @State private var showSettings = false
     @State private var showTutorial = false
+    @State private var showGoblinRecord = false
+    @State private var shakeOffset: CGFloat = 0 // 抖动偏移量
+    @State private var shakeTimer: Timer? // 抖动定时器
+    @State private var triggerEmoji1: Bool = false // 触发哥布林显示emoji1
+    @State private var motionManager: CMMotionManager? // 运动管理器
+    @State private var lastShakeTime: Date = Date() // 上次抖动时间，防止频繁触发
+    
+    // 检测是否为iPad（每次访问时重新计算，确保在所有iOS版本上都能正确工作）
+    private var isPad: Bool {
+        let detected = UIDevice.current.userInterfaceIdiom == .pad
+        return detected
+    }
     
     // 检查是否需要显示教程
     private var shouldShowTutorial: Bool {
-        !UserDefaults.standard.bool(forKey: "hasCompletedTutorial")
+        // iPad 上不显示新手引导
+        if isPad {
+            print("📱 [HomeView] 检测到 iPad 设备，跳过新手引导")
+            return false
+        }
+        return !UserDefaults.standard.bool(forKey: "hasCompletedTutorial")
     }
     
     // 获取自定义字体
@@ -48,9 +66,9 @@ struct HomeView: View {
                 .ignoresSafeArea(.all)
                 .clipped()
                 .overlay {
-                    // 云朵（作为背景图的overlay，独立层级，不会遮盖UI）
+                    // 云朵（作为背景图的overlay，独立层级，可以点击）
                     CloudView()
-                        .allowsHitTesting(false) // 不拦截点击事件
+                        .allowsHitTesting(true) // 允许点击事件
                 }
             
             GeometryReader { geometry in
@@ -58,56 +76,62 @@ struct HomeView: View {
                 let scaleX = geometry.size.width / figmaWidth
                 let scaleY = geometry.size.height / figmaHeight
                 
+                // 在GeometryReader中直接计算isPad，确保在iOS 26.0.1上也能正确工作
+                let currentIsPad = UIDevice.current.userInterfaceIdiom == .pad
+                
                 // 打印字体大小用于调试
                 let _ = print("🔤 [首页字体] scaleX: \(scaleX), settings/shop/sign-in 字体大小: \(53 * scaleX)")
                 
                 ZStack {
                     // 顶部左侧：哥布林信息区域
                     // Main_menu 1 背景（Figma: x: 37, y: 76, 485.01 x 251.44）- 已移除，用透明占位保持布局
-                    ZStack(alignment: .topLeading) {
-                        // 透明占位，保持原有布局结构
-                        Color.clear
-                            .frame(width: 485.01 * scaleX, height: 251.44 * scaleY)
-                        
-                        // avatarBG（Figma: x: 37, y: 72, 191 x 191）
-                        Image("avatarBG")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 191 * scaleX, height: 191 * scaleY)
-                            .offset(x: 0, y: -4 * scaleY)
-                        
-                        // avatar1（Figma: x: 55, y: 90, 152 x 149）
-                        Image("avatar1")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 152 * scaleX, height: 149 * scaleY)
-                            .offset(x: 18 * scaleX, y: 14 * scaleY)
-                        
-                        // "[Goblin]" 文字（Figma: x: 237, y: 112）
-                        Text(localizationManager.localized("home.goblin"))
-                            .font(customFont(size: 62 * scaleX)) // 从 57 增加到 62（+5）
-                            .foregroundColor(.white)
-                            .textStroke()
-                            .offset(x: (237 - 37) * scaleX, y: (112 - 76 - 30) * scaleY) // 上移30像素
-                        
-                        // "best level: 10-1" 文字（Figma: x: 242, y: 191）
-                        VStack(alignment: .leading, spacing: 0) {
-                            Text(localizationManager.localized("home.best_level"))
-                            .font(customFont(size: 47 * scaleX)) // 从 42 增加到 47（+5）
-                            .foregroundColor(.white)
-                            .textStroke()
+                    Button(action: {
+                        print("👤 [首页] 点击头像区域")
+                        audioManager.playSoundEffect("click", fileExtension: "wav")
+                        showGoblinRecord = true
+                    }) {
+                        ZStack(alignment: .topLeading) {
+                            // 透明占位，保持原有布局结构
+                            Color.clear
+                                .frame(width: 485.01 * scaleX, height: 251.44 * scaleY)
                             
-                            Text(viewModel.bestRound > 0 ? "\(viewModel.bestRound)-\(viewModel.bestSpinInRound)" : "0")
-                                .font(customFont(size: 47 * scaleX))
-                                .foregroundColor(.white)
-                                .textStroke()
+                            // avatarBG（Figma: x: 37, y: 72, 191 x 191）
+                            Image("avatarBG")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 191 * scaleX, height: 191 * scaleY)
+                                .offset(x: 0, y: -4 * scaleY)
+                            
+                            // avatar1（Figma: x: 55, y: 90, 152 x 149）
+                            Image("avatar1")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 152 * scaleX, height: 149 * scaleY)
+                                .offset(x: 18 * scaleX, y: 14 * scaleY)
+                            
+                            // "[Goblin]" 文字（Figma: x: 237, y: 112）
+                            VStack(alignment: .leading, spacing: 4 * scaleY) {
+                                Text(localizationManager.localized("home.goblin"))
+                                    .font(customFont(size: 62 * scaleX)) // 从 57 增加到 62（+5）
+                                    .foregroundColor(.white)
+                                    .textStroke()
+                                
+                                // 玩家昵称（如果有）
+                                if !viewModel.playerName.isEmpty {
+                                    Text(viewModel.playerName)
+                                        .font(customFont(size: 40 * scaleX))
+                                        .foregroundColor(.white.opacity(0.9))
+                                        .textStroke()
+                                }
+                            }
+                            .offset(x: (237 - 37) * scaleX, y: (112 - 76 - 30) * scaleY) // 上移30像素
                         }
-                            .offset(x: (242 - 37) * scaleX, y: (191 - 76 - 30) * scaleY) // 上移30像素
                     }
+                    .buttonStyle(PlainButtonStyle()) // 使用PlainButtonStyle避免默认样式
                     .frame(width: 485.01 * scaleX, height: 251.44 * scaleY)
                     .position(
                         x: (37 + 485.01/2) * scaleX,
-                        y: (76 + 251.44/2) * scaleY + 60
+                        y: (76 + 251.44/2) * scaleY + 60 + (currentIsPad ? 100 : 0) // iPad向下移动100像素
                     )
                     
                     // 顶部右侧：资源条区域
@@ -125,7 +149,7 @@ struct HomeView: View {
                     .frame(width: 289 * scaleX, height: 127 * scaleY)
                     .position(
                         x: geometry.size.width - (figmaWidth - 591 - 289/2) * scaleX,
-                        y: (90 + 127/2) * scaleY + 60
+                        y: (90 + 127/2) * scaleY + 60 + (currentIsPad ? 100 : 0) // iPad向下移动100像素
                     )
                     
                     // 钻石条（Figma: x: 894, y: 89, 288 x 127）
@@ -142,7 +166,7 @@ struct HomeView: View {
                     .frame(width: 288 * scaleX, height: 127 * scaleY)
                     .position(
                         x: geometry.size.width - (figmaWidth - 894 - 288/2) * scaleX,
-                        y: (89 + 127/2) * scaleY + 60
+                        y: (89 + 127/2) * scaleY + 60 + (currentIsPad ? 100 : 0) // iPad向下移动100像素
                     )
                     
                     // Achievement 按钮
@@ -151,7 +175,7 @@ struct HomeView: View {
                         .offset(x: -10 * scaleX) // Achievement按钮单独左移30像素
                         .position(
                             x: geometry.size.width - (figmaWidth - 894 - 288/2) * scaleX - 40 * scaleX - 20 * scaleX + 80 * scaleX, // 统一右移80像素（50+30）
-                            y: (89 + 127 + 50) * scaleY + 60 + 10 * scaleY // 再下移 10 像素
+                            y: (89 + 127 + 50) * scaleY + 60 + 10 * scaleY + (currentIsPad ? 100 : 0) // iPad向下移动100像素
                         )
                     
                     // Rank 按钮（放在 Achievement 按钮正下方）
@@ -160,7 +184,7 @@ struct HomeView: View {
                         .offset(x: -40 * scaleX, y: 4 * scaleY) // Rank按钮单独左移40像素，下移4像素
                         .position(
                             x: geometry.size.width - (figmaWidth - 894 - 288/2) * scaleX - 40 * scaleX - 20 * scaleX + 118 * scaleX, // 统一右移118像素（88+30）
-                            y: (89 + 127 + 50) * scaleY + 60 + 10 * scaleY + 100 * scaleY + 20 * scaleY + 60 * scaleY // 再向下移动30像素（总共60像素）
+                            y: (89 + 127 + 50) * scaleY + 60 + 10 * scaleY + 100 * scaleY + 20 * scaleY + 60 * scaleY + (currentIsPad ? 100 : 0) // iPad向下移动100像素
                     )
                     
                     // 中间：哥布林的家（Figma: x: 50, y: 609, 1102 x 1121）
@@ -168,10 +192,15 @@ struct HomeView: View {
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(width: min(1102 * scaleX, geometry.size.width * 0.9), height: min(1121 * scaleY, geometry.size.height * 0.5))
+                        .offset(x: shakeOffset) // 抖动效果
                         .position(
                             x: geometry.size.width / 2,
                             y: (609 + 1121/2) * scaleY
                         )
+                        .onTapGesture {
+                            print("🏠 [首页] 点击房子")
+                            triggerHouseShake()
+                        }
                     
                     // Start 按钮（Figma: x: 344, y: 1802, 503 x 263）
                     Button(action: {
@@ -214,7 +243,7 @@ struct HomeView: View {
                             .ignoresSafeArea(.container, edges: .bottom) // 确保不被安全区域裁剪顶部
                             .position(
                                 x: geometry.size.width / 2,
-                                y: geometry.size.height - (figmaHeight - 2314 - 308/2) * scaleY - 50
+                                y: geometry.size.height - (figmaHeight - 2314 - 308/2) * scaleY - 50 - (currentIsPad ? 130 : 0) // iPad向上移动130像素
                             )
                             .clipped() // 将 clipped 移到 position 之后，避免裁剪顶部
                         
@@ -232,7 +261,7 @@ struct HomeView: View {
                         .buttonStyle(ScaleButtonStyle())
                         .position(
                             x: (194 + 142/2) * scaleX,
-                            y: geometry.size.height - (figmaHeight - 2363 - 142/2) * scaleY - 55
+                            y: geometry.size.height - (figmaHeight - 2363 - 142/2) * scaleY - 55 - (currentIsPad ? 130 : 0) // iPad向上移动130像素
                         )
                         
                         // shop 按钮图标（Figma: x: 529, y: 2363, 142 x 142）
@@ -260,7 +289,7 @@ struct HomeView: View {
                         .buttonStyle(ScaleButtonStyle())
                         .position(
                             x: (529 + 142/2) * scaleX,
-                            y: geometry.size.height - (figmaHeight - 2363 - 142/2) * scaleY - 55
+                            y: geometry.size.height - (figmaHeight - 2363 - 142/2) * scaleY - 55 - (currentIsPad ? 130 : 0) // iPad向上移动130像素
                         )
                         
                         // gift 按钮图标（Figma: x: 883, y: 2363, 142 x 142）
@@ -277,7 +306,7 @@ struct HomeView: View {
                         .buttonStyle(ScaleButtonStyle())
                         .position(
                             x: (883 + 142/2) * scaleX,
-                            y: geometry.size.height - (figmaHeight - 2363 - 142/2) * scaleY - 55
+                            y: geometry.size.height - (figmaHeight - 2363 - 142/2) * scaleY - 55 - (currentIsPad ? 130 : 0) // iPad向上移动130像素
                         )
                         
                         // "settings" 文本标签（Figma: x: 163, y: 2522, 210 x 69）
@@ -289,7 +318,7 @@ struct HomeView: View {
                             .multilineTextAlignment(.center)
                             .position(
                                 x: (163 + 210/2) * scaleX,
-                                y: geometry.size.height - (figmaHeight - 2522 - 69/2) * scaleY - 55
+                                y: geometry.size.height - (figmaHeight - 2522 - 69/2) * scaleY - 55 - (currentIsPad ? 130 : 0) // iPad向上移动130像素
                             )
                         
                         // "shop" 文本标签（Figma: x: 549, y: 2522, 113 x 74）
@@ -301,7 +330,7 @@ struct HomeView: View {
                             .multilineTextAlignment(.center)
                             .position(
                                 x: (549 + 113/2) * scaleX,
-                                y: geometry.size.height - (figmaHeight - 2522 - 74/2) * scaleY - 55
+                                y: geometry.size.height - (figmaHeight - 2522 - 74/2) * scaleY - 55 - (currentIsPad ? 130 : 0) // iPad向上移动130像素
                             )
                         
                         // "sign-in" 文本标签（Figma: x: 869, y: 2525, 176 x 69）
@@ -313,14 +342,15 @@ struct HomeView: View {
                             .multilineTextAlignment(.center)
                             .position(
                                 x: (869 + 176/2) * scaleX,
-                                y: geometry.size.height - (figmaHeight - 2525 - 69/2) * scaleY - 55
+                                y: geometry.size.height - (figmaHeight - 2525 - 69/2) * scaleY - 55 - (currentIsPad ? 130 : 0) // iPad向上移动130像素
                             )
                     }
                     
                     // 哥布林待机动画（放在 ZStack 最后，确保层级最高）
                     // 位置待根据 Figma 调整，暂时放在房子前方
-                    GoblinIdleAnimationView()
+                    GoblinIdleAnimationView(triggerEmoji1: $triggerEmoji1)
                         .frame(width: 200 * scaleX * 5 / 3, height: 200 * scaleY * 5 / 3) // 缩小3倍（原来是5倍，现在除以3）
+                        .offset(x: shakeOffset) // 跟随房子一起抖动
                         .position(
                             x: geometry.size.width / 2 - 80 * scaleX, // 向左移动 30 像素
                             y: (609 + 1121/2) * scaleY - 100 * scaleY + 300 * scaleY // 向下移动 50 像素
@@ -368,9 +398,12 @@ struct HomeView: View {
             )
             .presentationCornerRadius(10) // 设置顶部圆角，可根据需要调整数值
         }
-        // 七日签到弹窗
-        .sheet(isPresented: $showDailySignIn) {
-            DailySignInView(viewModel: viewModel, isPresented: $showDailySignIn)
+        // 七日签到弹窗（普通弹窗，非抽屉式）
+        .overlay {
+            if showDailySignIn {
+                DailySignInView(viewModel: viewModel, isPresented: $showDailySignIn)
+                    .zIndex(1000)
+            }
         }
         // 设置弹窗（首页设置）
         .onAppear {
@@ -379,13 +412,24 @@ struct HomeView: View {
         }
         .overlay {
             if showSettings {
-                HomeSettingsView(isPresented: $showSettings)
+                HomeSettingsView(isPresented: $showSettings, viewModel: viewModel)
+            }
+        }
+        // 哥布林记录弹窗
+        .overlay {
+            if showGoblinRecord {
+                GoblinRecordView(
+                    viewModel: viewModel,
+                    isPresented: $showGoblinRecord
+                )
+                .zIndex(1000)
             }
         }
         // 新手教程
         .overlay {
             if showTutorial {
                 TutorialView(
+                    viewModel: viewModel,
                     isPresented: $showTutorial,
                     steps: createTutorialSteps()
                 )
@@ -394,6 +438,10 @@ struct HomeView: View {
             }
         }
         .onAppear {
+            // 打印设备类型用于调试
+            let detectedIsPad = UIDevice.current.userInterfaceIdiom == .pad
+            print("📱 [HomeView] 视图出现，检测到设备类型: \(detectedIsPad ? "iPad" : "iPhone"), isPad计算属性值: \(isPad)")
+            
             print("🏠 [HomeView] 视图出现，准备播放首页背景音乐")
             // 播放首页背景音乐
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
@@ -427,6 +475,40 @@ struct HomeView: View {
                 print("🏠 [HomeView] 设置弹窗关闭，确保播放首页背景音乐")
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                     audioManager.playBackgroundMusic(fileName: "homepage", fileExtension: "mp3")
+                }
+            }
+        }
+    }
+    
+    /// 触发房子抖动效果
+    private func triggerHouseShake() {
+        print("🏠 [首页] 触发房子抖动效果")
+        // 停止之前的抖动定时器
+        shakeTimer?.invalidate()
+        
+        // 播放音效
+        audioManager.playSoundEffect("earth", fileExtension: "wav")
+        audioManager.playSoundEffect("shake", fileExtension: "wav")
+        
+        // 抖动参数
+        let shakeDuration: TimeInterval = 0.5 // 抖动持续时间
+        let shakeIntensity: CGFloat = 10 // 抖动强度
+        let shakeCount: Int = 6 // 抖动次数
+        
+        var currentShake = 0
+        shakeTimer = Timer.scheduledTimer(withTimeInterval: shakeDuration / Double(shakeCount), repeats: true) { timer in
+            currentShake += 1
+            
+            // 交替抖动方向
+            let direction: CGFloat = currentShake % 2 == 0 ? 1 : -1
+            self.shakeOffset = direction * shakeIntensity
+            
+            // 抖动完成后重置
+            if currentShake >= shakeCount {
+                timer.invalidate()
+                self.shakeTimer = nil
+                withAnimation(.easeOut(duration: 0.1)) {
+                    self.shakeOffset = 0
                 }
             }
         }
@@ -780,6 +862,7 @@ struct AchievementButtonView: View {
 struct CloudView: View {
     @State private var offsetX: CGFloat = 0
     @State private var breathingScale: CGFloat = 1.0
+    @State private var tapScale: CGFloat = 1.0 // 点击缩放效果
     @State private var animationTimer: Timer?
     
     // Figma 设计稿尺寸：1202 x 2622
@@ -797,16 +880,38 @@ struct CloudView: View {
             let cloudHeight = 240 * scaleY // 变大一倍：从 120 改为 240
             
             // 云朵从屏幕右侧外开始，移动到左侧外
-            Image("cloud")
-                .resizable()
-                .scaledToFit()
-                .frame(width: cloudWidth, height: cloudHeight)
-                .scaleEffect(breathingScale) // 呼吸效果
-                .offset(x: offsetX) // 移动偏移
-                .position(
-                    x: geometry.size.width + cloudWidth / 2, // 初始位置：屏幕右侧外
-                    y: achievementY // 与成就按钮相同的Y坐标
-                )
+            // 使用ZStack包装，确保点击区域正确
+            ZStack {
+                Image("cloud")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: cloudWidth, height: cloudHeight)
+                    .scaleEffect(breathingScale * tapScale) // 呼吸效果 + 点击缩放效果
+            }
+            .frame(width: cloudWidth * 1.5, height: cloudHeight * 1.5) // 扩大点击区域
+            .contentShape(Rectangle()) // 确保整个区域可点击
+            .offset(x: offsetX) // 移动偏移
+            .position(
+                x: geometry.size.width + cloudWidth / 2, // 初始位置：屏幕右侧外
+                y: achievementY // 与成就按钮相同的Y坐标
+            )
+            .onTapGesture {
+                print("☁️ [首页] 点击云朵")
+                let audioManager = AudioManager.shared
+                audioManager.playSoundEffect("talk", fileExtension: "mp3")
+                
+                // 1.5x缩放效果
+                withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) {
+                    tapScale = 1.5
+                }
+                
+                // 恢复缩放
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) {
+                        tapScale = 1.0
+                    }
+                }
+            }
                 .onAppear {
                     startAnimations(screenWidth: geometry.size.width, scaleX: scaleX)
                 }

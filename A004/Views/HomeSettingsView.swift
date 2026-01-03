@@ -12,12 +12,53 @@ struct HomeSettingsView: View {
     @ObservedObject var audioManager = AudioManager.shared
     @ObservedObject var localizationManager = LocalizationManager.shared
     @Binding var isPresented: Bool
+    @ObservedObject var viewModel: GameViewModel
     
     @State private var showPrivacyPolicy = false
     @State private var showTermsOfService = false
     @State private var showContactUs = false
     @State private var showLanguageSelection = false
     @State private var showSymbolBook = false
+    @State private var showRedeemCode = false
+    
+    /// 恢复已购买的哥布林和钻石
+    private func restorePurchasedGoblins() async {
+        let storeKitManager = StoreKitManager.shared
+        let allGoblins = Goblin.allGoblins
+        
+        // 恢复已购买的哥布林
+        for goblin in allGoblins {
+            if let productId = goblin.productId,
+               storeKitManager.isPurchased(productId),
+               !viewModel.unlockedGoblinIds.contains(goblin.id) {
+                // 恢复这个哥布林
+                viewModel.unlockGoblin(goblinId: goblin.id, cost: 0)
+                print("✅ [恢复购买] 恢复哥布林: \(goblin.name) (productId: \(productId))")
+            }
+        }
+        
+        // 恢复已购买的钻石（只恢复一次，避免重复添加）
+        let diamondProductIds = ["diamond_5.99", "diamond_9.99", "diamond_19.99", "diamond_29.99"]
+        let restoreKey = "hasRestoredDiamonds"
+        let hasRestored = UserDefaults.standard.bool(forKey: restoreKey)
+        
+        if !hasRestored {
+            var totalDiamonds = 0
+            for productId in diamondProductIds {
+                if storeKitManager.isPurchased(productId),
+                   let diamonds = storeKitManager.getDiamondsForProduct(productId) {
+                    totalDiamonds += diamonds
+                    print("✅ [恢复购买] 恢复钻石包: \(productId), 钻石: \(diamonds)")
+                }
+            }
+            
+            if totalDiamonds > 0 {
+                viewModel.addDiamonds(totalDiamonds)
+                UserDefaults.standard.set(true, forKey: restoreKey)
+                print("✅ [恢复购买] 总共恢复 \(totalDiamonds) 钻石")
+            }
+        }
+    }
     
     // 获取自定义字体
     private func customFont(size: CGFloat) -> Font {
@@ -37,6 +78,7 @@ struct HomeSettingsView: View {
             VStack {
                 Spacer()
                 
+                ZStack(alignment: .topTrailing) {
                 VStack(spacing: 0) {
                     // 拖拽指示器
                     RoundedRectangle(cornerRadius: 3)
@@ -288,18 +330,48 @@ struct HomeSettingsView: View {
                                 }
                                 .buttonStyle(PlainButtonStyle())
                                 
+                                // 兑换码按钮
+                                Button(action: {
+                                    audioManager.playSoundEffect("click", fileExtension: "wav")
+                                    showRedeemCode = true
+                                }) {
+                                    HStack {
+                                        Image(systemName: "gift.fill")
+                                            .font(.title2)
+                                            .foregroundColor(.orange)
+                                        
+                                        Text(localizationManager.localized("settings.redeem_code"))
+                                            .font(customFont(size: 22))
+                                            .foregroundColor(.white)
+                                            .textStroke()
+                                        
+                                        Spacer()
+                                        
+                                        Image(systemName: "chevron.right")
+                                            .foregroundColor(.white.opacity(0.6))
+                                    }
+                                    .padding()
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 15)
+                                            .fill(Color.white.opacity(0.1))
+                                    )
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                                
                                 // Restore 按钮
                                 Button(action: {
                                     audioManager.playSoundEffect("click", fileExtension: "wav")
                                     print("🔄 [设置] 点击恢复购买")
-                                    // TODO: 这里应该调用 StoreKit 恢复购买
-                                    // StoreKitManager.shared.restorePurchases { restored in
-                                    //     if restored {
-                                    //         print("✅ [设置] 恢复购买成功")
-                                    //     } else {
-                                    //         print("⚠️ [设置] 没有可恢复的购买")
-                                    //     }
-                                    // }
+                                    Task { @MainActor in
+                                        let restored = await StoreKitManager.shared.restorePurchases()
+                                        if restored {
+                                            print("✅ [设置] 恢复购买成功")
+                                            // 恢复购买后，检查已购买的哥布林
+                                            await restorePurchasedGoblins()
+                                        } else {
+                                            print("⚠️ [设置] 没有可恢复的购买")
+                                        }
+                                    }
                                 }) {
                                     HStack {
                                         Image(systemName: "arrow.clockwise")
@@ -323,27 +395,56 @@ struct HomeSettingsView: View {
                                     )
                                 }
                                 .buttonStyle(PlainButtonStyle())
-                            }
                             
-                            // 关闭按钮
-                            Button(localizationManager.localized("settings.close")) {
+                                // Rate Us 按钮
+                                Button(action: {
                                 audioManager.playSoundEffect("click", fileExtension: "wav")
-                                isPresented = false
-                            }
-                            .font(customFont(size: 22)) // 从 17 增加到 22（+5）
+                                    rateUs()
+                                }) {
+                                    HStack {
+                                        Image(systemName: "star.fill")
+                                            .font(.title2)
+                                            .foregroundColor(.yellow)
+                                        
+                                        Text(localizationManager.localized("settings.rate_us"))
+                                            .font(customFont(size: 22))
                             .foregroundColor(.white)
                             .textStroke()
-                            .padding(.horizontal, 30)
-                            .padding(.vertical, 12)
+                                        
+                                        Spacer()
+                                        
+                                        Image(systemName: "chevron.right")
+                                            .foregroundColor(.white.opacity(0.6))
+                                    }
+                                    .padding()
                             .background(
-                                RoundedRectangle(cornerRadius: 20)
-                                    .fill(Color.white.opacity(0.2))
+                                        RoundedRectangle(cornerRadius: 15)
+                                            .fill(Color.white.opacity(0.1))
                             )
-                            .padding(.bottom, 30) // 底部内边距
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                            }
+                            
+                            // 底部内边距
+                            Spacer()
+                                .frame(height: 30)
                         }
                         .padding(.horizontal, 30)
                         .padding(.top, 10)
                     }
+                    }
+                    
+                    // 固定在右上角的关闭按钮
+                    Button(action: {
+                        audioManager.playSoundEffect("click", fileExtension: "wav")
+                        isPresented = false
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title2)
+                            .foregroundColor(.white.opacity(0.7))
+                    }
+                    .padding(.top, 20)
+                    .padding(.trailing, 20)
                 }
                 .frame(maxHeight: UIScreen.main.bounds.height * 0.95) // 抽屉高度为屏幕的95%，接近全屏，和商店页面一样高
                 .background(
@@ -385,9 +486,186 @@ struct HomeSettingsView: View {
             if showSymbolBook {
                 SymbolBookView(isPresented: $showSymbolBook, viewModel: nil)
             }
+            
+            // 兑换码弹窗
+            if showRedeemCode {
+                RedeemCodeView(isPresented: $showRedeemCode, viewModel: viewModel)
+            }
         }
         .transition(.move(edge: .bottom).combined(with: .opacity))
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isPresented)
+    }
+    
+    // 跳转到App Store评分页面
+    private func rateUs() {
+        // App Store ID
+        let appStoreID = "6756869057"
+        
+        // 构建App Store URL
+        // 使用itms-apps://格式（直接打开App Store应用）
+        let appStoreURL = "itms-apps://itunes.apple.com/app/id\(appStoreID)"
+        let webURL = "https://apps.apple.com/app/id\(appStoreID)"
+        
+        // 优先尝试使用itms-apps://格式（直接打开App Store应用）
+        if let url = URL(string: appStoreURL) {
+            UIApplication.shared.open(url) { success in
+                if !success {
+                    // 如果itms-apps://失败，尝试使用https://格式
+                    if let webUrl = URL(string: webURL) {
+                        UIApplication.shared.open(webUrl)
+                    }
+                }
+            }
+        } else {
+            // 如果URL构建失败，使用https://格式
+            if let webUrl = URL(string: webURL) {
+                UIApplication.shared.open(webUrl)
+            }
+        }
+        
+        print("⭐ [Rate Us] 跳转到App Store评分页面，ID: \(appStoreID)")
+    }
+}
+
+// MARK: - 兑换码视图
+struct RedeemCodeView: View {
+    @Binding var isPresented: Bool
+    @ObservedObject var viewModel: GameViewModel
+    @ObservedObject var localizationManager = LocalizationManager.shared
+    @ObservedObject var audioManager = AudioManager.shared
+    @State private var codeInput: String = ""
+    @State private var showSuccessAlert: Bool = false
+    @State private var showErrorAlert: Bool = false
+    @State private var alertMessage: String = ""
+    
+    // 获取自定义字体
+    private func customFont(size: CGFloat) -> Font {
+        return FontManager.shared.customFont(size: size)
+    }
+    
+    var body: some View {
+        ZStack {
+            // 背景遮罩
+            Color.black.opacity(0.5)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    isPresented = false
+                }
+            
+            // 弹窗内容
+            VStack(spacing: 25) {
+                // 标题
+                HStack {
+                    Text(localizationManager.localized("redeem_code.title"))
+                        .font(customFont(size: 28))
+                        .foregroundColor(.white)
+                        .textStroke()
+                    
+                    Spacer()
+                    
+                    Button(action: {
+                        audioManager.playSoundEffect("click", fileExtension: "wav")
+                        isPresented = false
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title2)
+                            .foregroundColor(.white.opacity(0.7))
+                    }
+                }
+                
+                // 输入框
+                VStack(alignment: .leading, spacing: 10) {
+                    Text(localizationManager.localized("redeem_code.enter_code"))
+                        .font(customFont(size: 18))
+                        .foregroundColor(.white.opacity(0.9))
+                    
+                    TextField("", text: $codeInput)
+                        .font(customFont(size: 24))
+                        .foregroundColor(.white)
+                        .textInputAutocapitalization(.characters)
+                        .autocorrectionDisabled()
+                        .textCase(.uppercase)
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 15)
+                                .fill(Color.white.opacity(0.1))
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 15)
+                                .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                        )
+                        .onChange(of: codeInput) { newValue in
+                            // 限制只能输入字母和数字，最多6位
+                            let filtered = newValue.uppercased().filter { $0.isLetter || $0.isNumber }
+                            if filtered.count <= 6 {
+                                codeInput = filtered
+                            } else {
+                                codeInput = String(filtered.prefix(6))
+                            }
+                        }
+                }
+                
+                // 兑换按钮
+                Button(action: {
+                    audioManager.playSoundEffect("click", fileExtension: "wav")
+                    redeemCode()
+                }) {
+                    Text(localizationManager.localized("redeem_code.redeem"))
+                        .font(customFont(size: 20))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            LinearGradient(
+                                gradient: Gradient(colors: [Color.green, Color.blue]),
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .cornerRadius(20)
+                }
+                .disabled(codeInput.count != 6)
+                .opacity(codeInput.count == 6 ? 1.0 : 0.5)
+            }
+            .padding(30)
+            .frame(width: 350)
+            .background(
+                RoundedRectangle(cornerRadius: 25)
+                    .fill(Color.black.opacity(0.95))
+            )
+        }
+        .alert(localizationManager.localized("redeem_code.success_title"), isPresented: $showSuccessAlert) {
+            Button(localizationManager.localized("confirmations.confirm"), role: .cancel) { }
+        } message: {
+            Text(alertMessage)
+        }
+        .alert(localizationManager.localized("redeem_code.error_title"), isPresented: $showErrorAlert) {
+            Button(localizationManager.localized("confirmations.confirm"), role: .cancel) { }
+        } message: {
+            Text(alertMessage)
+        }
+        .transition(.scale.combined(with: .opacity))
+    }
+    
+    private func redeemCode() {
+        let code = codeInput.uppercased().trimmingCharacters(in: .whitespaces)
+        
+        if code.count != 6 {
+            alertMessage = localizationManager.localized("redeem_code.error_invalid_format")
+            showErrorAlert = true
+            return
+        }
+        
+        let result = viewModel.redeemCode(code)
+        
+        if result.success {
+            alertMessage = localizationManager.localized("redeem_code.success_message")
+            showSuccessAlert = true
+            codeInput = "" // 清空输入框
+        } else {
+            alertMessage = result.message
+            showErrorAlert = true
+        }
     }
 }
 
@@ -497,8 +775,6 @@ struct HTMLContentView: View {
 }
 
 // MARK: - WebView for HTML content
-import WebKit
-
 struct WebView: UIViewRepresentable {
     let htmlContent: String
     
@@ -621,6 +897,7 @@ struct ContactUsView: View {
 }
 
 #Preview {
-    HomeSettingsView(isPresented: .constant(true))
+    HomeSettingsView(isPresented: .constant(true), viewModel: GameViewModel())
 }
+
 

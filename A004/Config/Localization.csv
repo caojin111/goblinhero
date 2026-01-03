@@ -3,9 +3,11 @@ app.name,Goblin Hero,Goblin Hero
 app.subtitle,Mine Cave Adventure,矿洞探险游戏
 home.personal_records,🏆 Personal Records,🏆 个人记录
 home.best_round,Best Round,最佳进度
+home.best_single_game_coins,Best Single Game Coins,最佳单局金币
 home.total_coins,Total Coins,历史最多金币
 home.start_game,Start Game,开始游戏
 home.stamina_insufficient,Insufficient Stamina,体力不足
+share.challenge_text,Can you beat me?,你能赢过我吗？
 stores.paid_store,Paid Store,付费商城
 stores.diamond_store,Diamond Store,钻石商城
 stores.daily_sign_in,Daily Sign In,七日签到
@@ -16,6 +18,18 @@ store.goblins.all_unlocked,All goblins are unlocked!,所有哥布林已解锁！
 store.goblins.unlock_title,Unlock Goblin,解锁哥布林
 store.goblins.unlock_message,Spend {price} 💎 to unlock {name}?,是否花费 {price} 💎 解锁 {name}？
 store.goblins.insufficient_diamonds,"Insufficient diamonds! Need {price} 💎, currently have {current} 💎.",钻石不足！需要 {price} 💎，当前只有 {current} 💎。
+store.goblins.unlock_confirm_usd,Spend {price} to unlock {name}?,是否花费 {price} 解锁 {name}？
+store.purchase_failed,Purchase Failed,购买失败
+store.processing_purchase,Processing purchase...,正在处理购买...
+store.product_config_error,Product configuration error,商品配置错误
+store.unlock_failed,Unlock failed,解锁失败
+storekit.error.user_cancelled,User cancelled the purchase,用户取消了购买
+storekit.error.pending,Purchase is pending,购买正在处理中
+storekit.error.unverified,Transaction verification failed,交易验证失败
+storekit.error.unknown,Unknown error,未知错误
+storekit.error.load_products_failed,Failed to load products: {error},加载产品失败：{error}
+storekit.error.product_not_found,Product not found: {productId},找不到产品：{productId}
+storekit.error.restore_failed,Failed to restore purchases: {error},恢复购买失败：{error}
 store.stamina.current,Current Stamina,当前体力
 store.stamina.purchase_title,Purchase Stamina,购买体力
 store.stamina.purchase_message,Spend {diamonds} 💎 to purchase {stamina} stamina?,是否花费 {diamonds} 💎 购买 {stamina} 体力？
@@ -162,7 +176,14 @@ game_over.title,😢 Game Over,😢 游戏结束
 game_over.survival_rounds,Survival Rounds,存活回合
 game_over.final_coins,Final Coins,最终金币
 game_over.total_coins,Total Coins,累计金币
+game_over.round_reward_diamonds,Round Reward Diamonds,关卡完成奖励
 game_over.play_again,Play Again!,再来一次！
+game_over.insufficient_coins_message,Insufficient coins! Cannot reach the goal of {amount} coins.,金币不足！无法达成 {amount} 金币的目标
+game_over.death_blessing_ended,Death's blessing has ended. Game forced to end.,死神的眷顾已结束，游戏强制结束
+share.button,Share,分享
+player_name.title,Enter Your Name,请输入你的名字
+player_name.placeholder,Your name (max 10 characters),你的名字（最多10个字符）
+player_name.confirm,Confirm,确认
 confirmations.exit_game,Exit Game,退出游戏
 confirmations.exit_message,Are you sure you want to exit the current game and return to the home screen?,确定要退出当前游戏并返回首页吗？
 confirmations.cancel,Cancel,取消
@@ -203,7 +224,7 @@ sign_in.title,7-Day Sign In,七日签到
 sign_in.subtitle,Sign in daily to claim amazing rewards!,每日签到领取丰厚奖励！
 sign_in.day,Day,第
 sign_in.button.sign_in,Sign In,立即签到
-sign_in.button.signed,Already Signed In,今日已签到
+sign_in.button.signed,SIGNED,今日已签到
 sign_in.hint.can_sign,Tap to claim today's reward,点击领取今日奖励
 sign_in.hint.signed,Come back tomorrow for more rewards!,明天再来领取更多奖励！
 sign_in.status.claimed,Claimed,已领取
