@@ -7,6 +7,7 @@
 
 import SwiftUI
 import AVFoundation
+import UIKit
 
 struct GameView: View {
     @ObservedObject var viewModel: GameViewModel
@@ -25,6 +26,24 @@ struct GameView: View {
     
     var body: some View {
         GeometryReader { geometry in
+            // 检测是否为iPad Pro或标准iPad（屏幕高度超过1024的设备需要缩小）
+            // iPad Air/Mini: 1024点（竖屏）或768点（横屏）
+            // iPad Pro 11寸: 1194点（竖屏）或834点（横屏）
+            // iPad Pro 12.9寸: 1366点（竖屏）或1024点（横屏）
+            // 标准iPad: 1024点（竖屏）或768点（横屏）
+            // 因为用户说Air和Mini已经适配好，但Pro和标准iPad需要缩小
+            // 使用屏幕宽度来判断更准确（横屏时Pro的宽度更大）
+            let isPad = UIDevice.current.userInterfaceIdiom == .pad
+            let screenWidth = UIScreen.main.bounds.width
+            let screenHeight = UIScreen.main.bounds.height
+            // 判断是否是iPad Pro或标准iPad（横屏时宽度>=1024，竖屏时高度>=1194）
+            // 或者简单地判断高度>1024（Pro竖屏）或宽度>=1024（横屏时的Pro）
+            let needsScaling = isPad && (screenHeight > 1024 || screenWidth >= 1024)
+            let deviceScale: CGFloat = needsScaling ? 0.85 : 1.0 // iPad Pro/标准iPad缩小到85%
+            
+            // 打印调试信息
+            let _ = print("📐 [GameView缩放] isPad: \(isPad), screenWidth: \(screenWidth), screenHeight: \(screenHeight), needsScaling: \(needsScaling), deviceScale: \(deviceScale)")
+            
             ZStack {
                 // 纯黑色背景
                 Color.black
@@ -41,7 +60,7 @@ struct GameView: View {
                     SlotMachineView(viewModel: viewModel)
                         .padding(.horizontal)
                         .padding(.vertical, 8)
-                        .scaleEffect(zoomScale)
+                        .scaleEffect(zoomScale) // 只应用zoom缩放（deviceScale在VStack上应用）
                         .offset(zoomOffset)
                         .animation(.easeInOut(duration: 0.3 / viewModel.settlementAnimationSpeed), value: zoomScale)
                         .animation(.easeInOut(duration: 0.3 / viewModel.settlementAnimationSpeed), value: zoomOffset)
@@ -59,8 +78,10 @@ struct GameView: View {
                     Color.clear
                         .frame(height: 0)
                 }
+                .scaleEffect(deviceScale) // 在VStack上应用设备缩放（会影响overlay）
                 .overlay(alignment: .top) {
                     // 顶部UI通过overlay显示，不影响主布局
+                    // overlay会被VStack的scaleEffect影响，所以这里不需要再应用deviceScale
                     TopInfoBar(viewModel: viewModel, showSettings: $showSettings)
                         .padding(.horizontal)
                         .padding(.top, 10)
@@ -611,9 +632,8 @@ struct SlotCellView: View {
                     // 矿石图标（包含背景）
                     Image("mine_icon")
                         .resizable()
-                        .scaledToFill()
-                        .frame(height: 60)
-                        .clipped()
+                        .scaledToFit()
+                        .frame(width: 60, height: 60)
                         .opacity(viewModel.transparentMode ? 0.3 : 1.0)
                     
                     // 透明模式下显示下面的符号数值
@@ -1491,6 +1511,8 @@ struct DiceAnimationView: View {
     @State private var opacity: Double = 0
     @State private var showResult: Bool = false
     @State private var diceSoundPlayer: AVAudioPlayer? = nil // 骰子音效播放器
+    @State private var effectFrame: Int = 23 // 效果动画当前帧（23-33）
+    @State private var effectAnimationTimer: Timer? // 效果动画定时器
     
     init(diceResult: Int, diceCount: Int = 1, individualResults: [Int] = [], selectedGoblin: Goblin? = nil) {
         self.diceResult = diceResult
@@ -1572,19 +1594,31 @@ struct DiceAnimationView: View {
             ZStack {
                 // 旋转阶段：循环播放骰子动画
                 if !showResult {
-                    HStack(spacing: 10) {
-                        ForEach(0..<min(diceCount, 3), id: \.self) { _ in
-                            // 使用当前帧的图片（1-6循环）
-                            let imageName = getDiceImageName(for: currentFrame, isAnimation: true, currentFrame: currentFrame)
-                            Image(imageName)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: diceCount == 1 ? 100 : 70, height: diceCount == 1 ? 100 : 70)
-                        }
-                        if diceCount > 3 {
-                            Text("+\(diceCount - 3)")
-                                .font(.system(size: 40, weight: .bold))
-                                .foregroundColor(.yellow)
+                    ZStack {
+                        // 骰子图片
+                        HStack(spacing: 10) {
+                            ForEach(0..<min(diceCount, 3), id: \.self) { index in
+                                ZStack {
+                                    // 使用当前帧的图片（1-6循环）
+                                    let imageName = getDiceImageName(for: currentFrame, isAnimation: true, currentFrame: currentFrame)
+                                    Image(imageName)
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: diceCount == 1 ? 100 : 70, height: diceCount == 1 ? 100 : 70)
+                                    
+                                    // 效果动画（在骰子图片之上，放大1.5倍）
+                                    let effectImageName = String(format: "01_%02d", effectFrame)
+                                    Image(effectImageName)
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: (diceCount == 1 ? 100 : 70) * 1.5, height: (diceCount == 1 ? 100 : 70) * 1.5)
+                                }
+                            }
+                            if diceCount > 3 {
+                                Text("+\(diceCount - 3)")
+                                    .font(.system(size: 40, weight: .bold))
+                                    .foregroundColor(.yellow)
+                            }
                         }
                     }
                     .scaleEffect(scale)
@@ -1649,6 +1683,9 @@ struct DiceAnimationView: View {
             // 开始循环播放骰子动画（dice_01 到 dice_06）
             startDiceAnimation()
             
+            // 开始播放效果动画（01_23 到 01_33）
+            startEffectAnimation()
+            
             // 第一阶段：显示动画（0.8秒）
             withAnimation(.easeIn(duration: 0.2)) {
                 opacity = 1.0
@@ -1660,6 +1697,7 @@ struct DiceAnimationView: View {
                 // 停止骰子转动音效
                 stopDiceSound()
                 stopDiceAnimation()
+                stopEffectAnimation()
                 showResult = true
                 
                 // 播放骰子展示音效
@@ -1682,6 +1720,7 @@ struct DiceAnimationView: View {
         .onDisappear {
             stopDiceSound()
             stopDiceAnimation()
+            stopEffectAnimation()
         }
         .allowsHitTesting(false) // 不阻挡其他UI交互
     }
@@ -1732,6 +1771,39 @@ struct DiceAnimationView: View {
     private func stopDiceAnimation() {
         animationTimer?.invalidate()
         animationTimer = nil
+    }
+    
+    /// 开始播放效果动画（01_23 到 01_33）
+    private func startEffectAnimation() {
+        stopEffectAnimation()
+        effectFrame = 23 // 从第一帧开始
+        
+        // 动画持续时间1.0秒，共11帧（23-33）
+        let frameCount = 33 - 23 + 1 // 11帧
+        let frameDuration = 1.0 / Double(frameCount) // 每帧持续时间
+        
+        // 创建定时器，播放 01_23 到 01_33
+        effectAnimationTimer = Timer.scheduledTimer(withTimeInterval: frameDuration, repeats: true) { timer in
+            if effectFrame < 33 {
+                effectFrame += 1
+            } else {
+                // 播放到最后一帧后停止（不循环）
+                timer.invalidate()
+                effectAnimationTimer = nil
+            }
+        }
+        
+        // 将定时器添加到 common mode，确保在滚动等操作时也能正常运行
+        if let timer = effectAnimationTimer {
+            RunLoop.current.add(timer, forMode: .common)
+        }
+    }
+    
+    /// 停止效果动画
+    private func stopEffectAnimation() {
+        effectAnimationTimer?.invalidate()
+        effectAnimationTimer = nil
+        effectFrame = 23 // 重置到第一帧
     }
 }
 

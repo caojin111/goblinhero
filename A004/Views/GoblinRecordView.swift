@@ -48,6 +48,7 @@ struct GoblinRecordView: View {
                                 .textStroke()
                         }
                     }
+                    .offset(y: 20) // 下移20像素
                     
                     Spacer()
                     
@@ -137,14 +138,6 @@ struct GoblinRecordView: View {
                         .resizable()
                         .scaledToFill()
                         .clipped()
-                    
-                    // 圆角遮罩
-                RoundedRectangle(cornerRadius: 20)
-                        .fill(Color.clear)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(Color.black, lineWidth: 2)
-                    )
                 }
                     .shadow(color: .black.opacity(0.4), radius: 15, x: 0, y: 8)
             )

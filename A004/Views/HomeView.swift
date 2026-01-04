@@ -72,6 +72,19 @@ struct HomeView: View {
                 }
             
             GeometryReader { geometry in
+                // 检测是否为标准iPad或Pro（需要缩放至70%）
+                let isPad = UIDevice.current.userInterfaceIdiom == .pad
+                let screenWidth = UIScreen.main.bounds.width
+                let screenHeight = UIScreen.main.bounds.height
+                // 判断是否是标准iPad或Pro（横屏时宽度>=1024，竖屏时高度>1024）
+                // iPad Air/Mini: 1024点（竖屏）或768点（横屏）
+                // iPad Pro/标准iPad: 屏幕更大
+                let needsScaling = isPad && (screenHeight > 1024 || screenWidth >= 1024)
+                let deviceScale: CGFloat = needsScaling ? 0.7 : 1.0 // 标准iPad/Pro缩小到70%
+                
+                // 打印调试信息
+                let _ = print("📐 [HomeView缩放] isPad: \(isPad), screenWidth: \(screenWidth), screenHeight: \(screenHeight), needsScaling: \(needsScaling), deviceScale: \(deviceScale)")
+                
                 // 使用比例定位，而不是绝对坐标
                 let scaleX = geometry.size.width / figmaWidth
                 let scaleY = geometry.size.height / figmaHeight
@@ -357,6 +370,8 @@ struct HomeView: View {
                         )
                         .zIndex(1000) // 确保层级最高
                 }
+                .scaleEffect(deviceScale) // 在标准iPad/Pro上应用50%缩放
+                .frame(width: geometry.size.width, height: geometry.size.height) // 确保缩放后仍然居中
             }
         }
         .ignoresSafeArea(.all)
@@ -489,6 +504,9 @@ struct HomeView: View {
         // 播放音效
         audioManager.playSoundEffect("earth", fileExtension: "wav")
         audioManager.playSoundEffect("shake", fileExtension: "wav")
+        
+        // 触发哥布林显示emoji1
+        triggerEmoji1 = true
         
         // 抖动参数
         let shakeDuration: TimeInterval = 0.5 // 抖动持续时间
@@ -631,52 +649,52 @@ struct StaminaBarView: View {
             let scaleX = geometry.size.width / 289
             let scaleY = geometry.size.height / 127
             
-            ZStack(alignment: .topLeading) {
-                // 资源条背景（PBP-V2 2）
-                Image("resource_bar")
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: geometry.size.width, height: geometry.size.height)
-                    .clipped()
-                
-                // fruit 图标（Figma: x: 577, y: 112，相对于资源条 x: 591, y: 90）
-                Image("fruit")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 87 * scaleX, height: 87 * scaleY)
-                    .offset(x: (577 - 591) * scaleX, y: (112 - 90) * scaleY)
-                
-                // add 2 按钮（Figma: x: 644, y: 151，应该在fruit图标的右下角）
-                Button(action: onShowStore) {
+            Button(action: onShowStore) {
+                ZStack(alignment: .topLeading) {
+                    // 资源条背景（PBP-V2 2）
+                    Image("resource_bar")
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+                        .clipped()
+                    
+                    // fruit 图标（Figma: x: 577, y: 112，相对于资源条 x: 591, y: 90）
+                    Image("fruit")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 87 * scaleX, height: 87 * scaleY)
+                        .offset(x: (577 - 591) * scaleX, y: (112 - 90) * scaleY)
+                    
+                    // add 2 按钮（Figma: x: 644, y: 151，应该在fruit图标的右下角）
                     Image("add 2")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 40 * scaleX, height: 40 * scaleY)
-                }
-                .buttonStyle(ScaleButtonStyle())
-                .offset(x: (644 - 591) * scaleX, y: (151 - 90) * scaleY)
-                
-                // 体力数值（Figma: x: 677, y: 124）- 横向排列，不换行
-                Text("\(viewModel.stamina)/\(viewModel.maxStamina)")
-                    .font(customFont(size: (localizationManager.currentLanguage == "zh" ? 42 : 47) * scaleX)) // 中文42号，英文47号（50-3）
-                    .foregroundColor(.white)
-                    .textStroke()
-                    .lineLimit(1)
-                    .fixedSize(horizontal: true, vertical: false) // 防止省略号，水平方向自适应
-                    .frame(minWidth: 175 * scaleX, alignment: .leading) // 向右扩展10像素（165+10=175）
-                    .offset(x: (677 - 591) * scaleX, y: (124 - 90) * scaleY)
-                
-                // 体力倒计时（Figma: x: 684, y: 216）
-                if viewModel.stamina < viewModel.maxStamina && timeRemaining > 0 {
-                    let minutes = timeRemaining / 60
-                    let seconds = timeRemaining % 60
-                    Text("\(minutes):\(String(format: "%02d", seconds))")
-                        .font(customFont(size: 40 * scaleX))
+                        .offset(x: (644 - 591) * scaleX, y: (151 - 90) * scaleY)
+                    
+                    // 体力数值（Figma: x: 677, y: 124）- 横向排列，不换行
+                    Text("\(viewModel.stamina)/\(viewModel.maxStamina)")
+                        .font(customFont(size: (localizationManager.currentLanguage == "zh" ? 42 : 47) * scaleX)) // 中文42号，英文47号（50-3）
                         .foregroundColor(.white)
                         .textStroke()
-                        .offset(x: (684 - 591) * scaleX, y: (216 - 90) * scaleY)
+                        .lineLimit(1)
+                        .fixedSize(horizontal: true, vertical: false) // 防止省略号，水平方向自适应
+                        .frame(minWidth: 175 * scaleX, alignment: .leading) // 向右扩展10像素（165+10=175）
+                        .offset(x: (677 - 591) * scaleX, y: (124 - 90) * scaleY)
+                    
+                    // 体力倒计时（Figma: x: 684, y: 216）
+                    if viewModel.stamina < viewModel.maxStamina && timeRemaining > 0 {
+                        let minutes = timeRemaining / 60
+                        let seconds = timeRemaining % 60
+                        Text("\(minutes):\(String(format: "%02d", seconds))")
+                            .font(customFont(size: 40 * scaleX))
+                            .foregroundColor(.white)
+                            .textStroke()
+                            .offset(x: (684 - 591) * scaleX, y: (216 - 90) * scaleY)
+                    }
                 }
             }
+            .buttonStyle(PlainButtonStyle())
         }
         .onAppear {
             startTimer()
@@ -729,40 +747,40 @@ struct DiamondBarView: View {
             let scaleX = geometry.size.width / 288
             let scaleY = geometry.size.height / 127
             
-            ZStack(alignment: .topLeading) {
-                // 资源条背景（PBP-V2 3）
-                Image("resource_bar")
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: geometry.size.width, height: geometry.size.height)
-                    .clipped()
-                
-                // crystal 图标（Figma: x: 885, y: 99，相对于资源条 x: 894, y: 89）
-                Image("crystal")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 95 * scaleX, height: 95 * scaleY)
-                    .offset(x: (885 - 894) * scaleX, y: (99 - 89) * scaleY)
-                
-                // add 2 按钮（Figma: x: 939, y: 155，应该在crystal图标的右下角）
-                Button(action: onShowStore) {
+            Button(action: onShowStore) {
+                ZStack(alignment: .topLeading) {
+                    // 资源条背景（PBP-V2 3）
+                    Image("resource_bar")
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+                        .clipped()
+                    
+                    // crystal 图标（Figma: x: 885, y: 99，相对于资源条 x: 894, y: 89）
+                    Image("crystal")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 95 * scaleX, height: 95 * scaleY)
+                        .offset(x: (885 - 894) * scaleX, y: (99 - 89) * scaleY)
+                    
+                    // add 2 按钮（Figma: x: 939, y: 155，应该在crystal图标的右下角）
                     Image("add 2")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 40 * scaleX, height: 40 * scaleY)
+                        .offset(x: (939 - 894) * scaleX, y: (155 - 89) * scaleY)
+                    
+                    // 钻石数值（Figma: x: 980, y: 122）- 横向排列，不换行
+                    Text("\(viewModel.diamonds)")
+                        .font(customFont(size: 50 * scaleX))
+                        .foregroundColor(.white)
+                        .textStroke()
+                        .lineLimit(1)
+                        .frame(width: 164 * scaleX, alignment: .leading)
+                        .offset(x: (980 - 894) * scaleX, y: (122 - 89) * scaleY)
                 }
-                .buttonStyle(ScaleButtonStyle())
-                .offset(x: (939 - 894) * scaleX, y: (155 - 89) * scaleY)
-                
-                // 钻石数值（Figma: x: 980, y: 122）- 横向排列，不换行
-                Text("\(viewModel.diamonds)")
-                    .font(customFont(size: 50 * scaleX))
-                    .foregroundColor(.white)
-                    .textStroke()
-                    .lineLimit(1)
-                    .frame(width: 164 * scaleX, alignment: .leading)
-                    .offset(x: (980 - 894) * scaleX, y: (122 - 89) * scaleY)
             }
+            .buttonStyle(PlainButtonStyle())
         }
     }
 }

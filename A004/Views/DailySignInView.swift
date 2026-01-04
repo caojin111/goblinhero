@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct DailySignInView: View {
     @ObservedObject var viewModel: GameViewModel
@@ -36,6 +37,17 @@ struct DailySignInView: View {
             
             // 弹窗内容
             GeometryReader { geometry in
+                // 检测是否为标准iPad或Pro（需要缩放至80%）
+                let isPad = UIDevice.current.userInterfaceIdiom == .pad
+                let screenWidth = UIScreen.main.bounds.width
+                let screenHeight = UIScreen.main.bounds.height
+                // 判断是否是标准iPad或Pro（横屏时宽度>=1024，竖屏时高度>1024）
+                let needsScaling = isPad && (screenHeight > 1024 || screenWidth >= 1024)
+                let deviceScale: CGFloat = needsScaling ? 0.8 : 1.0 // 标准iPad/Pro缩小到80%
+                
+                // 打印调试信息
+                let _ = print("📐 [DailySignInView缩放] isPad: \(isPad), screenWidth: \(screenWidth), screenHeight: \(screenHeight), needsScaling: \(needsScaling), deviceScale: \(deviceScale)")
+                
                 let scaleX = geometry.size.width / figmaWidth
                 let scaleY = geometry.size.height / figmaHeight
                 
@@ -132,6 +144,8 @@ struct DailySignInView: View {
                 }
                 .frame(width: popupWidth, height: popupHeight)
                 .position(x: popupX, y: popupY)
+                .scaleEffect(deviceScale) // 在标准iPad/Pro上应用80%缩放
+                .frame(width: geometry.size.width, height: geometry.size.height) // 确保缩放后仍然居中
                 }
             }
         .transition(.scale.combined(with: .opacity))
@@ -446,13 +460,13 @@ struct SignInCardView: View {
                     .scaleEffect(breathingScale)
                     .shadow(
                         color: isToday && cardType == .normal ? Color.yellow.opacity(0.8) : Color.clear,
-                        radius: isToday && cardType == .normal ? 15 : 0,
+                        radius: isToday && cardType == .normal ? 15 * breathingScale : 0,
                         x: 0,
                         y: 0
                         )
                     .shadow(
                         color: isToday && cardType == .normal ? Color.yellow.opacity(0.6) : Color.clear,
-                        radius: isToday && cardType == .normal ? 25 : 0,
+                        radius: isToday && cardType == .normal ? 25 * breathingScale : 0,
                         x: 0,
                         y: 0
                     )
