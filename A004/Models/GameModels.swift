@@ -114,11 +114,7 @@ struct Symbol: Identifiable, Codable, Hashable {
             value = Int(Double(value) * multiplier)
         }
 
-        // 简单协同效果：相邻相同类型符号增加收益
-        let sameTypeCount = adjacentSymbols.filter { $0.type == self.type }.count
-        if sameTypeCount > 0 {
-            value += sameTypeCount
-        }
+        // 相邻符号加成机制已移除
 
         return value
     }

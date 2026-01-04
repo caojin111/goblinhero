@@ -138,8 +138,16 @@ class BondBuffConfigManager {
                 if bondMember.contains(";") {
                     requiredIds = bondMember.split(separator: ";")
                         .compactMap { Int($0.trimmingCharacters(in: .whitespaces)) }
-                } else {
+                } else if bondMember.contains(",") {
+                    // 包含逗号，使用parseIDList
                     requiredIds = CSVReader.parseIDList(bondMember)
+                } else {
+                    // 单个数字，直接解析
+                    if let singleId = Int(bondMember.trimmingCharacters(in: .whitespaces)) {
+                        requiredIds = [singleId]
+                    } else {
+                        requiredIds = []
+                    }
                 }
             }
             

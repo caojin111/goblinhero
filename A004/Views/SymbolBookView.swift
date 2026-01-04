@@ -219,7 +219,7 @@ struct SymbolBookItemView: View {
                 }
                 
                 // 符号名称
-                Text(symbol.name)
+                Text(localizationManager.localized("symbols.\(symbol.nameKey).name"))
                     .font(customFont(size: 14))
                     .foregroundColor(.white)
                     .textStroke()

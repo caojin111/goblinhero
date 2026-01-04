@@ -57,6 +57,7 @@ class GameViewModel: ObservableObject {
     @Published var signInDay: Int = 1 // 当前签到天数（1-7循环）
     @Published var lastSignInDate: Date? = nil // 上次签到日期
     @Published var canSignInToday: Bool = true // 今日是否可签到
+    @Published var lastCompletedSignInDay: Int = 0 // 上次完成的签到天数（用于判断卡片状态，跨天后重置为0）
     private var signInTimer: Timer? = nil // 签到状态检查定时器
     
     // MARK: - 哥布林相关
@@ -158,6 +159,21 @@ class GameViewModel: ObservableObject {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in
                 self?.flashingBondIDs.subtract(newBondIDs)
             }
+            
+            // 经典传说·奇遇：如果新激活了classictale_2_bond，立即标记特殊格子
+            let newBondNames = result.filter { newBondIDs.contains($0.id) }.compactMap { bond -> String? in
+                let nameKey = bond.nameKey.contains(".") ? 
+                    String(bond.nameKey.split(separator: ".").dropLast().last ?? "") : 
+                    bond.nameKey
+                return nameKey
+            }
+            if newBondNames.contains("classictale_2_bond") {
+                // 使用DispatchQueue.main.async确保在主线程执行，并且不阻塞计算属性
+                DispatchQueue.main.async { [weak self] in
+                    guard let self = self else { return }
+                    self.markSpecialTileForClassicTale2()
+                }
+            }
         }
         previousActiveBondIDs = currentBondIDs
         
@@ -205,6 +221,9 @@ class GameViewModel: ObservableObject {
     @Published var showDebugPanel: Bool = false // 显示调试面板
     @Published var transparentMode: Bool = false // 棋盘透明模式
     @Published var settlementLogs: [String] = [] // 结算日志
+    
+    // MARK: - 棋盘刷新状态
+    private var pendingMiningCount: Int = 0 // 待挖矿的数量（用于棋盘刷新后的继续挖矿）
     
     // MARK: - 掷骰子挖矿状态
     @Published var diceResult: Int = 0 // 骰子结果（总和）
@@ -532,9 +551,10 @@ class GameViewModel: ObservableObject {
             print("🔍 [诊断] 儿童符号: effectType=\(childSymbol.effectType), effectParams=\(childSymbol.effectParams)")
         }
         
-        loadGameSettings()
+        // 先重置回合数，再加载游戏设置（确保房租金额正确）
         totalEarnings = 0
         currentRound = 1
+        loadGameSettings()
         gamePhase = .selectingSymbol
         showGameOver = false
         
@@ -550,6 +570,7 @@ class GameViewModel: ObservableObject {
         
         // 重置骰子数量为1
         effectProcessor.resetDiceCount()
+        currentDiceCount = 1 // 重置骰子数量显示
         print("🎲 [新游戏] 重置骰子数量为1")
         
         // 初始化符号池（随机选择3个符号）
@@ -575,7 +596,8 @@ class GameViewModel: ObservableObject {
         print("🎰 [老虎机] 初始化 \(slotCount) 个格子，所有格子被矿石覆盖")
         
         // 在生成阶段记录激活的羁绊（供后续流程使用）
-        _ = bondEffectProcessor.processBondBuffs(symbolPool: &symbolPool, currentRound: currentRound)
+        // 注意：这里不是回合开始，所以isRoundStart=false，不会触发human_3_bond等回合开始效果
+        _ = bondEffectProcessor.processBondBuffs(symbolPool: &symbolPool, currentRound: currentRound, isRoundStart: false)
     }
     
     /// 掷骰子挖矿
@@ -619,34 +641,38 @@ class GameViewModel: ObservableObject {
         }
         
         // 激活的羁绊（用于掷骰/挖矿相关效果）
-        let activeBondKeys = BondBuffConfigManager.shared.getActiveBondBuffs(symbolPool: symbolPool).map { $0.nameKey }
+        // 先处理羁绊Buff以更新activeTypeBonds（类型计数羁绊需要）
+        // 注意：这里不是回合开始，所以isRoundStart=false，不会触发human_3_bond等回合开始效果
+        let bondEffectProcessor = BondEffectProcessor()
+        _ = bondEffectProcessor.processBondBuffs(symbolPool: &symbolPool, currentRound: currentRound, isRoundStart: false)
+        let activeTypeBonds = BondBuffRuntime.shared.activeTypeBonds
+        let activeBondBuffs = BondBuffConfigManager.shared.getActiveBondBuffs(symbolPool: symbolPool)
         
-        // 人类10羁绊：每有人类，每次转动额外+50金币
-        if activeBondKeys.contains("human_10_bond") {
-            let humanCount = symbolPool.filter { $0.types.contains("human") }.count
-            let bonus = humanCount * 50
-            if bonus > 0 {
-                currentCoins += bonus
-                print("👥 [人类10羁绊] 人类\(humanCount)个，本次掷骰额外+\(bonus)金币")
-                // 添加人类10羁绊到 bondsWithBonus，用于显示对话气泡
-                let bondBuffs = BondBuffConfigManager.shared.getActiveBondBuffs(symbolPool: symbolPool)
-                if let human10Bond = bondBuffs.first(where: { $0.nameKey.contains("human_10_bond") }) {
-                    bondsWithBonus.insert(human10Bond.id)
-                    print("👥 [人类10羁绊] 添加到 bondsWithBonus: \(human10Bond.id)")
+        // 人类10羁绊已改为每回合开始时处理，不再在每次转动时处理
+        
+        // tools_2：总点数为1再转一次（给额外一次旋转机会）
+        // 注意：多个骰子时，看点数总数是否为1
+        if activeTypeBonds.contains("tools_2_bond"), totalPoints == 1 {
+            spinsRemaining += 1
+            print("🔧 [tools_2] 总点数为1，额外+1次掷骰机会，剩余旋转：\(spinsRemaining)")
+            
+            // 如果当前棋盘没有未挖开的矿石，则刷新棋盘
+            let unminedCount = slotMachine.filter { !$0.isMined }.count
+            if unminedCount == 0 {
+                print("🔄 [tools_2] 当前棋盘已挖完，刷新棋盘")
+                generateSlotResults()
+                // 重置所有格子的挖矿状态
+                for index in slotMachine.indices {
+                    slotMachine[index].isMined = false
                 }
             }
         }
         
-        // tools_2：掷出1再转一次（给额外一次旋转机会）
-        if activeBondKeys.contains("tools_2_bond"), results.contains(1) {
-            spinsRemaining += 1
-            print("🔧 [tools_2] 掷出1，额外+1次掷骰机会，剩余旋转：\(spinsRemaining)")
-        }
-        
-        // tools_4：掷出6挖开未翻矿石
-        if activeBondKeys.contains("tools_4_bond"), results.contains(6) {
+        // tools_4：总点数为6挖开未翻矿石
+        // 注意：多个骰子时，看点数总数是否为6
+        if activeTypeBonds.contains("tools_4_bond"), totalPoints == 6 {
             autoMineAllUnopened = true
-            print("🔧 [tools_4] 掷出6，本次挖矿将自动挖开所有未翻矿石")
+            print("🔧 [tools_4] 总点数为6，本次挖矿将自动挖开所有未翻矿石")
         }
         
         // **新功能：检查是否有速之神效果（本次挖出的符号数量翻倍）**
@@ -686,9 +712,17 @@ class GameViewModel: ObservableObject {
             // **新功能：挖矿前处理羁绊效果（如浣熊市）**
             self.processBondBuffsBeforeMining()
             
-            // 挖矿（翻开所有格子）
+            // 挖矿（只挖当前棋盘，不刷新棋盘）
             // 注意：速之神效果已经在rollDice中处理（检查符号池中的速之神）
-            self.mineRandomCells(count: self.diceResult)
+            let remainingCount = self.mineRandomCells(count: self.diceResult)
+            
+            // 如果还需要挖更多，保存剩余数量
+            if remainingCount > 0 {
+                self.pendingMiningCount = remainingCount
+                print("🔄 [挖矿] 当前棋盘已挖完，还需要挖 \(remainingCount) 个格子，将在结算完成后刷新棋盘继续挖矿")
+            } else {
+                self.pendingMiningCount = 0
+            }
             
             // 显示浪费提示（如果有）
             let minedCount = self.currentRoundMinedCells.count
@@ -697,7 +731,7 @@ class GameViewModel: ObservableObject {
                 print("⚠️ [挖矿] 浪费了\(wastedCount)次挖矿机会")
             }
             
-            print("⏸️ [挖矿完成] 所有格子已翻开，等待1秒后开始结算动画")
+            print("⏸️ [挖矿完成] 当前棋盘格子已翻开，等待1秒后开始结算动画")
             
             // 等待1秒，让玩家看清所有翻开的格子
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
@@ -709,10 +743,10 @@ class GameViewModel: ObservableObject {
         }
     }
     
-    /// 随机挖开格子（如果不够则自动刷新棋盘，直到挖够数量）
-    private func mineRandomCells(count: Int) {
+    /// 随机挖开格子（只挖当前棋盘，不刷新棋盘）
+    /// - Returns: 还需要挖的数量（如果当前棋盘挖完但还需要更多，返回剩余数量；否则返回0）
+    private func mineRandomCells(count: Int) -> Int {
         var remainingCount = count
-        var totalMined = 0
         
         // tools_4 羁绊：掷出6时挖开所有未翻矿石
         if autoMineAllUnopened {
@@ -724,54 +758,47 @@ class GameViewModel: ObservableObject {
         
         print("⛏️ [挖矿开始] 需要挖 \(remainingCount) 个格子")
         
-        // 循环挖矿，如果不够就刷新棋盘
-        while remainingCount > 0 {
         // 获取所有未挖开的格子索引
         let unminedIndices = slotMachine.enumerated()
             .filter { !$0.element.isMined }
             .map { $0.offset }
-
-            if unminedIndices.isEmpty {
-                // 当前棋盘已挖完，刷新新棋盘
-                print("🔄 [刷新棋盘] 当前棋盘已挖完，生成新棋盘继续挖矿")
-                generateSlotResults()
-                // 重置所有格子的挖矿状态
-                for index in slotMachine.indices {
-                    slotMachine[index].isMined = false
-                }
-                continue
-            }
-            
-            // 确定本次要挖的数量（不超过剩余格子数和需要挖的数量）
-            let actualCount = min(remainingCount, unminedIndices.count)
-
+        
+        if unminedIndices.isEmpty {
+            // 当前棋盘已挖完，但还需要挖更多，返回剩余数量
+            print("🔄 [挖矿] 当前棋盘已挖完，还需要挖 \(remainingCount) 个格子")
+            return remainingCount
+        }
+        
+        // 确定本次要挖的数量（不超过剩余格子数和需要挖的数量）
+        let actualCount = min(remainingCount, unminedIndices.count)
+        
         // 随机选择要挖的格子
         let selectedIndices = Array(unminedIndices.shuffled().prefix(actualCount))
-
+        
         for index in selectedIndices {
             slotMachine[index].isMined = true
             currentRoundMinedCells.append(index)
         }
-            
-            // classic tale 4/6 奖励：记录角落/中心奖励
-            let activeTypeBonds = BondBuffRuntime.shared.activeTypeBonds
-            if activeTypeBonds.contains("classictale_4_bond") {
-                let corners: Set<Int> = [0, 4, 20, 24]
-                let hitCorners = Set(selectedIndices).intersection(corners)
-                if !hitCorners.isEmpty {
-                    let bonus = 200
-                    currentCoins += bonus
-                    print("📜 [classic tale 4] 挖到角落 \(hitCorners)，金币+\(bonus)")
-                }
+        
+        // classic tale 4/6 奖励：记录角落/中心奖励
+        let activeTypeBonds = BondBuffRuntime.shared.activeTypeBonds
+        if activeTypeBonds.contains("classictale_4_bond") {
+            let corners: Set<Int> = [0, 4, 20, 24]
+            let hitCorners = Set(selectedIndices).intersection(corners)
+            if !hitCorners.isEmpty {
+                let bonus = 50
+                currentCoins += bonus
+                print("📜 [classic tale 4] 挖到角落 \(hitCorners)，金币+\(bonus)")
             }
-            if activeTypeBonds.contains("classictale_6_bond") {
-                if selectedIndices.contains(12) {
-                    let bonus = 400
-                    currentCoins += bonus
-                    print("📜 [classic tale 6] 挖到中心格，金币+\(bonus)")
-                }
         }
-
+        if activeTypeBonds.contains("classictale_6_bond") {
+            if selectedIndices.contains(12) {
+                let bonus = 100
+                currentCoins += bonus
+                print("📜 [classic tale 6] 挖到中心格，金币+\(bonus)")
+            }
+        }
+        
         // 打印挖到的内容
         for index in selectedIndices {
             if let symbol = slotMachine[index].symbol {
@@ -780,14 +807,11 @@ class GameViewModel: ObservableObject {
                 print("⛏️ [挖矿] 格子\(index): 挖到空格子 (+1分)")
             }
         }
-
-            totalMined += actualCount
-            remainingCount -= actualCount
-            
-            print("⛏️ [挖矿进度] 已挖 \(totalMined) 个，还需挖 \(remainingCount) 个")
-        }
         
-        print("✅ [挖矿完成] 总共挖了 \(totalMined) 个格子，满足骰子点数要求")
+        let remaining = remainingCount - actualCount
+        print("✅ [挖矿完成] 当前棋盘挖了 \(actualCount) 个格子，还需挖 \(remaining) 个")
+        
+        return remaining
     }
     
     /// 生成老虎机结果（为本阶段生成符号）
@@ -861,6 +885,14 @@ class GameViewModel: ObservableObject {
         }
         
         // classic tale 2 羁绊：在生成棋盘时标记特殊格子（掷骰子之前就显示）
+        markSpecialTileForClassicTale2()
+        print("🎰 [生成结果] 总计: \(symbolsToShow.count)个符号 + \(slotCount - symbolsToShow.count)个空格子 = \(slotCount)个格子")
+    }
+    
+    /// 标记经典传说·奇遇的特殊格子
+    private func markSpecialTileForClassicTale2() {
+        let bondEffectProcessor = BondEffectProcessor()
+        _ = bondEffectProcessor.processBondBuffs(symbolPool: &symbolPool, currentRound: currentRound, isRoundStart: false)
         let activeTypeBonds = BondBuffRuntime.shared.activeTypeBonds
         if activeTypeBonds.contains("classictale_2_bond") {
             // 清除旧的特殊标记
@@ -869,13 +901,12 @@ class GameViewModel: ObservableObject {
             let candidates = Array(0..<slotCount)
             if let specialIndex = candidates.randomElement() {
                 slotMachine[specialIndex].isSpecial = true
-                print("📜 [classic tale 2] 在生成棋盘时标记特殊格子 \(specialIndex) 收益翻倍（掷骰子之前显示）")
+                print("📜 [classic tale 2] 标记特殊格子 \(specialIndex) 收益翻倍")
             }
         } else {
             // 如果没有激活羁绊，清除所有特殊标记
             slotMachine.indices.forEach { slotMachine[$0].isSpecial = false }
         }
-        print("🎰 [生成结果] 总计: \(symbolsToShow.count)个符号 + \(slotCount - symbolsToShow.count)个空格子 = \(slotCount)个格子")
     }
     
     /// 获取目标符号数量（基于符号池中不同符号的种类数量）
@@ -932,8 +963,9 @@ class GameViewModel: ObservableObject {
         
         // 构建结算序列：计算每个格子的收益
         // 在结算前更新羁绊状态，确保使用最新的激活羁绊信息
+        // 注意：这里不是回合开始，所以isRoundStart=false，不会触发human_3_bond等回合开始效果
         let bondEffectProcessor = BondEffectProcessor()
-        _ = bondEffectProcessor.processBondBuffs(symbolPool: &symbolPool, currentRound: currentRound)
+        _ = bondEffectProcessor.processBondBuffs(symbolPool: &symbolPool, currentRound: currentRound, isRoundStart: false)
         let activeTypeBonds = BondBuffRuntime.shared.activeTypeBonds
         print("🔍 [结算] 当前激活的类型计数羁绊: \(activeTypeBonds)")
         
@@ -944,21 +976,30 @@ class GameViewModel: ObservableObject {
             let humanTargets = symbolPool
                 .filter { $0.types.contains("human") }
                 .map { $0.nameKey }
-            effectProcessor.applyGlobalBuff(buffType: humanBonusBuffType, targetSymbols: humanTargets, baseValueBonus: 10)
+            effectProcessor.applyGlobalBuff(buffType: humanBonusBuffType, targetSymbols: humanTargets, baseValueBonus: 5)
             let humanCount = humanTargets.count
-            // 只有在符号池不为空且有人类符号时才显示气泡
-            if !symbolPool.isEmpty && humanCount > 0 {
-                settlementLogs.append("👥 [人类5羁绊] 为\(humanCount)个人类符号应用基础值+10buff")
-                // 添加人类5羁绊到 bondsWithBonus，用于显示对话气泡
-                let bondBuffs = BondBuffConfigManager.shared.getActiveBondBuffs(symbolPool: symbolPool)
-                if let human5Bond = bondBuffs.first(where: { bondBuff in
-                    let nameKey = bondBuff.nameKey.contains(".") ? 
-                        String(bondBuff.nameKey.split(separator: ".").dropLast().last ?? "") : 
-                        bondBuff.nameKey
-                    return nameKey == "human_5_bond"
-                }) {
-                    bondsWithBonus.insert(human5Bond.id)
-                    print("👥 [人类5羁绊] 添加到 bondsWithBonus: \(human5Bond.id)")
+            // 只有在符号池不为空且有人类符号，并且本次挖出有符号时才显示气泡
+            if !symbolPool.isEmpty && humanCount > 0 && !currentRoundMinedCells.isEmpty {
+                // 检查本次挖出的符号中是否有人类符号
+                let minedHumanCount = currentRoundMinedCells.compactMap { index -> Symbol? in
+                    guard index < slotMachine.count else { return nil }
+                    return slotMachine[index].symbol
+                }.filter { $0.types.contains("human") }.count
+                
+                // 只有当本次挖出有人类符号时才显示气泡
+                if minedHumanCount > 0 {
+                    settlementLogs.append("👥 [人类5羁绊] 为\(humanCount)个人类符号应用基础值+5buff")
+                    // 添加人类5羁绊到 bondsWithBonus，用于显示对话气泡
+                    let bondBuffs = BondBuffConfigManager.shared.getActiveBondBuffs(symbolPool: symbolPool)
+                    if let human5Bond = bondBuffs.first(where: { bondBuff in
+                        let nameKey = bondBuff.nameKey.contains(".") ? 
+                            String(bondBuff.nameKey.split(separator: ".").dropLast().last ?? "") : 
+                            bondBuff.nameKey
+                        return nameKey == "human_5_bond"
+                    }) {
+                        bondsWithBonus.insert(human5Bond.id)
+                        print("👥 [人类5羁绊] 添加到 bondsWithBonus: \(human5Bond.id)")
+                    }
                 }
             }
         }
@@ -1032,12 +1073,12 @@ class GameViewModel: ObservableObject {
                 let hasCozylife6 = activeTypeBonds.contains("cozylife_6_bond")
                 print("🔍 [空格子结算] 格子\(index): 基础值=1, cozylife_3_bond=\(hasCozylife3), cozylife_6_bond=\(hasCozylife6), activeTypeBonds=\(activeTypeBonds)")
                 if hasCozylife3 { 
-                    emptyValue += 5
-                    print("   ✓ cozylife_3_bond 生效: +5")
+                    emptyValue += 3
+                    print("   ✓ cozylife_3_bond 生效: +3")
                 }
                 if hasCozylife6 { 
-                    emptyValue += 25
-                    print("   ✓ cozylife_6_bond 生效: +25")
+                    emptyValue += 10
+                    print("   ✓ cozylife_6_bond 生效: +10")
                 }
                 
                 // classic tale 2 特殊格收益翻倍（空格子也适用）
@@ -1283,6 +1324,54 @@ class GameViewModel: ObservableObject {
         
         // 更新金币
         currentCoins += totalEarnings
+        
+        // 检查是否还需要继续挖矿（棋盘刷新后的继续挖矿）
+        if pendingMiningCount > 0 {
+            let remainingCount = pendingMiningCount
+            pendingMiningCount = 0 // 重置状态
+            
+            print("🔄 [继续挖矿] 当前棋盘结算完成，刷新棋盘并继续挖矿 \(remainingCount) 个格子")
+            
+            // 刷新棋盘
+            generateSlotResults()
+            // 重置所有格子的挖矿状态
+            for index in slotMachine.indices {
+                slotMachine[index].isMined = false
+            }
+            
+            // 清空当前挖矿列表（准备挖新棋盘）
+            currentRoundMinedCells.removeAll()
+            totalEarnings = 0 // 重置收益（新棋盘独立结算）
+            
+            // 等待收益气泡消失后再继续挖矿（2秒后）
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.3) { [weak self] in
+                guard let self = self else { return }
+                
+                // 继续挖新棋盘
+                let newRemainingCount = self.mineRandomCells(count: remainingCount)
+                
+                if newRemainingCount > 0 {
+                    // 如果新棋盘挖完还需要更多，继续递归
+                    self.pendingMiningCount = newRemainingCount
+                    print("🔄 [继续挖矿] 新棋盘已挖完，还需要挖 \(newRemainingCount) 个格子")
+                } else {
+                    self.pendingMiningCount = 0
+                }
+                
+                print("⏸️ [挖矿完成] 新棋盘格子已翻开，等待1秒后开始结算动画")
+                
+                // 等待1秒，让玩家看清所有翻开的格子
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                    // 开始结算新棋盘的流程
+                    print("🎬 [开始结算] 新棋盘1秒等待完成，开始逐个结算")
+                    self.calculateEarnings()
+                }
+            }
+            
+            return // 提前返回，不执行后续的spinsRemaining减少和游戏流程控制
+        }
+        
+        // 正常流程：减少旋转次数并继续游戏
         spinsRemaining -= 1
         
         print("💰 [结算完成] 当前金币: \(currentCoins), 剩余旋转: \(spinsRemaining)")
@@ -1529,6 +1618,11 @@ class GameViewModel: ObservableObject {
         // 处理回合开始效果（花精合成、元素收集、回合开始惩罚/buff等）
         let roundStartBonus = effectProcessor.processRoundStart(symbolPool: &symbolPool, currentRound: currentRound)
         currentCoins += roundStartBonus
+        
+        // 处理羁绊Buff效果（回合开始时，会触发human_3_bond等回合开始效果）
+        let bondEffectProcessor = BondEffectProcessor()
+        let bondBonus = bondEffectProcessor.processBondBuffs(symbolPool: &symbolPool, currentRound: currentRound, isRoundStart: true)
+        currentCoins += bondBonus.bonus
         
         // 检查人类3羁绊是否生效（生成随机人类），如果生效则添加到 bondsWithBonus
         let bondBuffs = BondBuffConfigManager.shared.getActiveBondBuffs(symbolPool: symbolPool)
@@ -1849,25 +1943,32 @@ class GameViewModel: ObservableObject {
                 String(bondBuff.nameKey.split(separator: ".").dropLast().last ?? "") : 
                 bondBuff.nameKey
             
-            // 浣熊市：每有一个丧尸，额外金币增加20
+            // 浣熊市：每挖出一个丧尸，额外金币增加20
             if nameKey.contains("raccoon_city_bond") {
-                // 使用 nameKey 来匹配，因为 name 可能是本地化的
-                let zombieCount = symbolPool.filter { $0.nameKey == "zombie" }.count
+                // 统计本次挖出的符号中有多少个丧尸
+                let zombieCount = currentRoundMinedCells.compactMap { index -> Symbol? in
+                    guard index < slotMachine.count else { return nil }
+                    return slotMachine[index].symbol
+                }.filter { $0.nameKey == "zombie" }.count
+                
                 if zombieCount > 0 {
                     bonus += zombieCount * 20
                     bondsWithBonusThisSettlement.insert(bondBuff.id) // 记录有加成的羁绊ID
-                    print("🧟 [羁绊Buff] 浣熊市：符号池有\(zombieCount)个丧尸，额外+\(zombieCount * 20)金币")
-                    settlementLogs.append("🧟 [羁绊Buff] 浣熊市：符号池有\(zombieCount)个丧尸，额外+\(zombieCount * 20)金币")
+                    print("🧟 [羁绊Buff] 浣熊市：本次挖出\(zombieCount)个丧尸，额外+\(zombieCount * 20)金币")
+                    settlementLogs.append("🧟 [羁绊Buff] 浣熊市：本次挖出\(zombieCount)个丧尸，额外+\(zombieCount * 20)金币")
                 }
             }
             
-            // 人类5羁绊：人类基础价值+10（在结算时应用，这里只标记有加成）
-            if nameKey == "human_5_bond" {
+            // 人类5羁绊：人类基础价值+5（在结算时应用，这里只标记有加成）
+            // 注意：人类5羁绊的气泡标记在calculateEarnings中处理，这里不重复添加
+            // 因为人类5羁绊的效果是应用到符号池中的人类符号，只有在本次挖出有符号时才显示气泡
+            
+            // 人类10羁绊：符号池每有1个人类，每回合额外获得5金币（在回合开始时处理，这里只标记有加成）
+            if nameKey == "human_10_bond" {
                 let humanCount = symbolPool.filter { $0.types.contains("human") }.count
-                // 只有在符号池不为空且有人类符号时才显示气泡
-                if !symbolPool.isEmpty && humanCount > 0 {
+                if humanCount > 0 {
                     bondsWithBonusThisSettlement.insert(bondBuff.id) // 记录有加成的羁绊ID
-                    print("👥 [羁绊Buff] 人类5羁绊生效：为\(humanCount)个人类符号应用基础值+10buff")
+                    print("👥 [羁绊Buff] 人类10羁绊生效：符号池有\(humanCount)个人类，每回合额外+\(humanCount * 5)金币")
                 }
             }
         }
@@ -2146,6 +2247,7 @@ class GameViewModel: ObservableObject {
         // 重置效果处理器
         effectProcessor.resetRoundState()
         effectProcessor.resetDiceCount()
+        currentDiceCount = 1 // 重置骰子数量显示
         
         // 重置buff标记
         wizardBuffUsedThisRound = false
@@ -2658,6 +2760,8 @@ class GameViewModel: ObservableObject {
             signInDay = 1 // 默认第一天
         }
         
+        lastCompletedSignInDay = UserDefaults.standard.integer(forKey: "lastCompletedSignInDay")
+        
         if let savedDate = UserDefaults.standard.object(forKey: "lastSignInDate") as? Date {
             lastSignInDate = savedDate
             checkSignInStatus()
@@ -2665,12 +2769,13 @@ class GameViewModel: ObservableObject {
             canSignInToday = true
         }
         
-        print("📅 [签到系统] 当前签到天数: \(signInDay), 可签到: \(canSignInToday)")
+        print("📅 [签到系统] 当前签到天数: \(signInDay), 上次完成天数: \(lastCompletedSignInDay), 可签到: \(canSignInToday)")
     }
     
     /// 保存签到状态（到UserDefaults）
     private func saveSignInStatus() {
         UserDefaults.standard.set(signInDay, forKey: "signInDay")
+        UserDefaults.standard.set(lastCompletedSignInDay, forKey: "lastCompletedSignInDay")
         if let date = lastSignInDate {
             UserDefaults.standard.set(date, forKey: "lastSignInDate")
         }
@@ -2693,11 +2798,21 @@ class GameViewModel: ObservableObject {
                 let daysSinceLastSignIn = calendar.dateComponents([.day], from: lastDate, to: now).day ?? 0
                 if daysSinceLastSignIn > 1 {
                     signInDay = 1
+                    // 只有在完成7天签到后，跨天才重置已完成的签到天数（开始新的7天周期）
+                    if lastCompletedSignInDay == 7 {
+                        lastCompletedSignInDay = 0
+                        print("📅 [签到系统] 超过1天未签到，已完成7天签到，重置已完成的签到天数，开始新的7天周期")
+                    }
                     saveSignInStatus()
                     print("📅 [签到系统] 超过1天未签到，重置到第1天")
                 } else if daysSinceLastSignIn == 1 {
                     // 新的一天开始（00:00后），重置到第1天
                     signInDay = 1
+                    // 只有在完成7天签到后，跨天才重置已完成的签到天数（开始新的7天周期）
+                    if lastCompletedSignInDay == 7 {
+                        lastCompletedSignInDay = 0
+                        print("📅 [签到系统] 新的一天开始，已完成7天签到，重置已完成的签到天数，开始新的7天周期")
+                    }
                     saveSignInStatus()
                     print("📅 [签到系统] 新的一天开始，重置到第1天")
                 }
@@ -2742,12 +2857,15 @@ class GameViewModel: ObservableObject {
             saveStamina()
         }
         
+        // 记录本次完成的签到天数（用于卡片状态显示）
+        lastCompletedSignInDay = signInDay
+        
         // 更新签到天数（循环）
         signInDay = (signInDay % 7) + 1
         
         saveSignInStatus()
         
-        print("📅 [签到] 第\(signInDay == 1 ? 7 : signInDay - 1)天签到成功，获得奖励: \(reward.description)")
+        print("📅 [签到] 第\(lastCompletedSignInDay)天签到成功，获得奖励: \(reward.description)，下次签到天数: \(signInDay)")
         
         return true
     }
@@ -2772,16 +2890,17 @@ class GameViewModel: ObservableObject {
     
     /// 测试用：跳到下一天（模拟跨天）
     func advanceToNextDay() {
-        // 注意：如果今天已经签到，signInDay 已经在 performSignIn() 中更新为下一天了
-        // 所以这里只需要重置签到状态，允许签到，不需要再次增加天数
-        // 如果今天还没签到，说明 signInDay 还是今天应该签的天数，也不需要改变
-        
         // 重置签到状态，允许签到
         canSignInToday = true
         lastSignInDate = nil // 清除上次签到日期，模拟新的一天
+        // 只有在完成7天签到后，跨天才重置已完成的签到天数
+        if lastCompletedSignInDay == 7 {
+            lastCompletedSignInDay = 0
+            print("🧪 [测试] 已完成7天签到，重置已完成的签到天数")
+        }
         
         saveSignInStatus()
-        print("🧪 [测试] 跳到下一天，当前签到天数: \(signInDay), 可签到: \(canSignInToday)")
+        print("🧪 [测试] 跳到下一天，当前签到天数: \(signInDay), 上次完成天数: \(lastCompletedSignInDay), 可签到: \(canSignInToday)")
     }
     
     // MARK: - 兑换码系统

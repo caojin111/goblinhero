@@ -203,9 +203,9 @@ class SymbolEffectProcessor {
 
         print("\n🌅 [回合开始] 开始处理回合开始效果")
         
-        // 处理羁绊Buff效果
+        // 处理羁绊Buff效果（回合开始时，会触发human_3_bond等回合开始效果）
         let bondEffectProcessor = BondEffectProcessor()
-        let bondResult = bondEffectProcessor.processBondBuffs(symbolPool: &symbolPool, currentRound: currentRound)
+        let bondResult = bondEffectProcessor.processBondBuffs(symbolPool: &symbolPool, currentRound: currentRound, isRoundStart: true)
         totalBonus += bondResult.bonus
         
         if bondResult.shouldGameOver {
@@ -246,9 +246,13 @@ class SymbolEffectProcessor {
                         // buff结束，检查是否需要结束游戏
                         if buffData["gameOverAfter"] as? Bool ?? false {
                             print("💀 游戏结束！\(symbolName)的\(rounds)回合buff已结束")
-                            // 这里可以设置游戏结束标志
+                            // 标记需要结束游戏（不立即移除buff，让shouldEndGame检查）
+                            // 注意：buff会在下一回合开始时被移除，但shouldEndGame会在当前回合检查
                         }
+                        // 注意：如果gameOverAfter为true，不立即移除buff，让shouldEndGame检查
+                        if !(buffData["gameOverAfter"] as? Bool ?? false) {
                         buffsToRemove.append(nameKey)
+                        }
                     }
                 } else {
                     print("🔍 [调试] \(symbolName)的buff已结束（\(buffCurrentRound) >= \(rounds)）")
@@ -286,33 +290,35 @@ class SymbolEffectProcessor {
                 if let requireSymbol = eliminateData["requireSymbol"] as? String,
                    let targetSymbols = eliminateData["targetSymbols"] as? [String] {
 
+                    // 将中文名称转换为nameKey（如果配置中使用的是中文名称）
+                    let requireNameKey: String
+                    if let nameKey = SymbolEffectProcessor.getNameKey(fromChineseName: requireSymbol) {
+                        requireNameKey = nameKey
+                    } else {
+                        requireNameKey = requireSymbol
+                    }
+                    
                     // 检查是否有需要的符号（使用nameKey匹配）
-                    let hasRequired = findSymbol(byName: requireSymbol, in: symbolPool) != nil
+                    let hasRequired = symbolPool.contains { $0.nameKey == requireNameKey }
 
                     if hasRequired {
                         var eliminatedCount = 0
                         for targetName in targetSymbols {
-                            // 使用nameKey匹配
-                            if let targetNameKey = SymbolEffectProcessor.getNameKey(fromChineseName: targetName) {
-                                let toEliminate = symbolPool.filter { $0.nameKey == targetNameKey }
-                            for symbol in toEliminate {
-                                    if let index = symbolPool.firstIndex(where: { $0.nameKey == symbol.nameKey }) {
-                                    symbolPool.remove(at: index)
-                                    eliminatedCount += 1
-                                    eliminatedSymbolCount += 1
-                                    }
-                                }
+                            // 将中文名称转换为nameKey（如果配置中使用的是中文名称）
+                            let targetNameKey: String
+                            if let nameKey = SymbolEffectProcessor.getNameKey(fromChineseName: targetName) {
+                                targetNameKey = nameKey
                             } else {
-                                // 向后兼容：尝试通过本地化名称匹配
-                                let toEliminate = symbolPool.filter { $0.name == targetName || $0.nameKey == targetName }
-                                for symbol in toEliminate {
-                                    if let index = symbolPool.firstIndex(where: { $0.nameKey == symbol.nameKey }) {
-                                        symbolPool.remove(at: index)
-                                        eliminatedCount += 1
-                                        eliminatedSymbolCount += 1
-                                    }
-                                }
+                                targetNameKey = targetName
                             }
+                            
+                            // 使用nameKey匹配并消除
+                            let beforeCount = symbolPool.count
+                            symbolPool.removeAll { $0.nameKey == targetNameKey }
+                            let afterCount = symbolPool.count
+                            let count = beforeCount - afterCount
+                            eliminatedCount += count
+                            eliminatedSymbolCount += count
                         }
 
                         if eliminatedCount > 0 {
@@ -355,19 +361,13 @@ class SymbolEffectProcessor {
         } while synthesisPerformed
 
         // 处理元素收集检查（要求5种不同的元素，而不是5个元素）
+        // 注意：元素收集奖励现在由元素掌控者羁绊处理，这里不再重复给奖励
         // 使用nameKey匹配，而不是本地化名称
         let requiredElementKeys = Set(["water_element", "fire_element", "thunder_element", "ice_element", "earth_element"])
         
         // 从符号池中提取所有元素类型的符号nameKey，使用Set去重确保只计算不同的元素类型
         let collectedElementKeys = Set(symbolPool.filter { requiredElementKeys.contains($0.nameKey) }.map { $0.nameKey })
         
-        // 检查是否集齐了全部5种不同的元素
-        if collectedElementKeys.count == 5 && collectedElementKeys == requiredElementKeys {
-            // 收集齐全五种不同元素，获得100金币
-            totalBonus += 100
-            let msg = "✨ 五元素收集完成（5种不同元素）: 获得100金币"
-            print(msg)
-        } else {
             // 调试信息：显示当前收集到的元素
             if collectedElementKeys.count > 0 {
                 // 将nameKeys转换为本地化名称用于显示
@@ -376,7 +376,6 @@ class SymbolEffectProcessor {
                 }
                 let msg = "🔍 [元素收集] 当前收集到\(collectedElementKeys.count)种元素: \(collectedElementNames.sorted().joined(separator: ", "))"
                 print(msg)
-            }
         }
 
         // **新功能：检查是否需要游戏结束（死神的眷顾）**
@@ -764,25 +763,12 @@ class SymbolEffectProcessor {
             logCallback?("   ✓ 儿童：生成修女")
             return 0
         case "merchant":
-            // 消除稀有度最高的一个材料符号，基础奖励：基础价值+50
+            // 消除稀有度最高的一个材料符号，获得20金币
             let materials = symbolPool.enumerated().filter { $0.element.types.contains("material") }
             if let target = materials.max(by: { rarityRank($0.element.rarity) < rarityRank($1.element.rarity) || ($0.element.rarity == $1.element.rarity && $0.element.baseValue < $1.element.baseValue) }) {
                 symbolPool.remove(at: target.offset)
-                let baseReward = target.element.baseValue + 50
-                var reward = baseReward
-                
-                // 检查奸商羁绊是否激活（商人+硬币+勾玉）
-                let bondBuffs = BondBuffConfigManager.shared.getActiveBondBuffs(symbolPool: symbolPool)
-                let hasMerchantBond = bondBuffs.contains { $0.nameKey == "merchant_trading_bond" }
-                
-                if hasMerchantBond {
-                    let bondReward = target.element.baseValue * 5
-                    reward += bondReward
-                    logCallback?("   ✓ 商人：消除材料 \(target.element.name) 稀有度\(target.element.rarity) 基础\(target.element.baseValue) → 基础奖励 \(baseReward) + 羁绊奖励 \(bondReward) = 总奖励 \(reward)")
-                } else {
-                    logCallback?("   ✓ 商人：消除材料 \(target.element.name) 稀有度\(target.element.rarity) 基础\(target.element.baseValue) → 奖励 \(reward)")
-                }
-                return reward
+                logCallback?("   ✓ 商人：消除材料 \(target.element.name) 稀有度\(target.element.rarity)，获得20金币")
+                return 20
             } else {
                 logCallback?("   ⚠️ 商人：未找到材料符号，未获得奖励")
                 return 0
@@ -794,13 +780,13 @@ class SymbolEffectProcessor {
             logCallback?("   ✓ 野蛮人：alien \(alien) 个，monster \(monster) 个，金币变化 \(bonus)")
             return bonus
         case "farmer":
-            spawnRandomByType("tool", count: 5, symbolPool: &symbolPool, logCallback: logCallback)
-            logCallback?("   ✓ 农民：生成5个随机#tool")
+            spawnRandomByType("tool", count: 1, symbolPool: &symbolPool, logCallback: logCallback)
+            logCallback?("   ✓ 农民：生成1个随机#tool")
             return 0
         case "village_chief":
-            spawnRandomByType("human", count: 5, symbolPool: &symbolPool, logCallback: logCallback)
-            logCallback?("   ✓ 村长：生成5个随机#human +10金币")
-            return 10
+            spawnRandomByType("human", count: 2, symbolPool: &symbolPool, logCallback: logCallback)
+            logCallback?("   ✓ 村长：生成2个随机#human +5金币")
+            return 5
         case "healer":
             ["holy_bottle", "battery", "medical_kit"].forEach {
                 spawnSpecific($0, symbolPool: &symbolPool, count: 1, logCallback: logCallback)
@@ -825,10 +811,25 @@ class SymbolEffectProcessor {
             spawnSpecific("hunter", symbolPool: &symbolPool, count: 1, logCallback: logCallback)
             logCallback?("   ✓ 十字架：生成猎人")
             return 0
+        case "iron_box":
+            // 铁箱子被挖出后生成铁钥匙
+            spawnSpecific("iron_key", symbolPool: &symbolPool, count: 1, logCallback: logCallback)
+            logCallback?("   ✓ 铁箱子：生成铁钥匙")
+            return 0
+        case "silver_box":
+            // 银箱子被挖出后生成银钥匙
+            spawnSpecific("silver_key", symbolPool: &symbolPool, count: 1, logCallback: logCallback)
+            logCallback?("   ✓ 银箱子：生成银钥匙")
+            return 0
         case "soldier":
             // 获得一个符文铠甲或外星头盔（随机）
             spawnOneOf(["rune_armor", "alien_helmet"], symbolPool: &symbolPool, logCallback: logCallback)
             logCallback?("   ✓ 士兵：获得一个符文铠甲或外星头盔")
+            return 0
+        case "hoe":
+            // 获得一个花精或丧尸（随机）
+            spawnOneOf(["flower_fairy", "zombie"], symbolPool: &symbolPool, logCallback: logCallback)
+            logCallback?("   ✓ 斧头：获得一个花精或丧尸")
             return 0
         case "thief":
             spawnMissingByType("tool", count: 2, symbolPool: &symbolPool, logCallback: logCallback)
@@ -847,22 +848,23 @@ class SymbolEffectProcessor {
             let humans = symbolPool.enumerated().filter { $0.element.types.contains("human") }
             let removeCount = min(5, humans.count)
             humans.map(\.offset).sorted(by: >).prefix(removeCount).forEach { symbolPool.remove(at: $0) }
-            spawnRandomByType("material", count: 10, symbolPool: &symbolPool, logCallback: logCallback)
-            logCallback?("   ✓ 吸血鬼：消除\(removeCount)人类，生成10个材料")
+            spawnRandomByType("material", count: 3, symbolPool: &symbolPool, logCallback: logCallback)
+            logCallback?("   ✓ 吸血鬼：消除\(removeCount)人类，生成3个材料")
             return 0
         case "hunter":
-            // 检查本次挖出的符号中是否有吸血鬼
-            let hasVampire = minedSymbols.contains { $0.nameKey == "vampire" }
+            // 检查符号池中是否有吸血鬼
+            let hasVampire = symbolPool.contains { $0.nameKey == "vampire" }
             if hasVampire {
+                // 消除符号池中的吸血鬼和自身，获得2个随机#装备符号
                 spawnRandomByType("equipment", count: 2, symbolPool: &symbolPool, logCallback: logCallback)
                 // 消除符号池中的吸血鬼和自身
-                symbolPool.removeAll { $0.nameKey == "vampire" || $0.id == symbol.id }
-                logCallback?("   ✓ 猎人：本次挖出中有吸血鬼，生成2装备，消除吸血鬼与自身，金币+200")
-                return 200
+                symbolPool.removeAll { $0.nameKey == "vampire" || $0.nameKey == symbol.nameKey }
+                eliminatedSymbolCount += 1 // 记录自身被消除
+                logCallback?("   ✓ 猎人：消除符号池的吸血鬼和自身，获得2个随机#装备符号")
             } else {
-                logCallback?("   ✗ 猎人：本次挖出中没有吸血鬼，效果不触发")
-                return 0
+                logCallback?("   ✗ 猎人：符号池中没有吸血鬼，效果不触发")
             }
+            return 0
         case "pumpkin_head":
             spawnSpecific("child", symbolPool: &symbolPool, count: 1, logCallback: logCallback)
             return 0
@@ -885,28 +887,31 @@ class SymbolEffectProcessor {
             spawnSpecific("village_chief", symbolPool: &symbolPool, count: 1, logCallback: logCallback)
             return 0
         case "magatama":
-            // 只对 normal（common）稀有度的符号应用基础价值+5
-            let normalSymbols = SymbolLibrary.getSymbols(byRarity: .common)
-            let normalNameKeys = normalSymbols.map { $0.nameKey }
-            applyGlobalBuff(buffType: "base_value_bonus_normal", targetSymbols: normalNameKeys, baseValueBonus: 5, multiplier: nil)
-            logCallback?("   ✓ 勾玉：所有普通稀有度符号基础价值+5")
+            // 对所有普通符号（common rarity）应用基础价值+1
+            let allSymbols = SymbolLibrary.allSymbols
+            let commonSymbols = allSymbols.filter { $0.rarity == .common }
+            let commonNameKeys = commonSymbols.map { $0.nameKey }
+            applyGlobalBuff(buffType: "base_value_bonus_all", targetSymbols: commonNameKeys, baseValueBonus: 1, multiplier: nil)
+            logCallback?("   ✓ 勾玉：所有普通符号基础价值+1")
             return 0
         // 装备/材料类
         case "dragon_fire_gun":
-            // 消除自身
+            // 消灭符号池随机一个#怪物
+            let monsters = symbolPool.enumerated().filter { $0.element.types.contains("monster") }
+            if let target = monsters.randomElement() {
+                // 有怪物时才触发效果：消除自身并消灭怪物
             if let selfIndex = symbolPool.firstIndex(where: { $0.id == symbol.id }) {
                 symbolPool.remove(at: selfIndex)
                 logCallback?("   ✓ 龙火枪：消除自身")
             }
-            // 消灭符号池随机一个#怪物
-            let monsters = symbolPool.enumerated().filter { $0.element.types.contains("monster") }
-            if let target = monsters.randomElement() {
                 symbolPool.remove(at: target.offset)
-                logCallback?("   ✓ 龙火枪：消灭怪物 \(target.element.name)，获得50金币")
+                logCallback?("   ✓ 龙火枪：消灭怪物 \(target.element.name)，获得10金币")
+                return 10
             } else {
-                logCallback?("   ⚠️ 龙火枪：无怪物可消灭，但仍获得50金币")
+                // 无怪物时不触发效果
+                logCallback?("   ⚠️ 龙火枪：符号池中无怪物，效果不触发")
+                return 0
             }
-            return 50
         case "rune_armor":
             spawnRandomByType("classic tale", count: 2, symbolPool: &symbolPool, logCallback: logCallback)
             return 0
@@ -914,7 +919,18 @@ class SymbolEffectProcessor {
             spawnSpecific("princess", symbolPool: &symbolPool, count: 1, logCallback: logCallback)
             return 0
         case "holy_bottle":
+            // 消除自身
+            symbolPool.removeAll { $0.nameKey == symbol.nameKey }
+            eliminatedSymbolCount += 1
+            let eliminateMsg = "   ✗ 圣瓶被消耗"
+            print(eliminateMsg)
+            logCallback?(eliminateMsg)
+            
+            // 获得一个骰子符号
             spawnSpecific("dice", symbolPool: &symbolPool, count: 1, logCallback: logCallback)
+            let msg = "   🎲 获得1个骰子符号"
+            print(msg)
+            logCallback?(msg)
             return 0
         case "ring", "mobile_phone", "glasses", "tie":
             spawnRandomByType("cozy life", count: 1, symbolPool: &symbolPool, logCallback: logCallback)
@@ -949,20 +965,18 @@ class SymbolEffectProcessor {
             symbolPool.removeAll { $0.nameKey == "werewolf" || $0.id == symbol.id }
             return 100
         // 神/怪物等
-        case "god_of_speed":
-            // 额外符号选择
-            addExtraSymbolChoice(count: 1)
-            if let idx = symbolPool.firstIndex(where: { $0.id == symbol.id }) { symbolPool.remove(at: idx) }
-            logCallback?("   ✓ 速之神：额外一次符号选择")
-            return 0
+        // god_of_speed通过effectType "double_dig_count"处理，不在这里处理
         case "death":
-            // 消除符号池一半
+            // 死神效果：消除符号池一半
+            // 注意：回合开始buff（死神的眷顾）通过effectType "round_start_buff" 处理
+            // 所以这里只处理消除逻辑，返回nil让effectType处理buff注册
             let half = symbolPool.count / 2
             if half > 0 {
                 for _ in 0..<half { symbolPool.removeFirst() }
             }
             logCallback?("   ✓ 死神：消除一半符号 \(half) 个")
-            return 0
+            // 返回nil，让effectType的处理逻辑来注册round_start_buff
+            return nil
         case "ray_gun", "alien_helmet", "spaceship":
             spawnRandomByType("alien", count: 1, symbolPool: &symbolPool, logCallback: logCallback)
             return 0
@@ -977,17 +991,25 @@ class SymbolEffectProcessor {
             }
             return 0
         case "flower_fairy":
+            // 花精的效果只有在符号池里的花精数量≥3的时候才会生效
             let flowers = symbolPool.enumerated().filter { $0.element.nameKey == "flower_fairy" }
-            let removeCount = min(3, flowers.count)
-            flowers.map(\.offset).sorted(by: >).prefix(removeCount).forEach { symbolPool.remove(at: $0) }
-            if removeCount == 3 { spawnSpecific("forest_fairy", symbolPool: &symbolPool, count: 1, logCallback: logCallback) }
+            if flowers.count >= 3 {
+                // 移除3个花精
+                var removedCount = 0
+                flowers.map(\.offset).sorted(by: >).prefix(3).forEach { symbolPool.remove(at: $0); removedCount += 1 }
+                // 添加一个森林妖精
+                spawnSpecific("forest_fairy", symbolPool: &symbolPool, count: 1, logCallback: logCallback)
+                logCallback?("   ✓ 花精：符号池中有\(flowers.count)个花精，合成1个森林妖精")
+            } else {
+                logCallback?("   ⚠️ 花精：符号池中只有\(flowers.count)个花精，需要≥3个才能生效")
+            }
             return 0
         case "werewolf":
             let humans = symbolPool.enumerated().filter { $0.element.types.contains("human") }
             let removeCount = min(2, humans.count)
             humans.map(\.offset).sorted(by: >).prefix(removeCount).forEach { symbolPool.remove(at: $0) }
-            spawnRandomByType("tool", count: 10, symbolPool: &symbolPool, logCallback: logCallback)
-            logCallback?("   ✓ 狼人：消除人类\(removeCount)，生成10个tool")
+            spawnRandomByType("tool", count: 3, symbolPool: &symbolPool, logCallback: logCallback)
+            logCallback?("   ✓ 狼人：消除人类\(removeCount)，生成3个tool")
             return 0
         case "gomorrah":
             if let idx = symbolPool.indices.randomElement() {
@@ -1002,12 +1024,33 @@ class SymbolEffectProcessor {
             return 0
         case "god_of_strength":
             // 力之神效果：下回合奖励+300，被挖出后从符号池移除
-            // 直接调用 processNextRoundBonus 确保效果生效
-            print("🔍 [力之神] 检测到力之神符号，effectType=\(symbol.effectType), effectParams=\(symbol.effectParams)")
-            return processNextRoundBonus(symbol: symbol, symbolPool: &symbolPool, logCallback: logCallback)
+            // 直接在processCustomEffectByName中处理，不使用effectType
+            guard let bonus = symbol.effectParams["bonus"] as? Int else {
+                logCallback?("   ⚠️ 力之神：未找到bonus参数")
+                return 0
+            }
+            
+            let eliminateSelf = symbol.effectParams["eliminateSelf"] as? Bool ?? false
+            
+            // 使用nameKey注册下回合奖励
+            addNextRoundBonus(symbolName: symbol.nameKey, bonus: bonus, eliminateSelf: eliminateSelf)
+            
+            let msg = "   ⏰ 力之神：下回合奖励注册+\(bonus)金币"
+            print(msg)
+            logCallback?(msg)
+            
+            if eliminateSelf {
+                // 使用nameKey匹配移除自身
+                symbolPool.removeAll { $0.nameKey == symbol.nameKey }
+                eliminatedSymbolCount += 1
+                let eliminateMsg = "   ✗ 力之神被消耗，从符号池中移除"
+                print(eliminateMsg)
+                logCallback?(eliminateMsg)
+            }
+            return 0
         case "artwork":
-            spawnSpecific("merchant", symbolPool: &symbolPool, count: 5, logCallback: logCallback)
-            logCallback?("   ✓ 艺术品：生成5个商人")
+            spawnSpecific("merchant", symbolPool: &symbolPool, count: 1, logCallback: logCallback)
+            logCallback?("   ✓ 艺术品：生成1个商人")
             return 0
         case "hypnosis_pendulum":
             // 催眠钟摆：从符号池移除自身，随机生成'公主'或'女忍者'或'修女'中的一个到符号池
@@ -1027,6 +1070,22 @@ class SymbolEffectProcessor {
                 logCallback?("   ❌ 催眠钟摆：无法生成符号")
             }
             return 0
+        case "contract_scroll":
+            // 契约卷轴：从符号池移除自身，随机生成'森林妖精'或'暗月妖精'或'星光妖精'中的一个到符号池
+            let elfSymbols = ["forest_fairy", "dark_moon_fairy", "starlight_fairy"] // 使用 nameKey
+            if let randomElfNameKey = elfSymbols.randomElement(),
+               let newElf = SymbolLibrary.getSymbol(byName: randomElfNameKey) {
+                symbolPool.append(newElf)
+                logCallback?("   🎭 契约卷轴：随机生成 \(newElf.name) (nameKey: \(randomElfNameKey))")
+                
+                // 消除自身
+                symbolPool.removeAll { $0.nameKey == symbol.nameKey }
+                eliminatedSymbolCount += 1
+                logCallback?("   ✗ 契约卷轴被消耗，从符号池中移除")
+            } else {
+                logCallback?("   ❌ 契约卷轴：无法生成精灵符号")
+            }
+            return 0
         case "book_of_the_dead":
             // 死亡之书：从符号池移除自身和十字架，生成一个死神到符号池
             // 先移除十字架
@@ -1034,12 +1093,11 @@ class SymbolEffectProcessor {
             symbolPool.removeAll { $0.nameKey == "cross" }
             let afterCrossCount = symbolPool.count
             let removedCrossCount = beforeCrossCount - afterCrossCount
+            
+            // 只有在有十字架被移除的情况下才生效
             if removedCrossCount > 0 {
                 eliminatedSymbolCount += removedCrossCount
                 logCallback?("   ✗ 死亡之书：移除\(removedCrossCount)个十字架")
-            } else {
-                logCallback?("   ⚠️ 死亡之书：符号池中没有十字架")
-            }
             
             // 生成死神
             if let death = SymbolLibrary.getSymbol(byName: "death") {
@@ -1050,11 +1108,12 @@ class SymbolEffectProcessor {
             }
             
             // 消除自身
-            let beforeSelfCount = symbolPool.count
             symbolPool.removeAll { $0.nameKey == symbol.nameKey }
-            let afterSelfCount = symbolPool.count
             eliminatedSymbolCount += 1
-            logCallback?("   ✗ 死亡之书被消耗，从符号池中移除 (移除前: \(beforeSelfCount), 移除后: \(afterSelfCount))")
+                logCallback?("   ✗ 死亡之书被消耗，从符号池中移除")
+            } else {
+                logCallback?("   ✗ 死亡之书：符号池中没有十字架，效果不触发")
+            }
             return 0
         default:
             return nil
@@ -1083,7 +1142,11 @@ class SymbolEffectProcessor {
     }
     
     private func spawnRandomByType(_ type: String, count: Int, symbolPool: inout [Symbol], logCallback: ((String) -> Void)?) {
-        let candidates = SymbolLibrary.getSymbols(byType: type)
+        var candidates = SymbolLibrary.getSymbols(byType: type)
+        // 如果类型是human，排除圣骑士
+        if type == "human" {
+            candidates = candidates.filter { $0.nameKey != "paladin" }
+        }
         guard !candidates.isEmpty else { return }
         for _ in 0..<count {
             if let sym = candidates.randomElement() {
@@ -1368,8 +1431,16 @@ class SymbolEffectProcessor {
             return 0
         }
         
+        // 将中文名称转换为nameKey（如果配置中使用的是中文名称）
+        let triggerNameKey: String
+        if let nameKey = SymbolEffectProcessor.getNameKey(fromChineseName: triggerSymbol) {
+            triggerNameKey = nameKey
+        } else {
+            triggerNameKey = triggerSymbol
+        }
+        
         // 使用nameKey匹配
-        let hasTrigger = findSymbol(byName: triggerSymbol, in: symbolPool) != nil
+        let hasTrigger = symbolPool.contains { $0.nameKey == triggerNameKey }
         
         if hasTrigger {
             // 从符号池移除自己（使用nameKey匹配）
@@ -1393,23 +1464,37 @@ class SymbolEffectProcessor {
             return 0
         }
         
-        // 检查符号池是否有目标符号（使用nameKey匹配）
-        // 注意：这个效果需要先检查条件（如符号池里有"哥莫拉"），然后消除目标
-        // 这里简化处理：直接检查并消除目标符号
-        if let targetSymbolObj = findSymbol(byName: targetSymbol, in: symbolPool),
-           let index = symbolPool.firstIndex(where: { $0.nameKey == targetSymbolObj.nameKey }) {
-            let removed = symbolPool.remove(at: index)
-            eliminatedSymbolCount += 1 // 计入消除数量
-            let msg = "   🗑️ 消除目标: \(removed.icon) \(removed.name)，获得\(bonus)金币"
-            print(msg)
-            logCallback?(msg)
-            return bonus
+        // 将中文名称转换为nameKey（如果配置中使用的是中文名称）
+        let targetNameKey: String
+        if let nameKey = SymbolEffectProcessor.getNameKey(fromChineseName: targetSymbol) {
+            targetNameKey = nameKey
         } else {
-            let msg = "   ✗ 符号池没有\(targetSymbol)"
-            print(msg)
-            logCallback?(msg)
-            return 0
+            // 如果已经是nameKey，直接使用
+            targetNameKey = targetSymbol
         }
+        
+        // 检查符号池是否有目标符号（使用nameKey匹配，排除自己）
+        let hasTarget = symbolPool.contains { $0.nameKey == targetNameKey && $0.nameKey != symbol.nameKey }
+        if hasTarget {
+            // 消除目标符号（排除自己）
+            let beforeCount = symbolPool.count
+            symbolPool.removeAll { $0.nameKey == targetNameKey && $0.nameKey != symbol.nameKey }
+            let afterCount = symbolPool.count
+            let eliminatedCount = beforeCount - afterCount
+            
+            if eliminatedCount > 0 {
+                eliminatedSymbolCount += eliminatedCount // 计入消除数量
+                let msg = "   🗑️ 消除目标: \(targetSymbol)（\(eliminatedCount)个），获得\(bonus)金币"
+                print(msg)
+                logCallback?(msg)
+                return bonus
+            }
+        }
+        
+        let msg = "   ✗ 符号池没有\(targetSymbol)"
+        print(msg)
+        logCallback?(msg)
+        return 0
     }
     
     /// 随机生成：概率性生成其他符号
@@ -1420,6 +1505,7 @@ class SymbolEffectProcessor {
         
         let random = Double.random(in: 0...1)
         var cumulative = 0.0
+        var spawned = false
         
         for option in options {
             guard let symbolName = option["symbol"] as? String,
@@ -1433,6 +1519,7 @@ class SymbolEffectProcessor {
                 let resolvedNameKey = SymbolEffectProcessor.getNameKey(fromChineseName: symbolName) ?? symbolName
                 if let newSymbol = SymbolLibrary.getSymbol(byName: resolvedNameKey) {
                     symbolPool.append(newSymbol)
+                    spawned = true
                     let msg = "   🎲 随机生成: \(newSymbol.icon) \(newSymbol.name) (概率\(Int(probability * 100))%)"
                     print(msg)
                     logCallback?(msg)
@@ -1442,6 +1529,18 @@ class SymbolEffectProcessor {
                     logCallback?(errorMsg)
                 }
                 break
+            }
+        }
+        
+        // 消除自身（斧头等符号在生成后应该消除自身）
+        // 使用nameKey匹配，因为symbol.id可能不匹配（符号是从slotMachine中挖出的新实例）
+        if spawned {
+            let beforeCount = symbolPool.count
+            symbolPool.removeAll { $0.nameKey == symbol.nameKey }
+            let afterCount = symbolPool.count
+            if beforeCount > afterCount {
+                eliminatedSymbolCount += 1
+                logCallback?("   ✗ \(symbol.name)被消耗，从符号池中移除")
             }
         }
         
@@ -1480,9 +1579,16 @@ class SymbolEffectProcessor {
             return 0
         }
         
+        // 将中文名称转换为nameKey（如果配置中使用的是中文名称）
+        let unlockNameKey: String
+        if let nameKey = SymbolEffectProcessor.getNameKey(fromChineseName: unlockSymbol) {
+            unlockNameKey = nameKey
+        } else {
+            unlockNameKey = unlockSymbol
+        }
+        
         // 使用nameKey匹配
-        if let unlockSymbolObj = findSymbol(byName: unlockSymbol, in: symbolPool),
-           let index = symbolPool.firstIndex(where: { $0.nameKey == unlockSymbolObj.nameKey }) {
+        if let index = symbolPool.firstIndex(where: { $0.nameKey == unlockNameKey }) {
             let removed = symbolPool.remove(at: index)
             eliminatedSymbolCount += 1 // 计入消除数量
             let msg = "   🔓 解锁消除: \(removed.icon) \(removed.name)，获得\(bonus)金币"
@@ -1598,8 +1704,15 @@ class SymbolEffectProcessor {
             return 0
         }
         
-        // 排除自己
-        let eligibleSymbols = symbolPool.filter { $0.name != symbol.name }
+        // 检查是否排除自己（使用nameKey匹配）
+        let excludeSelf = symbol.effectParams["excludeSelf"] as? Bool ?? false
+        let eligibleSymbols: [Symbol]
+        if excludeSelf {
+            // 排除自己（使用nameKey匹配）
+            eligibleSymbols = symbolPool.filter { $0.nameKey != symbol.nameKey }
+        } else {
+            eligibleSymbols = symbolPool
+        }
         
         if let randomSymbol = eligibleSymbols.randomElement(),
            let index = symbolPool.firstIndex(where: { $0.nameKey == randomSymbol.nameKey }) {
@@ -1629,7 +1742,13 @@ class SymbolEffectProcessor {
         
         // 检查本次挖出是否有所有组合符号（使用nameKey匹配）
         let hasAllCombo = comboSymbols.allSatisfy { targetName in
-            findSymbol(byName: targetName, in: minedSymbols) != nil
+            let targetNameKey: String
+            if let nameKey = SymbolEffectProcessor.getNameKey(fromChineseName: targetName) {
+                targetNameKey = nameKey
+            } else {
+                targetNameKey = targetName
+            }
+            return minedSymbols.contains { $0.nameKey == targetNameKey }
         }
         
         // 如果onceOnly为true，需要检查是否已经计算过（这里简化处理，实际应该用状态追踪）
@@ -1709,13 +1828,17 @@ class SymbolEffectProcessor {
             return 0
         }
 
-        // 消除自身（魔法袋）
-        if let index = symbolPool.firstIndex(where: { $0.id == symbol.id }) {
+        // 消除自身（魔法袋）- 使用nameKey匹配，移除第一个匹配的符号
+        if let index = symbolPool.firstIndex(where: { $0.nameKey == symbol.nameKey }) {
             symbolPool.remove(at: index)
             eliminatedSymbolCount += 1
             let eliminateMsg = "   ✗ \(symbol.name)被消耗，从符号池中移除"
             print(eliminateMsg)
             logCallback?(eliminateMsg)
+        } else {
+            let warningMsg = "   ⚠️ 警告：符号池中未找到\(symbol.name)（nameKey: \(symbol.nameKey)）"
+            print(warningMsg)
+            logCallback?(warningMsg)
         }
 
         let count = Int.random(in: minCount...maxCount)
@@ -1820,35 +1943,36 @@ class SymbolEffectProcessor {
 
         let eliminateSelf = symbol.effectParams["eliminateSelf"] as? Bool ?? false
 
-        // 先尝试通过中文名称查找，如果失败则尝试通过nameKey映射
-        var newSymbol: Symbol?
-        if let foundSymbol = SymbolLibrary.getSymbol(byName: symbolName) {
-            newSymbol = foundSymbol
-        } else if let nameKey = SymbolEffectProcessor.getNameKey(fromChineseName: symbolName),
-                  let foundSymbol = SymbolLibrary.getSymbol(byName: nameKey) {
-            newSymbol = foundSymbol
-            print("🔍 [效果处理] 通过中文名称映射找到符号: \(symbolName) -> \(nameKey)")
+        // 将中文名称转换为nameKey（如果配置中使用的是中文名称）
+        let symbolNameKey: String
+        if let nameKey = SymbolEffectProcessor.getNameKey(fromChineseName: symbolName) {
+            symbolNameKey = nameKey
         } else {
-            print("❌ [效果处理] spawn_specific: 无法找到符号 '\(symbolName)'")
+            symbolNameKey = symbolName
+        }
+        
+        // 使用nameKey查找符号
+        let newSymbol = SymbolLibrary.getSymbol(byName: symbolNameKey)
+        
+        guard let newSymbol = newSymbol else {
+            print("❌ [效果处理] spawn_specific: 无法找到符号 '\(symbolName)' (nameKey: \(symbolNameKey))")
             logCallback?("   ❌ 无法生成符号: \(symbolName)")
             return 0
         }
 
-        if let newSymbol = newSymbol {
-            symbolPool.append(newSymbol)
-            let msg = "   🎁 生成: \(newSymbol.icon) \(newSymbol.name)"
-            print(msg)
-            logCallback?(msg)
+        symbolPool.append(newSymbol)
+        let msg = "   🎁 生成: \(newSymbol.icon) \(newSymbol.name)"
+        print(msg)
+        logCallback?(msg)
 
-            if eliminateSelf {
-                // 消除自身
-                // 使用nameKey匹配
+        if eliminateSelf {
+            // 消除自身
+            // 使用nameKey匹配
             symbolPool.removeAll { $0.nameKey == symbol.nameKey }
-                eliminatedSymbolCount += 1
-                let eliminateMsg = "   ✗ 自身被消耗"
-                print(eliminateMsg)
-                logCallback?(eliminateMsg)
-            }
+            eliminatedSymbolCount += 1
+            let eliminateMsg = "   ✗ 自身被消耗"
+            print(eliminateMsg)
+            logCallback?(eliminateMsg)
         }
 
         return 0
@@ -1919,15 +2043,22 @@ class SymbolEffectProcessor {
             return 0
         }
 
+        // 将中文名称转换为nameKey（如果配置中使用的是中文名称）
+        let targetNameKey: String
+        if let nameKey = SymbolEffectProcessor.getNameKey(fromChineseName: targetSymbol) {
+            targetNameKey = nameKey
+        } else {
+            targetNameKey = targetSymbol
+        }
+        
         // 使用nameKey匹配
-        let targetSymbolObj = findSymbol(byName: targetSymbol, in: minedSymbols)
-        let hasTarget = targetSymbolObj != nil
+        let hasTarget = minedSymbols.contains { $0.nameKey == targetNameKey }
 
         if hasTarget {
             // 消除目标符号和自身（使用nameKey匹配）
             var eliminated = false
             symbolPool.removeAll { sym in
-                if let targetObj = targetSymbolObj, (sym.nameKey == targetObj.nameKey || sym.nameKey == symbol.nameKey) {
+                if sym.nameKey == targetNameKey || sym.nameKey == symbol.nameKey {
                     eliminated = true
                     eliminatedSymbolCount += 1
                     return true
@@ -2187,14 +2318,15 @@ class SymbolEffectProcessor {
         if let randomSymbolName = symbols.randomElement() {
             print("🔍 [效果处理] 随机选择符号名称: \(randomSymbolName)")
             
-            let newSymbol: Symbol?
+            // 将中文名称转换为nameKey（如果配置中使用的是中文名称）
+            let symbolNameKey: String
             if let nameKey = SymbolEffectProcessor.getNameKey(fromChineseName: randomSymbolName) {
-                print("🔍 [效果处理] 通过中文名称映射找到nameKey: \(randomSymbolName) -> \(nameKey)")
-                newSymbol = getAllSymbols().first(where: { $0.nameKey == nameKey })
+                symbolNameKey = nameKey
             } else {
-                print("🔍 [效果处理] 尝试直接通过名称查找: \(randomSymbolName)")
-                newSymbol = SymbolLibrary.getSymbol(byName: randomSymbolName)
+                symbolNameKey = randomSymbolName
             }
+            
+            let newSymbol = SymbolLibrary.getSymbol(byName: symbolNameKey)
             
             if let newSymbol = newSymbol {
                 symbolPool.append(newSymbol)
@@ -2231,8 +2363,16 @@ class SymbolEffectProcessor {
             return 0
         }
 
+        // 将中文名称转换为nameKey（如果配置中使用的是中文名称）
+        let triggerNameKey: String
+        if let nameKey = SymbolEffectProcessor.getNameKey(fromChineseName: triggerSymbol) {
+            triggerNameKey = nameKey
+        } else {
+            triggerNameKey = triggerSymbol
+        }
+        
         // 使用nameKey匹配
-        let hasTrigger = findSymbol(byName: triggerSymbol, in: minedSymbols) != nil
+        let hasTrigger = minedSymbols.contains { $0.nameKey == triggerNameKey }
 
         if hasTrigger {
             // 消除自身
@@ -2319,19 +2459,29 @@ class SymbolEffectProcessor {
             return 0
         }
 
+        // 将中文名称转换为nameKey（如果配置中使用的是中文名称）
+        let triggerNameKey: String
+        if let nameKey = SymbolEffectProcessor.getNameKey(fromChineseName: triggerSymbol) {
+            triggerNameKey = nameKey
+        } else {
+            triggerNameKey = triggerSymbol
+        }
+        
+        let spawnNameKey: String
+        if let nameKey = SymbolEffectProcessor.getNameKey(fromChineseName: spawnSymbol) {
+            spawnNameKey = nameKey
+        } else {
+            spawnNameKey = spawnSymbol
+        }
+        
         // 使用nameKey匹配
-        let hasTrigger = findSymbol(byName: triggerSymbol, in: minedSymbols) != nil
+        let hasTrigger = minedSymbols.contains { $0.nameKey == triggerNameKey }
         let eliminateSelf = symbol.effectParams["eliminateSelf"] as? Bool ?? false
         let allowFallback = symbol.effectParams["allowFallback"] as? Bool ?? false
 
         if hasTrigger {
             // 尝试生成指定符号（使用nameKey匹配）
-            let newSymbol: Symbol?
-            if let nameKey = SymbolEffectProcessor.getNameKey(fromChineseName: spawnSymbol) {
-                newSymbol = getAllSymbols().first(where: { $0.nameKey == nameKey })
-            } else {
-                newSymbol = SymbolLibrary.getSymbol(byName: spawnSymbol)
-            }
+            let newSymbol = SymbolLibrary.getSymbol(byName: spawnNameKey)
             
             if let newSymbol = newSymbol {
                 symbolPool.append(newSymbol)
@@ -2349,10 +2499,10 @@ class SymbolEffectProcessor {
                     logCallback?(eliminateMsg)
                 }
             } else if allowFallback {
-                // 如果允许回退且目标符号不存在，尝试生成其他元素
-                let elementNames = ["水元素", "火元素", "雷元素", "冰元素", "土元素"]
-                if let fallbackElement = elementNames.randomElement(),
-                   let fallbackSymbol = SymbolLibrary.getSymbol(byName: fallbackElement) {
+                // 如果允许回退且目标符号不存在，尝试生成其他元素（使用nameKey）
+                let elementNameKeys = ["water_element", "fire_element", "thunder_element", "ice_element", "earth_element"]
+                if let fallbackElementKey = elementNameKeys.randomElement(),
+                   let fallbackSymbol = SymbolLibrary.getSymbol(byName: fallbackElementKey) {
                     symbolPool.append(fallbackSymbol)
                     let msg = "   🎁 条件生成（回退）: \(fallbackSymbol.icon) \(fallbackSymbol.name)（原目标\(spawnSymbol)不存在）"
                     print(msg)
@@ -2392,8 +2542,15 @@ class SymbolEffectProcessor {
         var eliminated = false
         // 使用nameKey匹配
         for targetName in targetSymbols {
-            if let targetSymbolObj = findSymbol(byName: targetName, in: symbolPool),
-               let index = symbolPool.firstIndex(where: { $0.nameKey == targetSymbolObj.nameKey }) {
+            // 将中文名称转换为nameKey（如果配置中使用的是中文名称）
+            let targetNameKey: String
+            if let nameKey = SymbolEffectProcessor.getNameKey(fromChineseName: targetName) {
+                targetNameKey = nameKey
+            } else {
+                targetNameKey = targetName
+            }
+            
+            if let index = symbolPool.firstIndex(where: { $0.nameKey == targetNameKey }) {
                 let removed = symbolPool.remove(at: index)
                 eliminatedSymbolCount += 1
                 eliminated = true

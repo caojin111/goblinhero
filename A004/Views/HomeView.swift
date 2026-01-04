@@ -403,6 +403,11 @@ struct HomeView: View {
         }
         // 付费商城弹窗
         .sheet(item: $storeTabIdentifier) { identifier in
+            let isPad = UIDevice.current.userInterfaceIdiom == .pad
+            let screenWidth = UIScreen.main.bounds.width
+            let screenHeight = UIScreen.main.bounds.height
+            let needsScaling = isPad && (screenHeight > 1024 || screenWidth >= 1024)
+            
             PaidStoreView(
                 viewModel: viewModel,
                 isPresented: Binding(
@@ -412,6 +417,7 @@ struct HomeView: View {
                 initialTab: identifier.tab
             )
             .presentationCornerRadius(10) // 设置顶部圆角，可根据需要调整数值
+            .presentationDetents([.large]) // 所有设备都使用全屏（下拉抽屉式）
         }
         // 七日签到弹窗（普通弹窗，非抽屉式）
         .overlay {
@@ -452,6 +458,16 @@ struct HomeView: View {
                 .zIndex(1000)
             }
         }
+        // 玩家昵称输入弹窗
+        .overlay {
+            if viewModel.showPlayerNameInput {
+                PlayerNameInputView(
+                    viewModel: viewModel,
+                    isPresented: $viewModel.showPlayerNameInput
+                )
+                .zIndex(1000)
+            }
+        }
         .onAppear {
             // 打印设备类型用于调试
             let detectedIsPad = UIDevice.current.userInterfaceIdiom == .pad
@@ -465,6 +481,16 @@ struct HomeView: View {
             if shouldShowTutorial {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     showTutorial = true
+                }
+            } else {
+                // iPad上不显示教程，但需要检查是否需要显示昵称输入
+                // 如果教程已完成（或iPad跳过教程）且玩家名字为空，显示昵称输入
+                let hasCompletedTutorial = UserDefaults.standard.bool(forKey: "hasCompletedTutorial")
+                if (hasCompletedTutorial || isPad) && viewModel.playerName.isEmpty {
+                    print("👤 [名字输入] iPad或教程已完成，名字为空，显示名字输入弹窗")
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        viewModel.showPlayerNameInput = true
+                    }
                 }
             }
         }

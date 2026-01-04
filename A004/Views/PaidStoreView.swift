@@ -727,11 +727,11 @@ struct StaminaPackCard: View {
         } else {
             switch pack.titleKey {
             case "a_little_bit":
-                return "a little bit of\nstamina"
+                return "a little\nstamina"
             case "a_lot":
                 return "a lot of\nstamina"
             case "super_many":
-                return "super many of\nstamina"
+                return "many of\nstamina"
             default:
                 return "stamina"
             }
@@ -792,6 +792,13 @@ struct StaminaPackCard: View {
                 // 背景色
                 Color(hex: "FDE9B4")
                     .frame(height: cardContentHeight)
+                
+                // 花纹蒙层（mask.png）- 覆盖在背景之上，文字与图片之下
+                Image("mask")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: cardWidth, height: cardContentHeight)
+                    .clipped()
                 
                 // 体力图标 - 根据体力数量显示对应的图标（放大3倍：2 * 1.5）
                 VStack {
@@ -1314,6 +1321,13 @@ struct DiamondProductCard: View {
                 // 背景色
                 Color(hex: "FDE9B4")
                     .frame(height: cardContentHeight)
+                
+                // 花纹蒙层（mask.png）- 覆盖在背景之上，文字与图片之下
+                Image("mask")
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: cardWidth, height: cardContentHeight)
+                    .clipped()
                 
                 if product.type == .freeDaily {
                     // 免费每日：显示宝箱图片（放大1.3倍）

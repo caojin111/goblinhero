@@ -264,6 +264,7 @@ struct GameView: View {
             .animation(.spring(), value: viewModel.showSymbolBuffTip)
             .animation(.spring(), value: viewModel.showDiceAnimation)
             .animation(.spring(), value: viewModel.showDebugPanel)
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: viewModel.activeBonds.count)
         }
         .onAppear {
             print("🎮 [GameView] 视图出现，准备播放背景音乐")
@@ -515,7 +516,7 @@ struct TopInfoBar: View {
                     }
                     .offset(x: -10, y: 0) // 右移20像素（-30 + 20 = -10）
                     
-                    // 调试按钮组（透明+日志）
+                    // 调试按钮组（透明+日志）- 已隐藏
                     HStack(spacing: 6) {
                         // 透明模式按钮
                         Button(action: {
@@ -547,6 +548,7 @@ struct TopInfoBar: View {
                                 )
                         }
                     }
+                    .hidden()
                 }
                 .offset(x: -40) // 向左移动40像素
             }
@@ -949,6 +951,7 @@ struct ActiveBondsView: View {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(Color.white.opacity(0.1))
             )
+            .transition(.move(edge: .top).combined(with: .opacity))
         }
     }
 }
@@ -1042,10 +1045,7 @@ struct BondDescriptionView: View {
                     .padding(.top, 20)
                 
                 // 描述内容（自适应高度，不使用ScrollView）
-                Text(bondBuff.description)
-                    .font(customFont(size: 21)) // 从16增大5号到21
-                    .foregroundColor(.white.opacity(0.9))
-                    .multilineTextAlignment(.leading)
+                RichTextView(bondBuff.description, defaultColor: .white.opacity(0.9), font: customFont(size: 21), multilineTextAlignment: .leading)
                     .lineSpacing(8)
                     .padding(.horizontal, 30)
                     .fixedSize(horizontal: false, vertical: true)
@@ -1088,6 +1088,7 @@ struct BondDescriptionView: View {
 struct SymbolBadgeView: View {
     let symbol: Symbol
     @ObservedObject var viewModel: GameViewModel
+    @ObservedObject var localizationManager = LocalizationManager.shared
     
     private var isFlashing: Bool {
         viewModel.flashingSymbolIDs.contains(symbol.id)
@@ -1106,7 +1107,7 @@ struct SymbolBadgeView: View {
                 .font(.title3)
             }
             
-            Text(symbol.name)
+            Text(localizationManager.localized("symbols.\(symbol.nameKey).name"))
                 .font(.caption2)
                 .foregroundColor(.white)
                 .lineLimit(1)
@@ -1190,7 +1191,7 @@ struct SymbolSelectionView: View {
                         viewModel.selectSymbol(symbol)
                     }) {
                                 HStack(alignment: .top, spacing: 15) {
-                                    // Icon和Type区域（垂直排列）
+                                    // Icon、稀有度和Type区域（垂直排列）
                                     VStack(spacing: 8) {
                                         // 根据icon类型显示：图片资源或emoji文本
                                         if symbol.isImageResource {
@@ -1203,7 +1204,15 @@ struct SymbolSelectionView: View {
                                 .font(.system(size: 40))
                                         }
                                         
-                                        // Type标签（支持多行）
+                                        // 稀有度标签（在图片下方）
+                                        Text(symbol.rarity.displayName)
+                                            .font(.caption)
+                                            .padding(.horizontal, 8)
+                                            .padding(.vertical, 4)
+                                            .background(symbol.rarity.color.opacity(0.3))
+                                            .cornerRadius(8)
+                                        
+                                        // Type标签（支持多行，在稀有度下方）
                                         if !symbol.types.isEmpty {
                                             VStack(spacing: 4) {
                                                 ForEach(symbol.types, id: \.self) { type in
@@ -1223,20 +1232,13 @@ struct SymbolSelectionView: View {
                             
                             VStack(alignment: .leading, spacing: 5) {
                                         HStack(spacing: 8) {
-                                    Text(symbol.name)
+                                    Text(localizationManager.localized("symbols.\(symbol.nameKey).name"))
                                                 .font(.system(size: 13)) // 从.title3（约17pt）减小5号，约12pt，使用13pt更合适
                                         .fontWeight(.bold)
                                                 .lineLimit(1) // 单行显示，不换行
-                                    
-                                    Text(symbol.rarity.displayName)
-                                        .font(.caption)
-                                        .padding(.horizontal, 8)
-                                        .padding(.vertical, 4)
-                                        .background(symbol.rarity.color.opacity(0.3))
-                                        .cornerRadius(8)
                                 }
                                 
-                                RichTextView(symbol.description, defaultColor: .gray, font: .caption)
+                                RichTextView(localizationManager.localized("symbols.\(symbol.nameKey).description"), defaultColor: .gray, font: .caption)
                                             .fixedSize(horizontal: false, vertical: true) // 垂直方向自适应，不限制行数
                                             .lineSpacing(2) // 增加行间距，提高可读性
                                 
@@ -1357,20 +1359,19 @@ struct GameOverView: View {
                     audioManager.playSoundEffect("click", fileExtension: "wav")
                     viewModel.exitToHome()
                 }) {
-                    Text(localizationManager.localized("confirmations.back_to_home"))
-                        .font(.title3)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(
-                            LinearGradient(
-                                gradient: Gradient(colors: [Color.gray, Color.gray.opacity(0.8)]),
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .cornerRadius(15)
+                    ZStack {
+                        Image("header_bg")
+                            .resizable()
+                            .scaledToFill()
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 50)
+                            .clipped()
+                        
+                        Text(localizationManager.localized("confirmations.back_to_home"))
+                            .font(.title3)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                    }
                 }
                 
                 // Play again 按钮
@@ -1378,20 +1379,19 @@ struct GameOverView: View {
                     audioManager.playSoundEffect("click", fileExtension: "wav")
                 viewModel.restartGame()
             }) {
-                Text(localizationManager.localized("game_over.play_again"))
-                    .font(.title3)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(
-                        LinearGradient(
-                            gradient: Gradient(colors: [Color.yellow, Color.black]),
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .cornerRadius(15)
+                    ZStack {
+                        Image("sign_in_button_bg")
+                            .resizable()
+                            .scaledToFill()
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 50)
+                            .clipped()
+                        
+                        Text(localizationManager.localized("game_over.play_again"))
+                            .font(.title3)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                    }
                 }
             }
         }
@@ -1656,7 +1656,7 @@ struct DiceAnimationView: View {
                             .fill(
                                 LinearGradient(
                                     gradient: Gradient(colors: [
-                                        Color.yellow.opacity(0.9),
+                                        Color.gray.opacity(0.9),
                                         Color.black.opacity(0.95)
                                     ]),
                                     startPoint: .topLeading,
@@ -1857,7 +1857,7 @@ struct SymbolBuffTipView: View {
                 
                 // 符号名称和金币值
                 HStack(spacing: 8) {
-                    Text(symbol.name)
+                    Text(localizationManager.localized("symbols.\(symbol.nameKey).name"))
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundColor(.white)
@@ -1898,11 +1898,12 @@ struct SymbolBuffTipView: View {
                 }
                 
                 // 效果描述
-                if !symbol.description.isEmpty {
+                let symbolDescription = localizationManager.localized("symbols.\(symbol.nameKey).description")
+                if !symbolDescription.isEmpty {
                     Divider()
                         .background(Color.white.opacity(0.3))
                     
-                    RichTextView(symbol.description, defaultColor: .white, font: .body, multilineTextAlignment: .center)
+                    RichTextView(symbolDescription, defaultColor: .white, font: .body, multilineTextAlignment: .center)
                             .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, 10)
                 }

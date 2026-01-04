@@ -12,7 +12,8 @@ class BondEffectProcessor {
     private var activeBondBuffs: Set<String> = [] // 当前激活的羁绊Buff ID集合
     
     /// 处理羁绊Buff效果（在回合开始时调用）
-    func processBondBuffs(symbolPool: inout [Symbol], currentRound: Int) -> (bonus: Int, shouldGameOver: Bool) {
+    /// - Parameter isRoundStart: 是否为回合开始调用（true表示回合开始，false表示其他时机）
+    func processBondBuffs(symbolPool: inout [Symbol], currentRound: Int, isRoundStart: Bool = false) -> (bonus: Int, shouldGameOver: Bool) {
         let bondBuffs = BondBuffConfigManager.shared.getActiveBondBuffs(symbolPool: symbolPool)
         // 记录类型计数羁绊激活情况，供其他流程使用
         BondBuffRuntime.shared.activeTypeBonds = bondBuffs
@@ -21,10 +22,10 @@ class BondEffectProcessor {
         var totalBonus = 0
         var shouldGameOver = false
         
-        print("\n🔗 [羁绊Buff] 开始处理\(bondBuffs.count)个激活的羁绊Buff")
+        print("\n🔗 [羁绊Buff] 开始处理\(bondBuffs.count)个激活的羁绊Buff (isRoundStart: \(isRoundStart))")
         
         for bondBuff in bondBuffs {
-            let effect = processBondBuffEffect(bondBuff: bondBuff, symbolPool: &symbolPool, currentRound: currentRound)
+            let effect = processBondBuffEffect(bondBuff: bondBuff, symbolPool: &symbolPool, currentRound: currentRound, isRoundStart: isRoundStart)
             totalBonus += effect.bonus
             if effect.shouldGameOver {
                 shouldGameOver = true
@@ -39,7 +40,7 @@ class BondEffectProcessor {
     }
     
     /// 处理单个羁绊Buff的效果
-    private func processBondBuffEffect(bondBuff: BondBuff, symbolPool: inout [Symbol], currentRound: Int) -> (bonus: Int, shouldGameOver: Bool) {
+    private func processBondBuffEffect(bondBuff: BondBuff, symbolPool: inout [Symbol], currentRound: Int, isRoundStart: Bool = false) -> (bonus: Int, shouldGameOver: Bool) {
         // 根据羁绊的nameKey来处理不同的效果
         // nameKey可能是 "merchant_trading_bond" 或 "bonds.merchant_trading_bond.name" 格式
         let nameKey = bondBuff.nameKey.contains(".") ? 
@@ -49,21 +50,29 @@ class BondEffectProcessor {
         switch nameKey {
         // ---------- 类型计数羁绊（可叠加） ----------
         case "human_3_bond":
-            // 每回合获得1个随机人类
-            if symbolPool.filter({ $0.types.contains("human") }).count >= 3 {
-                if let human = SymbolLibrary.getSymbols(byType: "human").randomElement() {
+            // 每回合获得1个随机人类（排除圣骑士）
+            // 注意：只在回合开始时触发，不在每次转动时触发
+            if isRoundStart && symbolPool.filter({ $0.types.contains("human") }).count >= 3 {
+                let humanCandidates = SymbolLibrary.getSymbols(byType: "human").filter { $0.nameKey != "paladin" }
+                if let human = humanCandidates.randomElement() {
                     symbolPool.append(human)
-                    print("👥 [羁绊] 人类3：生成随机人类 \(human.name)")
+                    print("👥 [羁绊] 人类3：回合开始时生成随机人类 \(human.name)")
                 }
             }
             return (0, false)
         case "human_5_bond":
-            // 人类基础价值+10（全局加成由效果处理器统一应用，留给上层处理或在收益计算时读取）
-            print("👥 [羁绊] 人类5：基础价值+10（需全局加成支持）")
+            // 人类基础价值+5（全局加成由效果处理器统一应用，留给上层处理或在收益计算时读取）
+            print("👥 [羁绊] 人类5：基础价值+5（需全局加成支持）")
             return (0, false)
         case "human_10_bond":
-            // 符号池每有人类，每次转动额外获得50金币
-            return (0, false) // 在掷骰逻辑里统一处理，返回0占位
+            // 符号池每有1个人类，每回合额外获得5金币
+            let humanCount = symbolPool.filter { $0.types.contains("human") }.count
+            let bonus = humanCount * 5
+            if bonus > 0 {
+                print("👥 [羁绊] 人类10：符号池有\(humanCount)个人类，每回合额外+\(bonus)金币")
+                return (bonus, false)
+            }
+            return (0, false)
             
         case "material_2_bond":
             // 每回合自动熔合2个normal材料为rare（第一回合不触发）
@@ -96,12 +105,12 @@ class BondEffectProcessor {
             }
             return (0, false)
         case "cozylife_3_bond":
-            // 空格收益+5：在收益计算处处理，这里记录激活
-            print("🏠 [羁绊] cozy life 3：空格收益+5（收益计算时应用）")
+            // 空格收益+3：在收益计算处处理，这里记录激活
+            print("🏠 [羁绊] cozy life 3：空格收益+3（收益计算时应用）")
             return (0, false)
         case "cozylife_6_bond":
-            // 空格收益+25
-            print("🏠 [羁绊] cozy life 6：空格收益+25（收益计算时应用）")
+            // 空格收益+10
+            print("🏠 [羁绊] cozy life 6：空格收益+10（收益计算时应用）")
             return (0, false)
         case "tools_2_bond":
             // 掷出1再转一次（掷骰逻辑中处理）
@@ -116,15 +125,15 @@ class BondEffectProcessor {
             print("📜 [羁绊] classic tale 2：标记特殊格子收益翻倍（需棋盘层标记）")
             return (0, false)
         case "classictale_4_bond":
-            // 四角挖出 +200（在挖掘逻辑中处理）
-            print("📜 [羁绊] classic tale 4：四角挖出+200（挖掘时处理）")
+            // 四角挖出 +50（在挖掘逻辑中处理）
+            print("📜 [羁绊] classic tale 4：四角挖出+50（挖掘时处理）")
             return (0, false)
         case "classictale_6_bond":
-            // 中心挖出 +400
-            print("📜 [羁绊] classic tale 6：中心挖出+400（挖掘时处理）")
+            // 中心挖出 +100
+            print("📜 [羁绊] classic tale 6：中心挖出+100（挖掘时处理）")
             return (0, false)
         case "merchant_trading_bond":
-            // 奸商：被商人消除的符号获得其基础价值*5的金币（在商人消除符号时处理，这里不需要处理）
+            // 奸商：被商人消除的符号获得其基础价值*2的金币（在商人消除符号时处理，这里不需要处理）
             return processMerchantTradingBond()
             
         case "vampire_curse_bond":
@@ -152,7 +161,7 @@ class BondEffectProcessor {
             return processApocalypseBond(symbolPool: &symbolPool)
             
         case "human_extinction_bond":
-            // 人类灭绝：如果光线枪、外星头盔、宇宙飞船、精神控制器同时存在，下回合开始时消灭一个人类，获得300金币
+            // 人类灭绝：如果光线枪、外星头盔、宇宙飞船、精神控制器同时存在，下回合开始时消灭5个人类，获得100金币
             return processHumanExtinctionBond(symbolPool: &symbolPool)
             
         case "raccoon_city_bond":
@@ -172,9 +181,9 @@ class BondEffectProcessor {
     // MARK: - 各个羁绊效果实现
     
     private func processMerchantTradingBond() -> (bonus: Int, shouldGameOver: Bool) {
-        // 奸商羁绊效果：被商人消除的符号获得其基础价值*5的金币
+        // 奸商羁绊效果：被商人消除的符号获得其基础价值*2的金币
         // 这个效果在 SymbolEffectProcessor 中商人消除符号时处理，这里不需要额外处理
-        print("💰 [羁绊Buff] 奸商羁绊已激活：被商人消除的符号将获得其基础价值*5的金币")
+        print("💰 [羁绊Buff] 奸商羁绊已激活：被商人消除的符号将获得其基础价值*2的金币")
         return (bonus: 0, shouldGameOver: false)
     }
     
@@ -276,8 +285,8 @@ class BondEffectProcessor {
                 symbolPool.remove(at: index)
             }
             
-            print("🌍 [羁绊Buff] 世界末日：消灭\(eliminatedCount)个符号，+2000金币")
-            return (bonus: 2000, shouldGameOver: false)
+            print("🌍 [羁绊Buff] 世界末日：消灭\(eliminatedCount)个符号，+500金币")
+            return (bonus: 500, shouldGameOver: false)
         }
         return (bonus: 0, shouldGameOver: false)
     }
@@ -290,15 +299,22 @@ class BondEffectProcessor {
         }
         
         if hasAll {
-            // 消灭一个随机人类
+            // 消灭5个随机人类
             let humans = symbolPool.enumerated().filter { (_, symbol) in
                 symbol.types.contains("human")
             }
             
-            if let randomHuman = humans.randomElement() {
-                symbolPool.remove(at: randomHuman.offset)
-                print("👽 [羁绊Buff] 人类灭绝：消灭1个人类，+300金币")
-                return (bonus: 300, shouldGameOver: false)
+            let eliminateCount = min(5, humans.count)
+            if eliminateCount > 0 {
+                // 随机选择5个人类（如果不足5个，则全部消灭）
+                let selectedHumans = Array(humans.shuffled().prefix(eliminateCount))
+                // 按索引从大到小排序，确保删除时索引不会错乱
+                let sortedIndices = selectedHumans.map { $0.offset }.sorted(by: >)
+                for index in sortedIndices {
+                    symbolPool.remove(at: index)
+                }
+                print("👽 [羁绊Buff] 人类灭绝：消灭\(eliminateCount)个人类，+100金币")
+                return (bonus: 100, shouldGameOver: false)
             }
         }
         return (bonus: 0, shouldGameOver: false)

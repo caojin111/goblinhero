@@ -165,15 +165,15 @@
         "childish": "Childish",
         "trading": "Trading",
         "worship": "Worship",
-        "classic tale": "Classic Tale",
+        "classic tale": "Tale",
         "elf": "Elf",
         "forest": "Forest",
-        "live or dead": "Live or Dead",
+        "live or dead": "To dead",
         "vampire note": "V's diary",
         "monster": "Monster",
         "god": "God",
         "element": "Element",
-        "made a wish": "Made a Wish",
+        "made a wish": "Wish",
         "material": "Material",
         "tool": "Tool",
         "equipment": "Equipment",
@@ -380,7 +380,7 @@
         },
         "merchant": {
           "name": "Merchant",
-          "description": "Remove the symbol with the highest rarity among all <color=#E74875>#Materials</color>, and gain gold coins equal to its base value + 50"
+          "description": "Remove the symbol with the highest rarity among all <color=#E74875>#Materials</color>, and gain 20 gold coins"
         },
         "barbarian": {
           "name": "Barbarian",
@@ -388,7 +388,7 @@
         },
         "farmer": {
           "name": "Farmer",
-          "description": "Obtain 5 random <color=#E74875>#Tools</color> symbols"
+          "description": "Obtain 1 random <color=#E74875>#Tool</color> symbol"
         },
         "soldier": {
           "name": "Soldier",
@@ -396,7 +396,7 @@
         },
         "village_chief": {
           "name": "Village Chief",
-          "description": "Obtain 5 random <color=#E74875>#Humans</color> symbols and gain 10 gold coins"
+          "description": "Obtain 2 random <color=#E74875>#Human</color> symbols and gain 5 gold coins"
         },
         "forest_fairy": {
           "name": "Forest Sprite",
@@ -436,11 +436,11 @@
         },
         "vampire": {
           "name": "Vampire",
-          "description": "Eliminate 5 <color=#E74875>#Humans</color> from the symbol pool to get 10 random <color=#E74875>#Materials</color> symbols."
+          "description": "Eliminate 5 <color=#E74875>#Humans</color> from the symbol pool to get 3 random <color=#E74875>#Material</color> symbols."
         },
         "hunter": {
           "name": "Hunter",
-          "description": "Get 2 random <color=#E74875>#Equipment</color> symbols. Gain 200 gold coins from the <color=#AA2ABB>Vampires</color> in the symbol pool and yourself."
+          "description": "Eliminate <color=#AA2ABB>Vampires</color> in the symbol pool and yourself, gain 2 random <color=#E74875>#Equipment</color> symbols."
         },
         "female_ninja": {
           "name": "Female Ninja",
@@ -452,7 +452,7 @@
         },
         "god_of_strength": {
           "name": "God of Strength",
-          "description": "+300 gold coins for the next gold gain. Removed from the symbol pool after being dug up (eliminate yourself)."
+          "description": "+50 gold coins for the next gold gain. Removed from the symbol pool after being dug up (eliminate yourself)."
         },
         "god_of_speed": {
           "name": "God of Speed",
@@ -508,7 +508,7 @@
         },
         "dragon_fire_gun": {
           "name": "Dragon Firearm",
-          "description": "Eliminate itself, eliminate a random <color=#E74875>#Monster</color> from the symbol pool, and get 50 gold coins."
+          "description": "Remove itself and eliminate a random <color=#AA2ABB>#Monster</color> from the symbol pool, gain 10 coins."
         },
         "rune_armor": {
           "name": "Rune Armor",
@@ -520,7 +520,7 @@
         },
         "holy_bottle": {
           "name": "Holy Water Bottle",
-          "description": "Get a <color=#AA2ABB>Dice</color> symbol."
+          "description": "Remove itself and gain 1 <color=#AA2ABB>Dice</color> symbol."
         },
         "contract_scroll": {
           "name": "Contract Scroll",
@@ -552,11 +552,11 @@
         },
         "magatama": {
           "name": "Magatama",
-          "description": "Increase the base value of all <color=#080909>Normal</color> rarity symbols by 5."
+          "description": "Increase the base value of all future <color=#080909>Common Symbols</color> by 1."
         },
         "battery": {
           "name": "Battery",
-          "description": "Remove yourself from the symbol pool and generate a <color=#147ED9>Spaceship</color> into the symbol pool."
+          "description": "Remove itself and gain 1 <color=#147ED9>Spaceship</color> to the symbol pool."
         },
         "medical_kit": {
           "name": "Medical Kit",
@@ -608,7 +608,7 @@
         },
         "hoe": {
           "name": "Axe",
-          "description": "50% chance to generate 1 <color=#080909>Flower Spirit</color> into the symbol pool, 50% chance to generate 1 <color=#147ED9>Zombie</color> into the symbol pool."
+          "description": "Get 1 <color=#080909>Flower Spirit</color> or <color=#147ED9>Zombie</color>."
         },
         "horn": {
           "name": "Horn",
@@ -640,7 +640,7 @@
         },
         "werewolf": {
           "name": "Werewolf",
-          "description": "Eliminate 2 <color=#E74875>#Humans</color> from the symbol pool to get 10 random <color=#E74875>#Tools</color> symbols."
+          "description": "Eliminate 2 <color=#E74875>#Humans</color> from the symbol pool to get 3 random <color=#E74875>#Tool</color> symbols."
         },
         "zombie": {
           "name": "Zombie",
@@ -672,7 +672,7 @@
         },
         "meteorite": {
           "name": "Meteorite",
-          "description": "If there is a <color=#AA2ABB>Gomora</color> in the symbol pool, eliminate the <color=#AA2ABB>Gomora</color> from the symbol pool to get 300 gold coins."
+          "description": "If there is a <color=#AA2ABB>Gomora</color> in the symbol pool, eliminate the <color=#AA2ABB>Gomora</color> from the symbol pool to get 30 gold coins."
         },
         "dice": {
           "name": "Dice",
@@ -684,7 +684,7 @@
         },
         "artwork": {
           "name": "Art Work",
-          "description": "Generate 5 <color=#080909>Merchants</color>."
+          "description": "Generate 1 <color=#080909>Merchant</color>."
         }
       },
       "bonds": {
@@ -694,7 +694,7 @@
         },
         "merchant_trading_bond": {
           "name": "Shrewd Merchant",
-          "description": "Symbols eliminated by Merchant gain coins equal to 5 times their base value"
+          "description": "Symbols eliminated by Merchant gain coins equal to 2 times their base value"
         },
         "vampire_curse_bond": {
           "name": "Vampire's Curse",
@@ -702,11 +702,11 @@
         },
         "death_blessing_bond": {
           "name": "Death's Blessing",
-          "description": "Gain 1000 coins for the next 5 turns, but the game will forcefully end after 5 turns"
+          "description": "Gain 200 coins for the next 5 turns, but the game will forcefully end after 5 turns"
         },
         "wolf_hunter_bond": {
           "name": "Wolf Hunters",
-          "description": "If Werewolf and Hoe exist simultaneously in symbol pool, lose 20 coins each turn"
+          "description": "If Werewolf and Axe exist simultaneously in symbol pool, lose 20 coins each turn"
         },
         "element_master_bond": {
           "name": "Element Master",
@@ -718,15 +718,15 @@
         },
         "apocalypse_bond": {
           "name": "Apocalypse",
-          "description": "If Gomorrah, Zombie, Werewolf, and Vampire exist simultaneously in symbol pool, randomly eliminate half of symbols at the start of next turn and gain 2000 coins"
+          "description": "If Gomorrah, Zombie, Werewolf, and Vampire exist simultaneously in symbol pool, randomly eliminate half of symbols at the start of next turn and gain 500 coins"
         },
         "human_extinction_bond": {
           "name": "Human Extinction",
-          "description": "If Ray Gun, Alien Helmet, Spaceship, and Mind Controller exist simultaneously in symbol pool, eliminate one human at the start of next turn and gain 300 coins"
+          "description": "If Ray Gun, Alien Helmet, Spaceship, and Mind Controller exist simultaneously in symbol pool, eliminate 5 humans at the start of next turn and gain 100 coins"
         },
         "raccoon_city_bond": {
           "name": "raccoon-city",
-          "description": "Infect one human into a zombie before each mining. Gain +20 coins for each zombie"
+          "description": "Infect one human into a zombie before each mining. Gain +20 coins for each <color=#147ED9>Zombie</color> mined"
         },
         "human_3_bond": {
           "name": "human-3",
@@ -734,11 +734,11 @@
         },
         "human_5_bond": {
           "name": "human-5",
-          "description": "All Human symbols gain +10 base value."
+          "description": "All <color=#080909>Human</color> symbols gain +5 base value."
         },
         "human_10_bond": {
           "name": "human-10",
-          "description": "+50 coins per Human in pool on each spin."
+          "description": "+5 coins per <color=#080909>Human</color> in pool each round."
         },
         "material_2_bond": {
           "name": "material-2",
@@ -750,11 +750,11 @@
         },
         "cozylife_3_bond": {
           "name": "cozylife-3",
-          "description": "Empty tiles gain +5 coins."
+          "description": "Empty tiles gain +3 coins."
         },
         "cozylife_6_bond": {
           "name": "cozylife-6",
-          "description": "Empty tiles gain +25 coins."
+          "description": "Empty tiles gain +10 coins."
         },
         "tools_2_bond": {
           "name": "tools-2",
@@ -770,11 +770,11 @@
         },
         "classictale_4_bond": {
           "name": "classictale-4",
-          "description": "Mining any corner grants +200 coins."
+          "description": "Mining any corner grants +50 coins."
         },
         "classictale_6_bond": {
           "name": "classictale-6",
-          "description": "Mining the center tile grants +400 coins."
+          "description": "Mining the center tile grants +100 coins."
         },
         "dark_forest_3_bond": {
           "name": "Dark Forest-3",
@@ -1157,7 +1157,7 @@
         },
         "merchant": {
           "name": "商人",
-          "description": "消除稀有度最高的一个<color=#E74875>#材料</color>符号，获得其基础价值+50的金币"
+          "description": "消除稀有度最高的一个<color=#E74875>#材料</color>符号，获得20金币"
         },
         "barbarian": {
           "name": "野蛮人",
@@ -1165,7 +1165,7 @@
         },
         "farmer": {
           "name": "农民",
-          "description": "获得5个随机<color=#E74875>#工具</color>符号"
+          "description": "获得1个类型为<color=#E74875>#工具</color>的随机符号"
         },
         "soldier": {
           "name": "士兵",
@@ -1173,7 +1173,7 @@
         },
         "village_chief": {
           "name": "村长",
-          "description": "获得 5 个随机<color=#E74875>#人类</color> 符号，金币+10"
+          "description": "获得 2 个随机<color=#E74875>#人类</color>符号，金币+5"
         },
         "forest_fairy": {
           "name": "森林妖精",
@@ -1213,11 +1213,11 @@
         },
         "vampire": {
           "name": "吸血鬼",
-          "description": "消除符号池里5 个<color=#E74875>#人类</color>，获得 10 个任意<color=#E74875>#材料</color>符号"
+          "description": "消除符号池里5 个<color=#E74875>#人类</color>，获得3个任意<color=#E74875>#材料</color>符号"
         },
         "hunter": {
           "name": "猎人",
-          "description": "获得 2个随机<color=#E74875>#装备</color>符号。从消除符号池的<color=#AA2ABB>吸血鬼</color>和自身，获得200金币"
+          "description": "消除符号池的<color=#AA2ABB>吸血鬼</color>和自身,获得2个随机<color=#E74875>#装备</color>符号"
         },
         "female_ninja": {
           "name": "女忍者",
@@ -1229,7 +1229,7 @@
         },
         "god_of_strength": {
           "name": "力之神",
-          "description": "下次金币收益+300。被挖出后从符号池移除（消除自身）"
+          "description": "下次金币收益+50。被挖出后从符号池移除（消除自身）"
         },
         "god_of_speed": {
           "name": "速之神",
@@ -1280,12 +1280,12 @@
           "description": "从符号池移除自身和1个<color=#080909>十字架</color>，生成一个<color=#AA2ABB>死神</color>到符号池"
         },
         "hypnosis_pendulum": {
-          "name": "催眠摆",
+          "name": "催眠钟摆",
           "description": "从符号池移除自身，随机生成<color=#147ED9>公主</color>或<color=#080909>女忍者</color>或<color=#080909>修女</color>中的一个到符号池"
         },
         "dragon_fire_gun": {
           "name": "龙火枪",
-          "description": "消除自身，消灭符号池随机一个<color=#E74875>#怪物</color>，获得 50 金币"
+          "description": "消除自身，消灭符号池随机一个<color=#AA2ABB>#怪物</color>，获得10金币"
         },
         "rune_armor": {
           "name": "符文护甲",
@@ -1297,7 +1297,7 @@
         },
         "holy_bottle": {
           "name": "圣水瓶",
-          "description": "获得一个<color=#AA2ABB>骰子</color>符号"
+          "description": "消除自身，获得1个<color=#AA2ABB>骰子</color>符号"
         },
         "contract_scroll": {
           "name": "契约卷轴",
@@ -1329,7 +1329,7 @@
         },
         "magatama": {
           "name": "勾玉",
-          "description": "所有<color=#080909>普通</color>稀有度符号基础价值+5"
+          "description": "未来所有普通符号基础价值提升+1"
         },
         "battery": {
           "name": "电池",
@@ -1385,7 +1385,7 @@
         },
         "hoe": {
           "name": "斧头",
-          "description": "50%概率生成1 个<color=#080909>花精</color>到符号池，50%概率生成 1 个<color=#147ED9>丧尸</color>到符号池"
+          "description": "获得1个<color=#080909>花精</color>或<color=#147ED9>丧尸</color>"
         },
         "horn": {
           "name": "号角",
@@ -1417,7 +1417,7 @@
         },
         "werewolf": {
           "name": "狼人",
-          "description": "消除符号池里2 个<color=#E74875>#人类</color>，获得 10 个任意<color=#E74875>#工具</color>符号"
+          "description": "消除符号池里2 个<color=#E74875>#人类</color>，获得3个任意<color=#E74875>#工具</color>符号"
         },
         "zombie": {
           "name": "丧尸",
@@ -1449,7 +1449,7 @@
         },
         "meteorite": {
           "name": "陨石",
-          "description": "如果符号池里有<color=#AA2ABB>哥莫拉</color>，从符号池消除<color=#AA2ABB>哥莫拉</color>，获得300金币"
+          "description": "如果符号池里有<color=#AA2ABB>哥莫拉</color>，从符号池消除<color=#AA2ABB>哥莫拉</color>，获得30金币"
         },
         "dice": {
           "name": "骰子",
@@ -1461,7 +1461,7 @@
         },
         "artwork": {
           "name": "艺术品",
-          "description": "生成5个<color=#080909>商人</color>"
+          "description": "生成1个<color=#080909>商人</color>"
         }
       },
       "bonds": {
@@ -1471,7 +1471,7 @@
         },
         "merchant_trading_bond": {
           "name": "奸商",
-          "description": "被商人消除的符号获得其基础价值*5的金币"
+          "description": "被商人消除的符号获得其基础金币价值的 2 倍金币"
         },
         "vampire_curse_bond": {
           "name": "吸血鬼的诅咒",
@@ -1479,11 +1479,11 @@
         },
         "death_blessing_bond": {
           "name": "死神的眷顾",
-          "description": "接下来五个回合每回合获得 1000 金币，但是五个回合之后游戏强制结束。"
+          "description": "接下来五个回合每回合获得 200 金币，但是五个回合之后游戏强制结束。"
         },
         "wolf_hunter_bond": {
           "name": "捕狼队",
-          "description": "如果 狼人与锄头同时存在符号池，每回合都会减少20金币."
+          "description": "如果 狼人与斧头同时存在符号池，每回合都会减少20金币."
         },
         "element_master_bond": {
           "name": "元素掌握者",
@@ -1495,15 +1495,15 @@
         },
         "apocalypse_bond": {
           "name": "世界末日",
-          "description": "如果哥莫拉，丧尸，狼人，吸血鬼同时在符号池内， 下个回合开始时，随机消灭一半的符号，获得 2000 金币"
+          "description": "如果哥莫拉,丧尸,狼人,吸血鬼同时在符号池内,下个回合开始时,随机消灭一半的符号,获得500金币"
         },
         "human_extinction_bond": {
           "name": "人类灭绝",
-          "description": "如果光线枪，外星头盔，宇宙飞船，精神控制器同时在符号池内， 下个回合开始时，消灭一个人类，获得 300 金币"
+          "description": "如果光线枪，外星头盔，宇宙飞船，精神控制器同时在符号池内， 下个回合开始时，消灭5个人类，获得 100 金币"
         },
         "raccoon_city_bond": {
           "name": "浣熊市",
-          "description": "每次挖矿前感染一个人类变成丧尸。每有一个丧尸，额外金币增加20"
+          "description": "每次挖矿前感染一个人类变成丧尸。每挖出一个丧尸,额外金币增加20"
         },
         "human_3_bond": {
           "name": "人类·三人组",
@@ -1511,11 +1511,11 @@
         },
         "human_5_bond": {
           "name": "人类·五人组",
-          "description": "人类符号基础价值+10"
+          "description": "人类符号基础价值+5"
         },
         "human_10_bond": {
           "name": "人类·十人团",
-          "description": "符号池每有1个人类，每次转动额外获得50金币"
+          "description": "符号池每有1个人类,每回合额外获得5金币"
         },
         "material_2_bond": {
           "name": "材料·二合一",
@@ -1527,11 +1527,11 @@
         },
         "cozylife_3_bond": {
           "name": "舒适生活·温馨",
-          "description": "每个空格子收益+5"
+          "description": "每个空格子收益+3"
         },
         "cozylife_6_bond": {
           "name": "舒适生活·奢享",
-          "description": "每个空格子收益+25"
+          "description": "每个空格子收益+10"
         },
         "tools_2_bond": {
           "name": "工具·敏捷",
@@ -1547,11 +1547,11 @@
         },
         "classictale_4_bond": {
           "name": "经典传说·角落宝藏",
-          "description": "挖到四个角之一，奖励200金币"
+          "description": "挖到四个角之一，奖励50金币"
         },
         "classictale_6_bond": {
           "name": "经典传说·中心秘宝",
-          "description": "挖到中心格，奖励400金币"
+          "description": "挖到中心格，奖励100金币"
         },
         "dark_forest_3_bond": {
           "name": "黑暗森林-3",

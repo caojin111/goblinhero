@@ -140,8 +140,8 @@ struct DailySignInView: View {
                         .disabled(!viewModel.canSignInToday)
                         .opacity(viewModel.canSignInToday ? 1.0 : 0.6)
                         .position(x: buttonX, y: buttonY)
-                                }
-                }
+                            }
+                        }
                 .frame(width: popupWidth, height: popupHeight)
                 .position(x: popupX, y: popupY)
                 .scaleEffect(deviceScale) // 在标准iPad/Pro上应用80%缩放
@@ -381,14 +381,16 @@ struct SignInCardsView: View {
                 size: CGSize(width: cardWidth, height: cardHeight),
                 isToday: isTodayCard(day: day),
                 onTap: { onRewardTap(rewards[index]) }
-            )
-        }
+                        )
+                    }
     }
     
     // 获取卡片类型
     private func getCardType(day: Int) -> SignInCardType {
         let rewardDay = day
-        let isClaimed = rewardDay < viewModel.signInDay
+        // 使用lastCompletedSignInDay来判断是否已领取，而不是signInDay
+        // 这样第7天签完后，1-6天的卡片状态不会立即改变，等跨天后lastCompletedSignInDay重置为0时才改变
+        let isClaimed = viewModel.lastCompletedSignInDay > 0 && rewardDay <= viewModel.lastCompletedSignInDay
         let isToday = rewardDay == viewModel.signInDay && viewModel.canSignInToday
         
         // 第7天始终使用 day_card_today 背景图
@@ -406,15 +408,15 @@ struct SignInCardsView: View {
         } else {
             // 未领取（使用 day_card_normal）
             return .normal
-                    }
-                }
+                            }
+                        }
     
     // 判断是否是今天可签到的卡片（用于呼吸效果）
     private func isTodayCard(day: Int) -> Bool {
         let rewardDay = day
         return rewardDay == viewModel.signInDay && viewModel.canSignInToday
-            }
-        }
+                    }
+                }
 
 // MARK: - 卡片类型枚举
 enum SignInCardType {

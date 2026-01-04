@@ -97,7 +97,7 @@
         "human",
         "classic tale"
       ],
-      "baseValue": 5,
+      "baseValue": 2,
       "weight": 300,
       "effect": "如果'圣骑士'即将被其他符号消除，自动消除自身取消一次对'圣骑士'符号的消除",
       "effectType": "protect_symbol",
@@ -390,10 +390,10 @@
       ],
       "baseValue": 3,
       "weight": 800,
-      "effect": "下次金币收益+300。被挖出后从符号池移除（消除自身）",
+      "effect": "下次金币收益+50。被挖出后从符号池移除（消除自身）",
       "effectType": "next_round_bonus",
       "effectParams": {
-        "bonus": 300,
+        "bonus": 50,
         "eliminateSelf": true
       },
       "descriptionKey": "god_of_strength"
@@ -464,11 +464,11 @@
       ],
       "baseValue": 5,
       "weight": 300,
-      "effect": "接下来5个回合每回合开始时获得1000金币，5个回合后游戏强制结束（回合开始时触发）",
+      "effect": "接下来5个回合每回合开始时获得200金币，5个回合后游戏强制结束（回合开始时触发）",
       "effectType": "round_start_buff",
       "effectParams": {
         "rounds": 5,
-        "bonusPerRound": 1000,
+        "bonusPerRound": 200,
         "gameOverAfter": true
       },
       "descriptionKey": "death"

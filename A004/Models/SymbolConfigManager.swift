@@ -359,8 +359,8 @@ class SymbolConfigManager {
     
     /// 获取随机的起始符号
     func getStartingSymbols() -> [Symbol] {
-        // 排除不应该作为初始符号的符号：死神、圣骑士、艺术品、魔法袋
-        let excludedNameKeys = ["death", "paladin", "artwork", "magic_bag"]
+        // 排除不应该作为初始符号的符号：死神、圣骑士、艺术品、魔法袋、丧尸
+        let excludedNameKeys = ["death", "paladin", "artwork", "magic_bag", "zombie"]
         let allSymbols = getAllSymbols().filter { !excludedNameKeys.contains($0.nameKey) }
         let count = useCSV ? 3 : (configFile?.config.startingSymbolCount ?? 3)
         
@@ -401,9 +401,10 @@ class SymbolConfigManager {
     
     /// 获取符号选择选项（3选1）
     func getSymbolChoiceOptions(symbolPool: [Symbol] = []) -> [Symbol] {
-        // 过滤掉不应该出现在三选一中的符号（死神只能通过死灵之书产出）
+        // 过滤掉不应该出现在三选一中的符号（死神只能通过死灵之书产出，龙火枪和圣骑士不应该出现）
+        let excludedNameKeys = ["death", "dragon_fire_gun", "paladin"]
         let availableSymbols = getAllSymbols().filter { symbol in
-            symbol.nameKey != "death" // 使用nameKey匹配更准确
+            !excludedNameKeys.contains(symbol.nameKey) // 使用nameKey匹配更准确
         }
         
         var options: [Symbol] = []
