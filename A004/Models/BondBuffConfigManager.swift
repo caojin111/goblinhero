@@ -47,11 +47,7 @@ struct BondBuff: Identifiable, Equatable {
             let uniqueSymbols = Set(symbolPool.filter { $0.types.contains(typeTag) }.map { $0.nameKey })
             let count = uniqueSymbols.count
             let isActive = count >= needCount
-            if isActive {
-                print("✅ [羁绊Buff] 类型计数激活 '\(nameKey)'，类型: \(typeTag) 不同符号数量: \(count)/\(needCount)")
-            } else {
-                print("⚠️ [羁绊Buff] 类型计数未激活 '\(nameKey)'，类型: \(typeTag) 不同符号数量: \(count)/\(needCount)")
-            }
+            // 类型计数羁绊激活检查
             return isActive
         }
         // 传统固定ID羁绊
@@ -61,9 +57,6 @@ struct BondBuff: Identifiable, Equatable {
         let symbolIdsSet = Set(symbolConfigIds)
         let requiredIdsSet = Set(requiredSymbolIds)
         let isActive = requiredIdsSet.isSubset(of: symbolIdsSet)
-        if isActive {
-            print("✅ [羁绊Buff] 羁绊 '\(nameKey)' 已激活！需要的符号ID: \(requiredSymbolIds)，当前符号池ID: \(symbolConfigIds)")
-        }
         return isActive
     }
 }
@@ -92,7 +85,6 @@ class BondBuffConfigManager {
                   let descriptionKeyRaw = row["DesKey"],
                   let bondMember = row["BondMember"],
                   let cardColorRaw = row["CardColor"] else {
-                print("⚠️ [羁绊Buff配置] 行数据不完整，跳过: \(row)")
                 return nil
             }
             
@@ -174,7 +166,6 @@ class BondBuffConfigManager {
     func getAllBondBuffs() -> [BondBuff] {
         return bondBuffs.map { config in
             let color = Color(hex: config.cardColor)
-            print("🎨 [羁绊Buff颜色] \(config.nameKey): \(config.cardColor) -> Color对象已创建")
             return BondBuff(
                 id: config.id,
                 nameKey: config.nameKey,
@@ -201,7 +192,6 @@ class BondBuffConfigManager {
     func getActiveBondBuffs(symbolPool: [Symbol]) -> [BondBuff] {
         let allBondBuffs = getAllBondBuffs()
         let activeBondBuffs = allBondBuffs.filter { $0.isActive(symbolPool: symbolPool) }
-        print("🔗 [羁绊Buff系统] 检查 \(allBondBuffs.count) 个羁绊Buff，当前激活 \(activeBondBuffs.count) 个")
         return activeBondBuffs
     }
     

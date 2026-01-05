@@ -46,7 +46,7 @@ struct DailySignInView: View {
                 let deviceScale: CGFloat = needsScaling ? 0.8 : 1.0 // 标准iPad/Pro缩小到80%
                 
                 // 打印调试信息
-                let _ = print("📐 [DailySignInView缩放] isPad: \(isPad), screenWidth: \(screenWidth), screenHeight: \(screenHeight), needsScaling: \(needsScaling), deviceScale: \(deviceScale)")
+                // 计算缩放比例
                 
                 let scaleX = geometry.size.width / figmaWidth
                 let scaleY = geometry.size.height / figmaHeight

@@ -83,7 +83,7 @@ struct HomeView: View {
                 let deviceScale: CGFloat = needsScaling ? 0.7 : 1.0 // 标准iPad/Pro缩小到70%
                 
                 // 打印调试信息
-                let _ = print("📐 [HomeView缩放] isPad: \(isPad), screenWidth: \(screenWidth), screenHeight: \(screenHeight), needsScaling: \(needsScaling), deviceScale: \(deviceScale)")
+                // 计算缩放比例
                 
                 // 使用比例定位，而不是绝对坐标
                 let scaleX = geometry.size.width / figmaWidth

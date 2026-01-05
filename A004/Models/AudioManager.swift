@@ -41,8 +41,9 @@ class AudioManager: ObservableObject {
         loadSettings()
         // 配置音频会话
         do {
-            try AVAudioSession.sharedInstance().setCategory(.ambient, mode: .default)
-            try AVAudioSession.sharedInstance().setActive(true)
+            // 使用 .ambient 类别，允许与其他应用音频混合
+            try AVAudioSession.sharedInstance().setCategory(.ambient, mode: .default, options: [])
+            try AVAudioSession.sharedInstance().setActive(true, options: [])
         } catch {
             print("❌ [音频] 音频会话配置失败: \(error)")
         }
@@ -128,13 +129,10 @@ class AudioManager: ObservableObject {
                     boostPlayer.volume = 1.0
                     boostPlayer.play()
                     soundEffectPlayers["\(name)_boost"] = boostPlayer
-                    
-                    print("🔊 [音频] 播放音效: \(name).\(fileExtension)，双播放器叠加提升音量")
                 } else {
                     player.volume = 1.0 // 其他音效正常音量
                     player.play()
                     soundEffectPlayers[name] = player
-                    print("🔊 [音频] 播放音效: \(name).\(fileExtension), 音量: \(player.volume)")
                 }
             } catch {
                 print("❌ [音频] 播放音效失败: \(error)")

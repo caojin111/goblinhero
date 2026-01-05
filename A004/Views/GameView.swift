@@ -41,8 +41,7 @@ struct GameView: View {
             let needsScaling = isPad && (screenHeight > 1024 || screenWidth >= 1024)
             let deviceScale: CGFloat = needsScaling ? 0.85 : 1.0 // iPad Pro/标准iPad缩小到85%
             
-            // 打印调试信息
-            let _ = print("📐 [GameView缩放] isPad: \(isPad), screenWidth: \(screenWidth), screenHeight: \(screenHeight), needsScaling: \(needsScaling), deviceScale: \(deviceScale)")
+            // 计算缩放比例
             
             ZStack {
                 // 纯黑色背景
@@ -238,7 +237,10 @@ struct GameView: View {
         .coordinateSpace(name: "gameView")
         .onPreferenceChange(ViewFramePreferenceKey.self) { frames in
             // 收集所有子视图的位置信息，传递给新手引导
+            // 使用 DispatchQueue 避免在视图更新过程中直接修改状态
+            DispatchQueue.main.async {
             tutorialViewFrames = frames
+            }
         }
         // 移除长按手势，改用点击加速按钮
         .onChange(of: viewModel.showEarningsTip) { isShowing in
@@ -342,8 +344,6 @@ struct GameView: View {
             zoomScale = scaleFactor
             zoomOffset = CGSize(width: offsetX, height: offsetY)
         }
-        
-        print("🔍 [Zoom In] 聚焦到格子\(cellIndex) (行\(row), 列\(col))，缩放: \(zoomScale)，偏移: \(zoomOffset)，隐藏符号池和 roll 按钮，速度倍数: \(viewModel.settlementAnimationSpeed)")
     }
     
     /// 执行 zoom out 效果，恢复原状
@@ -682,9 +682,6 @@ struct SlotCellView: View {
                                         .resizable()
                                         .scaledToFit()
                                         .frame(width: 28, height: 28)
-                                        .onAppear {
-                                            print("🖼️ [显示图片] 加载图片资源: \(symbol.imageName) (来自icon: \(symbol.icon))")
-                                        }
                                 } else {
                         Text(symbol.icon)
                             .font(.system(size: 28))
@@ -734,12 +731,17 @@ struct SlotCellView: View {
         }
         .onChange(of: isSpinning) { spinning in
             // 移除掷骰子时的旋转动画
+            // 使用 DispatchQueue 避免在视图更新过程中直接修改状态
+            DispatchQueue.main.async {
                 rotation = 0
+            }
         }
         .onChange(of: cell.isMined) { mined in
+            // 使用 DispatchQueue 避免在视图更新过程中直接修改状态
+            DispatchQueue.main.async {
             if mined {
                 // 挖开动画：先播放爆炸动画，再显示内容
-                print("💥 [挖矿动画] 格子\(cellIndex)开始爆炸动画")
+                // 挖矿动画开始
                 
                 // 重置状态
                 showContent = false
@@ -786,6 +788,7 @@ struct SlotCellView: View {
                 shakeOffset = .zero
                 showExplosion = false
                 showContent = false
+                }
             }
         }
         .onChange(of: isSettling) { settling in
@@ -794,7 +797,7 @@ struct SlotCellView: View {
                 AudioManager.shared.playSoundEffect("score", fileExtension: "wav")
                 
                 // 开始结算动画：放大+振动+发光
-                print("✨ [结算动画] 格子\(cellIndex)开始结算动画")
+                // 结算动画开始
                 
                 // 发光脉冲（根据速度倍数调整）
                 let glowDuration = 0.25 / viewModel.settlementAnimationSpeed
@@ -922,8 +925,7 @@ struct ActiveBondsView: View {
     var body: some View {
         let activeBonds = viewModel.activeBonds
         
-        // 打印日志，方便追踪
-        let _ = print("🔗 [羁绊系统] 当前激活的羁绊数量: \(activeBonds.count)")
+        // 获取激活的羁绊
         
         if !activeBonds.isEmpty {
             VStack(alignment: .leading, spacing: 6) {
@@ -933,7 +935,7 @@ struct ActiveBondsView: View {
                     .fontWeight(.semibold)
                     .foregroundColor(.white)
                 
-                // 羁绊卡片列表（添加顶部 padding 为对话气泡留出空间）
+                // 羁绊卡片列表（使用固定高度容器，为对话气泡留出空间）
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
                         ForEach(activeBonds) { bondBuff in
@@ -941,9 +943,9 @@ struct ActiveBondsView: View {
                         }
                     }
                     .padding(.horizontal, 4)
-                    .padding(.top, 40) // 为对话气泡留出空间
                 }
-                .padding(.top, -40) // 抵消 padding，保持布局不变
+                .frame(height: 75) // 卡片高度45 + 气泡空间30 = 75
+                .clipped() // 限制显示区域，防止气泡超出容器
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 7) // 从10减少到7（减少约1/3）
@@ -977,47 +979,52 @@ struct BondCardView: View {
     }
     
     var body: some View {
-        Button(action: {
-            // 注意：羁绊卡片点击不播放 click 音效，因为用户要求只有 start 按钮外的其他按钮才播放
-            // 但根据需求，应该是"除了start按钮，其他所有地方的点击音效"，所以这里也播放
-            AudioManager.shared.playSoundEffect("click", fileExtension: "wav")
-            viewModel.showBondDescriptionView(bondBuff: bondBuff)
-        }) {
-            // 只显示羁绊名称
-            Text(bondBuff.name)
-                .font(customFont(size: localizationManager.currentLanguage == "zh" ? 19 : 19)) // 中文19号，英文19号（减小5号）
-                .fontWeight(.bold)
-                .foregroundColor(.white)
-                .textStroke() // 添加黑色描边
-                .lineLimit(1)
-                .frame(width: 140, height: 45) // 从60减少到45（减少1/4）
-        .padding(.horizontal, 10)
-                .padding(.vertical, 6) // 从8减少到6，保持比例
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                        .fill(bondBuff.cardColor.opacity(0.8))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color.white.opacity(0.3), lineWidth: 1)
-                )
-        )
-        }
-        .shadow(color: Color.yellow.opacity(isFlashing ? 0.9 : 0.0), radius: isFlashing ? 10 : 0, x: 0, y: 0)
-        .animation(.easeInOut(duration: 0.4), value: isFlashing)
-        .buttonStyle(PlainButtonStyle())
-        .overlay(alignment: .top) {
-            // 对话气泡（单独一层，覆盖在羁绊卡片之上，不被裁剪）
+        // 使用 ZStack 包装，精确控制气泡位置，避免 overlay 创建额外布局空间
+        ZStack(alignment: .top) {
+            Button(action: {
+                // 注意：羁绊卡片点击不播放 click 音效，因为用户要求只有 start 按钮外的其他按钮才播放
+                // 但根据需求，应该是"除了start按钮，其他所有地方的点击音效"，所以这里也播放
+                AudioManager.shared.playSoundEffect("click", fileExtension: "wav")
+                viewModel.showBondDescriptionView(bondBuff: bondBuff)
+            }) {
+                // 只显示羁绊名称
+                Text(bondBuff.name)
+                    .font(customFont(size: localizationManager.currentLanguage == "zh" ? 19 : 19)) // 中文19号，英文19号（减小5号）
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                    .textStroke() // 添加黑色描边
+                    .lineLimit(1)
+                    .frame(width: 140, height: 45) // 从60减少到45（减少1/4）
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6) // 从8减少到6，保持比例
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(bondBuff.cardColor.opacity(0.8))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                            )
+                    )
+            }
+            .shadow(color: Color.yellow.opacity(isFlashing ? 0.9 : 0.0), radius: isFlashing ? 10 : 0, x: 0, y: 0)
+            .animation(.easeInOut(duration: 0.4), value: isFlashing)
+            .buttonStyle(PlainButtonStyle())
+            
+            // 对话气泡（使用 ZStack 而不是 overlay，避免创建额外的布局空间）
             if hasBonus {
                 Image("emoji5")
                     .resizable()
+                    .renderingMode(.original) // 确保使用原始图片，不添加任何背景
                     .scaledToFit()
                     .frame(width: 50, height: 50)
                     .offset(y: -30) // 在卡片顶部上方
                     .transition(.scale.combined(with: .opacity))
                     .animation(.spring(response: 0.3, dampingFraction: 0.7), value: hasBonus)
-                    .zIndex(1000) // 确保在最上层
+                    .allowsHitTesting(false) // 不拦截点击事件
             }
         }
+        .frame(width: 140, height: 75) // 卡片高度45 + 气泡空间30，限制 ZStack 的大小
+        .clipped() // 限制显示区域，防止气泡超出边界
     }
 }
 
@@ -1737,7 +1744,6 @@ struct DiceAnimationView: View {
             diceSoundPlayer?.numberOfLoops = -1 // 循环播放
             diceSoundPlayer?.volume = 1.0
             diceSoundPlayer?.play()
-            print("🎲 [骰子音效] 开始播放转动音效")
         } catch {
             print("❌ [骰子音效] 播放失败: \(error)")
         }
@@ -1747,7 +1753,6 @@ struct DiceAnimationView: View {
     private func stopDiceSound() {
         diceSoundPlayer?.stop()
         diceSoundPlayer = nil
-        print("🎲 [骰子音效] 停止转动音效")
     }
     
     private func startDiceAnimation() {
@@ -2649,7 +2654,10 @@ struct DiceCountAnimationView: View {
                     print("✨ [骰子动画] 骰子数量增加: \(previousCount) → \(newValue)")
                     playAnimation()
                 }
+                // 使用 DispatchQueue 避免在视图更新过程中直接修改状态
+                DispatchQueue.main.async {
                 previousCount = newValue
+                }
             }
             .onAppear {
                 previousCount = diceCount

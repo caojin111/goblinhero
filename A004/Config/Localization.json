@@ -245,7 +245,7 @@
       "game_over": {
         "title": "😢 Game Over",
         "you_win": "You win!",
-        "victory_message": "Congratulations! You successfully completed all 30 rounds!",
+        "victory_message": "Congratulations! You successfully completed all 20 rounds!",
         "survival_rounds": "Survival Rounds",
         "final_coins": "Final Coins",
         "total_coins": "Total Coins",
@@ -556,7 +556,7 @@
         },
         "battery": {
           "name": "Battery",
-          "description": "Remove itself and gain 1 <color=#147ED9>Spaceship</color> to the symbol pool."
+          "description": "Obtain 1 random <color=#E74875>#Alien</color> symbol."
         },
         "medical_kit": {
           "name": "Medical Kit",
@@ -612,7 +612,7 @@
         },
         "horn": {
           "name": "Horn",
-          "description": "Generate 5 <color=#147ED9>Soldiers</color> into the symbol pool."
+          "description": "Obtain 3 <color=#147ED9>Soldiers</color> and 1 random <color=#E74875>#Monster</color>."
         },
         "iron_box": {
           "name": "Iron Chest",
@@ -672,7 +672,7 @@
         },
         "meteorite": {
           "name": "Meteorite",
-          "description": "If there is a <color=#AA2ABB>Gomora</color> in the symbol pool, eliminate the <color=#AA2ABB>Gomora</color> from the symbol pool to get 30 gold coins."
+          "description": "If there is a <color=#AA2ABB>Gomora</color> in the symbol pool, eliminate the <color=#AA2ABB>Gomora</color> from the symbol pool to get 100 gold coins."
         },
         "dice": {
           "name": "Dice",
@@ -684,7 +684,7 @@
         },
         "artwork": {
           "name": "Art Work",
-          "description": "Generate 1 <color=#080909>Merchant</color>."
+          "description": "Eliminate 1 random <color=#E74875>#God</color> from the symbol pool."
         }
       },
       "bonds": {
@@ -729,55 +729,55 @@
           "description": "Infect one human into a zombie before each mining. Gain +20 coins for each <color=#147ED9>Zombie</color> mined"
         },
         "human_3_bond": {
-          "name": "human-3",
+          "name": "human-pairs",
           "description": "Gain 1 random Human each round."
         },
         "human_5_bond": {
-          "name": "human-5",
-          "description": "All <color=#080909>Human</color> symbols gain +5 base value."
+          "name": "human-team",
+          "description": "All <color=#147ED9>Human</color> symbols gain +5 base value."
         },
         "human_10_bond": {
-          "name": "human-10",
-          "description": "+5 coins per <color=#080909>Human</color> in pool each round."
+          "name": "human-crowd",
+          "description": "+5 coins per <color=#147ED9>Human</color> in pool each round."
         },
         "material_2_bond": {
-          "name": "material-2",
+          "name": "material-update",
           "description": "Each round auto-fuse 2 normal materials into 1 rare."
         },
         "material_4_bond": {
-          "name": "material-4",
+          "name": "material-evolve",
           "description": "Each round auto-fuse 2 rare materials into 1 epic."
         },
         "cozylife_3_bond": {
-          "name": "cozylife-3",
+          "name": "cozylife-lie",
           "description": "Empty tiles gain +3 coins."
         },
         "cozylife_6_bond": {
-          "name": "cozylife-6",
+          "name": "cozylife-down",
           "description": "Empty tiles gain +10 coins."
         },
         "tools_2_bond": {
-          "name": "tools-2",
+          "name": "tools-again",
           "description": "If any die shows 1, gain an extra roll."
         },
         "tools_4_bond": {
-          "name": "tools-4",
+          "name": "tools-for all",
           "description": "If any die shows 6, auto-mine all unopened tiles."
         },
         "classictale_2_bond": {
-          "name": "classictale-2",
+          "name": "classictale-spot",
           "description": "Mark a random tile as special; its earnings are doubled."
         },
         "classictale_4_bond": {
-          "name": "classictale-4",
+          "name": "classictale-coner",
           "description": "Mining any corner grants +50 coins."
         },
         "classictale_6_bond": {
-          "name": "classictale-6",
+          "name": "classictale-center",
           "description": "Mining the center tile grants +100 coins."
         },
         "dark_forest_3_bond": {
-          "name": "Dark Forest-3",
+          "name": "Dark Forest",
           "description": "Gain 1 Magic Bag each round."
         }
       }
@@ -1054,7 +1054,7 @@
       "game_over": {
         "title": "😢 游戏结束",
         "you_win": "你赢了！",
-        "victory_message": "恭喜！你成功完成了所有30关！",
+        "victory_message": "恭喜！你成功完成了所有20关！",
         "survival_rounds": "存活回合",
         "final_coins": "最终金币",
         "total_coins": "累计金币",
@@ -1333,7 +1333,7 @@
         },
         "battery": {
           "name": "电池",
-          "description": "从符号池移除自身，生成一个<color=#147ED9>宇宙飞船</color>到符号池"
+          "description": "生成一个随机<color=#E74875>#外星</color>符号。"
         },
         "medical_kit": {
           "name": "医疗包",
@@ -1389,7 +1389,7 @@
         },
         "horn": {
           "name": "号角",
-          "description": "生成5个<color=#147ED9>士兵</color>到符号池"
+          "description": "获得 3 个<color=#147ED9>士兵</color>和 1 个随机<color=#E74875>#怪物</color>。"
         },
         "iron_box": {
           "name": "铁箱子",
@@ -1449,7 +1449,7 @@
         },
         "meteorite": {
           "name": "陨石",
-          "description": "如果符号池里有<color=#AA2ABB>哥莫拉</color>，从符号池消除<color=#AA2ABB>哥莫拉</color>，获得30金币"
+          "description": "如果符号池里有<color=#AA2ABB>哥莫拉</color>，从符号池消除<color=#AA2ABB>哥莫拉</color>，获得100金币"
         },
         "dice": {
           "name": "骰子",
@@ -1461,7 +1461,7 @@
         },
         "artwork": {
           "name": "艺术品",
-          "description": "生成1个<color=#080909>商人</color>"
+          "description": "消灭符号池里随机 1 个<color=#E74875>#神</color>"
         }
       },
       "bonds": {
@@ -1554,7 +1554,7 @@
           "description": "挖到中心格，奖励100金币"
         },
         "dark_forest_3_bond": {
-          "name": "黑暗森林-3",
+          "name": "黑暗森林",
           "description": "每回合获得一个魔法袋"
         }
       }

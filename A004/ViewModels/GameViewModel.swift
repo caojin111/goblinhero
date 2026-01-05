@@ -154,7 +154,6 @@ class GameViewModel: ObservableObject {
         let currentBondIDs = Set(result.map { $0.id })
         let newBondIDs = currentBondIDs.subtracting(Set(previousActiveBondIDs))
         if !newBondIDs.isEmpty {
-            print("✨ [羁绊闪光] 检测到新羁绊: \(newBondIDs)")
             flashingBondIDs.formUnion(newBondIDs)
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in
                 self?.flashingBondIDs.subtract(newBondIDs)
@@ -529,7 +528,6 @@ class GameViewModel: ObservableObject {
         
         // 清空羁绊状态（特别是 classic tale）
         BondBuffRuntime.shared.activeTypeBonds.removeAll()
-        print("🔄 [新游戏] 已清空羁绊状态")
         
         // 诊断：检查配置加载状态
         let configManager = SymbolConfigManager.shared
@@ -573,6 +571,17 @@ class GameViewModel: ObservableObject {
         currentDiceCount = 1 // 重置骰子数量显示
         print("🎲 [新游戏] 重置骰子数量为1")
         
+        // 清除所有全局buff（如勾玉的加成）
+        effectProcessor.clearAllGlobalBuffs()
+        print("🔄 [新游戏] 清除所有全局buff")
+        
+        // 重置效果处理器的回合状态（清空独眼怪计数器等）
+        effectProcessor.resetRoundState()
+        print("🔄 [新游戏] 重置效果处理器回合状态")
+        
+        // 清除死神的眷顾羁绊状态
+        BondEffectProcessor.resetDeathBlessingState()
+        
         // 初始化符号池（随机选择3个符号）
         suppressSymbolPoolReorder = true
         symbolPool = SymbolLibrary.startingSymbols
@@ -606,6 +615,7 @@ class GameViewModel: ObservableObject {
         
         let diceCount = effectProcessor.getDiceCount()
         print("🎲 [掷骰子] 开始掷骰子 - 回合 \(currentRound), 剩余次数 \(spinsRemaining), 拥有\(diceCount)个骰子")
+        // 掷骰子
         
         isSpinning = true
         gamePhase = .spinning
@@ -623,13 +633,21 @@ class GameViewModel: ObservableObject {
             let point = possibleValues.randomElement() ?? 1
             totalPoints += point
             results.append(point)
-            print("🎲 [骰子\(i)] 点数: \(point) (哥布林类型: \(diceType))")
+            // 骰子点数
         }
 
         diceResult = totalPoints
         individualDiceResults = results // 保存每个骰子的结果
         currentDiceCount = diceCount // 更新UI显示
-        print("🎲 [掷骰子] 总点数: \(diceResult) (骰子数量: \(diceCount), 各骰子点数: \(individualDiceResults))")
+        
+        // 清除临时骰子（幸运之神效果：本次掷骰子后清除）
+        if effectProcessor.getTempDiceBonus() > 0 {
+            let tempDice = effectProcessor.getTempDiceBonus()
+            effectProcessor.clearTempDiceBonus()
+            print("🎲 [临时骰子] 本次掷骰子使用了\(tempDice)个临时骰子，已清除")
+        }
+        
+        // 骰子总点数已计算
         
         // 检查成就：第一次投掷到 6 点
         if results.contains(6) {
@@ -719,7 +737,7 @@ class GameViewModel: ObservableObject {
             // 如果还需要挖更多，保存剩余数量
             if remainingCount > 0 {
                 self.pendingMiningCount = remainingCount
-                print("🔄 [挖矿] 当前棋盘已挖完，还需要挖 \(remainingCount) 个格子，将在结算完成后刷新棋盘继续挖矿")
+                // 需要继续挖矿
             } else {
                 self.pendingMiningCount = 0
             }
@@ -731,13 +749,13 @@ class GameViewModel: ObservableObject {
                 print("⚠️ [挖矿] 浪费了\(wastedCount)次挖矿机会")
             }
             
-            print("⏸️ [挖矿完成] 当前棋盘格子已翻开，等待1秒后开始结算动画")
+                // 等待开始结算
             
             // 等待1秒，让玩家看清所有翻开的格子
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 // 开始结算流程（包含动画）
                 // 注意：金币更新、旋转次数减少、游戏流程控制都已移到 finishSettlement 中
-                print("🎬 [开始结算] 1秒等待完成，开始逐个结算")
+                // 开始结算
                 self.calculateEarnings()
             }
         }
@@ -756,68 +774,51 @@ class GameViewModel: ObservableObject {
             print("🔧 [tools_4] 本次挖矿自动挖开所有未翻矿石，共 \(remainingCount) 个")
         }
         
-        print("⛏️ [挖矿开始] 需要挖 \(remainingCount) 个格子")
+        // 开始挖矿
         
         // 获取所有未挖开的格子索引
         let unminedIndices = slotMachine.enumerated()
             .filter { !$0.element.isMined }
             .map { $0.offset }
-        
-        if unminedIndices.isEmpty {
+
+            if unminedIndices.isEmpty {
             // 当前棋盘已挖完，但还需要挖更多，返回剩余数量
             print("🔄 [挖矿] 当前棋盘已挖完，还需要挖 \(remainingCount) 个格子")
             return remainingCount
-        }
-        
-        // 确定本次要挖的数量（不超过剩余格子数和需要挖的数量）
-        let actualCount = min(remainingCount, unminedIndices.count)
-        
+            }
+            
+            // 确定本次要挖的数量（不超过剩余格子数和需要挖的数量）
+            let actualCount = min(remainingCount, unminedIndices.count)
+
         // 随机选择要挖的格子
         let selectedIndices = Array(unminedIndices.shuffled().prefix(actualCount))
-        
+
         for index in selectedIndices {
             slotMachine[index].isMined = true
             currentRoundMinedCells.append(index)
         }
-        
-        // classic tale 4/6 奖励：记录角落/中心奖励
-        let activeTypeBonds = BondBuffRuntime.shared.activeTypeBonds
-        if activeTypeBonds.contains("classictale_4_bond") {
-            let corners: Set<Int> = [0, 4, 20, 24]
-            let hitCorners = Set(selectedIndices).intersection(corners)
-            if !hitCorners.isEmpty {
-                let bonus = 50
-                currentCoins += bonus
-                print("📜 [classic tale 4] 挖到角落 \(hitCorners)，金币+\(bonus)")
-            }
-        }
-        if activeTypeBonds.contains("classictale_6_bond") {
-            if selectedIndices.contains(12) {
-                let bonus = 100
-                currentCoins += bonus
-                print("📜 [classic tale 6] 挖到中心格，金币+\(bonus)")
-            }
-        }
-        
+
         // 打印挖到的内容
+        print("\n📦 [挖矿] 本次挖出的内容：")
         for index in selectedIndices {
+            let row = index / 5
+            let col = index % 5
             if let symbol = slotMachine[index].symbol {
-                print("⛏️ [挖矿] 格子\(index): 挖到符号 \(symbol.icon) (\(symbol.name), \(symbol.baseValue)分)")
+                print("  🎯 格子(行\(row), 列\(col)): 挖出符号「\(symbol.name)」")
             } else {
-                print("⛏️ [挖矿] 格子\(index): 挖到空格子 (+1分)")
+                print("  ⚪ 格子(行\(row), 列\(col)): 挖出空格子")
             }
         }
-        
+
         let remaining = remainingCount - actualCount
         print("✅ [挖矿完成] 当前棋盘挖了 \(actualCount) 个格子，还需挖 \(remaining) 个")
-        
+            
         return remaining
     }
     
     /// 生成老虎机结果（为本阶段生成符号）
     private func generateSlotResults() {
-        print("🎰 [生成结果] 为新阶段生成符号")
-        print("🎰 [调试] 符号池内容: \(symbolPool.map { $0.icon + $0.name })")
+        // 生成符号
         
         // 清空所有格子符号
         for index in 0..<slotCount {
@@ -831,7 +832,7 @@ class GameViewModel: ObservableObject {
         
         // 过滤掉不应该出现在矿洞里的符号（女忍者和男忍者）
         let mineableSymbols = symbolPool.filter { symbol in
-            symbol.name != "女忍者" && symbol.name != "男忍者"
+            symbol.nameKey != "female_ninja" && symbol.nameKey != "male_ninja"
         }
         
         if mineableSymbols.isEmpty {
@@ -864,9 +865,7 @@ class GameViewModel: ObservableObject {
         if ninjaCount > 0 {
             print("🎰 [过滤] 已排除\(ninjaCount)个忍者符号（不会出现在矿洞里）")
         }
-        print("🎰 [生成结果] 符号池总数量: \(symbolPool.count), 可挖符号: \(mineableSymbols.count), 棋盘格子数: \(slotCount)")
-        print("🎰 [生成结果] 随机选择\(symbolsToShow.count)个符号: \(symbolsToShow.map { $0.icon + $0.name })")
-        print("🎰 [生成策略] 从符号池随机选择符号填满棋盘，每个符号出现概率相等")
+        // 从符号池随机选择符号填满棋盘
         
         // 随机分配到格子中
         let availablePositions = Array(0..<slotCount).shuffled()
@@ -875,18 +874,15 @@ class GameViewModel: ObservableObject {
         for (index, symbol) in symbolsToShow.enumerated() {
             let position = availablePositions[index]
             slotMachine[position].symbol = symbol
-            print("🎰 [调试] 放置符号: 位置\(position) <- \(symbol.icon)\(symbol.name)")
+            // 放置符号到棋盘
         }
         
         // 打印符号分布统计
-        print("🎰 [生成结果] 棋盘符号分布:")
-        for (index, symbol) in symbolsToShow.enumerated() {
-            print("   \(index + 1). \(symbol.icon) \(symbol.name) (基础:\(symbol.baseValue)金币)")
-        }
+        // 棋盘符号已生成
         
         // classic tale 2 羁绊：在生成棋盘时标记特殊格子（掷骰子之前就显示）
         markSpecialTileForClassicTale2()
-        print("🎰 [生成结果] 总计: \(symbolsToShow.count)个符号 + \(slotCount - symbolsToShow.count)个空格子 = \(slotCount)个格子")
+        // 棋盘生成完成
     }
     
     /// 标记经典传说·奇遇的特殊格子
@@ -944,12 +940,30 @@ class GameViewModel: ObservableObject {
     
     /// 计算收益（只计算本次挖到的格子）
     private func calculateEarnings() {
-        print("💰 [结算] 开始构建结算序列")
+        // 开始构建结算序列
         
         // 清空结算日志
         settlementLogs.removeAll()
+        
+        // 记录基本信息
+        let diceCount = currentDiceCount
+        let dicePoints = diceResult
+        let dicePointsDetail = individualDiceResults.isEmpty ? "\(dicePoints)" : individualDiceResults.map { String($0) }.joined(separator: "+")
+        
+        print("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        print("【结算信息】")
+        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        print("回合数: \(currentRound)")
+        print("骰子数量: \(diceCount)")
+        print("转动点数: \(dicePoints) (\(dicePointsDetail))")
+        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+        
         settlementLogs.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-        settlementLogs.append("🎯 开始结算 - 回合\(currentRound)")
+        settlementLogs.append("📊 结算信息")
+        settlementLogs.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        settlementLogs.append("回合数: \(currentRound)")
+        settlementLogs.append("骰子数量: \(diceCount)")
+        settlementLogs.append("转动点数: \(dicePoints) (\(dicePointsDetail))")
         settlementLogs.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
         
         // 清除之前的有加成羁绊状态
@@ -961,13 +975,14 @@ class GameViewModel: ObservableObject {
         // 收集本次挖出的所有符号（按队列顺序）
         var minedSymbols: [Symbol] = []
         
+        // 记录挖出符号名单（将在收集完成后添加到日志）
+        
         // 构建结算序列：计算每个格子的收益
         // 在结算前更新羁绊状态，确保使用最新的激活羁绊信息
         // 注意：这里不是回合开始，所以isRoundStart=false，不会触发human_3_bond等回合开始效果
         let bondEffectProcessor = BondEffectProcessor()
         _ = bondEffectProcessor.processBondBuffs(symbolPool: &symbolPool, currentRound: currentRound, isRoundStart: false)
         let activeTypeBonds = BondBuffRuntime.shared.activeTypeBonds
-        print("🔍 [结算] 当前激活的类型计数羁绊: \(activeTypeBonds)")
         
         // 人类5：在符号计算前叠加基础值buff（全局入口，避免逐符号叠加）
         let humanBonusBuffType = "human_5_base_bonus"
@@ -989,16 +1004,15 @@ class GameViewModel: ObservableObject {
                 // 只有当本次挖出有人类符号时才显示气泡
                 if minedHumanCount > 0 {
                     settlementLogs.append("👥 [人类5羁绊] 为\(humanCount)个人类符号应用基础值+5buff")
-                    // 添加人类5羁绊到 bondsWithBonus，用于显示对话气泡
-                    let bondBuffs = BondBuffConfigManager.shared.getActiveBondBuffs(symbolPool: symbolPool)
-                    if let human5Bond = bondBuffs.first(where: { bondBuff in
-                        let nameKey = bondBuff.nameKey.contains(".") ? 
-                            String(bondBuff.nameKey.split(separator: ".").dropLast().last ?? "") : 
-                            bondBuff.nameKey
-                        return nameKey == "human_5_bond"
-                    }) {
-                        bondsWithBonus.insert(human5Bond.id)
-                        print("👥 [人类5羁绊] 添加到 bondsWithBonus: \(human5Bond.id)")
+                // 添加人类5羁绊到 bondsWithBonus，用于显示对话气泡
+                let bondBuffs = BondBuffConfigManager.shared.getActiveBondBuffs(symbolPool: symbolPool)
+                if let human5Bond = bondBuffs.first(where: { bondBuff in
+                    let nameKey = bondBuff.nameKey.contains(".") ? 
+                        String(bondBuff.nameKey.split(separator: ".").dropLast().last ?? "") : 
+                        bondBuff.nameKey
+                    return nameKey == "human_5_bond"
+                }) {
+                    bondsWithBonus.insert(human5Bond.id)
                     }
                 }
             }
@@ -1063,22 +1077,18 @@ class GameViewModel: ObservableObject {
                 // 添加到结算序列
                 settlementSequence.append((cellIndex: index, symbol: symbol, earnings: value))
                 
-                let logMsg = "格子\(index): \(symbol.icon)\(symbol.name) = \(value)金币 (基础:\(symbol.baseValue), 相邻:\(adjacentSymbols.count))"
-                print("💰 [基础收益] \(logMsg)")
+                let logMsg = "格子\(index): \(symbol.name) = \(value)金币 (基础:\(symbol.baseValue), 相邻:\(adjacentSymbols.count))"
                 settlementLogs.append("💰 \(logMsg)")
             } else {
                 // 空格子 +1分，cozy life 羁绊加成
                 var emptyValue = 1
                 let hasCozylife3 = activeTypeBonds.contains("cozylife_3_bond")
                 let hasCozylife6 = activeTypeBonds.contains("cozylife_6_bond")
-                print("🔍 [空格子结算] 格子\(index): 基础值=1, cozylife_3_bond=\(hasCozylife3), cozylife_6_bond=\(hasCozylife6), activeTypeBonds=\(activeTypeBonds)")
                 if hasCozylife3 { 
                     emptyValue += 3
-                    print("   ✓ cozylife_3_bond 生效: +3")
                 }
                 if hasCozylife6 { 
                     emptyValue += 10
-                    print("   ✓ cozylife_6_bond 生效: +10")
                 }
                 
                 // classic tale 2 特殊格收益翻倍（空格子也适用）
@@ -1097,7 +1107,21 @@ class GameViewModel: ObservableObject {
             }
         }
         
-        print("💰 [结算] 结算序列构建完成，共\(settlementSequence.count)个格子")
+        // 结算序列构建完成
+        
+        // 记录挖出符号名单
+        if !minedSymbols.isEmpty {
+            let symbolNames = minedSymbols.map { $0.name }.joined(separator: ", ")
+            print("\n【挖出符号名单】")
+            print(symbolNames)
+            settlementLogs.append("挖出符号名单: \(symbolNames)")
+        } else {
+            print("\n【挖出符号名单】")
+            print("无（仅空格子）")
+            settlementLogs.append("挖出符号名单: 无（仅空格子）")
+        }
+        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+        settlementLogs.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
         
         // 开始播放结算动画序列
         playSettlementAnimation(minedSymbols: minedSymbols)
@@ -1111,7 +1135,7 @@ class GameViewModel: ObservableObject {
             return
         }
         
-        print("🎬 [结算动画] 开始播放结算动画，共\(settlementSequence.count)个格子")
+        // 开始播放结算动画
         isPlayingSettlement = true
         currentSettlingCellIndex = nil
         settlementAnimationSpeed = 1.0 // 重置动画速度为正常速度
@@ -1124,14 +1148,14 @@ class GameViewModel: ObservableObject {
     private func playNextSettlementStep(currentStep: Int, minedSymbols: [Symbol]) {
         guard currentStep < settlementSequence.count else {
             // 所有格子结算完成
-            print("🎬 [结算动画] 所有格子结算完成")
+            // 所有格子结算完成
             finishBasicSettlement(minedSymbols: minedSymbols)
             return
         }
         
         let item = settlementSequence[currentStep]
         
-        print("🎬 [结算动画] 步骤\(currentStep + 1)/\(settlementSequence.count): 格子\(item.cellIndex), 收益\(item.earnings)金币")
+        // 结算步骤
         
         // 设置当前正在结算的格子
         currentSettlingCellIndex = item.cellIndex
@@ -1155,7 +1179,7 @@ class GameViewModel: ObservableObject {
     
     /// 完成基础结算，开始处理符号效果和哥布林buff
     private func finishBasicSettlement(minedSymbols: [Symbol]) {
-        print("✅ [结算动画] 基础结算完成，总收益: \(totalEarnings)金币")
+        // 基础结算完成
         
         // 清除当前结算格子标记
         currentSettlingCellIndex = nil
@@ -1172,7 +1196,7 @@ class GameViewModel: ObservableObject {
     
     /// 完成所有结算（符号效果 + 哥布林buff）
     private func finishSettlement(minedSymbols: [Symbol], basicEarnings: Int) {
-        print("💰 [结算] 开始处理符号效果和哥布林buff")
+        // 开始处理符号效果和哥布林buff
 
         // **新功能：处理倍率效果**
         var multiplierEffects: [(symbol: Symbol, multiplier: Int)] = []
@@ -1200,44 +1224,70 @@ class GameViewModel: ObservableObject {
 
         // 处理符号效果（会修改符号池）
         let effectsEnabled = SymbolConfigManager.shared.isEffectsEnabled()
-        print("🔍 [效果检查] 符号效果是否启用: \(effectsEnabled)")
-        print("🔍 [效果检查] 本次挖出的符号: \(minedSymbols.map { "\($0.name)(\($0.effectType))" }.joined(separator: ", "))")
+        // 处理符号效果
         
         // 记录处理效果前的骰子数量
         let diceCountBefore = effectProcessor.getDiceCount()
-        print("🎲 [结算前] 当前骰子数量: \(diceCountBefore)")
+        // 处理符号效果
         
-        let effectBonus = effectProcessor.processMinedSymbols(
+        let effectResult = effectProcessor.processMinedSymbols(
             minedSymbols: minedSymbols,
             symbolPool: &symbolPool,
             enableEffects: effectsEnabled,
-            logCallback: { [weak self] log in
-                self?.settlementLogs.append(log)
-            }
+            logCallback: nil  // 不输出详细日志，只保留关键信息
         )
-        totalEarnings += effectBonus
+        let effectBonus = effectResult.totalBonus
+        let symbolEffectValues = effectResult.symbolEffectValues
+        
+        // 立即更新骰子数量显示（如果挖到了骰子）
+        let diceCountAfter = effectProcessor.getDiceCount()
+        let diceCountIncrease = diceCountAfter - diceCountBefore
+        if diceCountAfter != diceCountBefore {
+            currentDiceCount = diceCountAfter
+            // 骰子数量已更新
+            if diceCountIncrease > 0 {
+                // 获得骰子
+                settlementLogs.append("🎲 [骰子效果] 获得\(diceCountIncrease)个骰子，当前拥有\(diceCountAfter)个骰子")
+        }
+        }
+        
+        // 处理diminishing_value等需要替换基础价值的效果
+        // 更新settlementSequence中对应符号的earnings
+        for (symbolId, effectValue) in symbolEffectValues {
+            if let index = settlementSequence.firstIndex(where: { $0.symbol?.id == symbolId }) {
+                let originalEarnings = settlementSequence[index].earnings
+                let baseValue = settlementSequence[index].symbol?.baseValue ?? 0
+                // 替换基础价值：从总收益中减去基础价值，加上效果值
+                let adjustment = effectValue - baseValue
+                settlementSequence[index].earnings = effectValue
+                totalEarnings += adjustment
+                // 独眼怪效果值调整
+                settlementLogs.append("🔄 [独眼怪] 基础价值\(baseValue)被替换为效果值\(effectValue)，调整: \(adjustment > 0 ? "+" : "")\(adjustment)金币")
+            }
+        }
+        
+        // 其他效果奖励（非替换基础价值的）直接加到总收益
+        // 注意：diminishing_value的奖励已经在上面处理了，这里需要排除
+        var nonReplacementBonus = effectBonus
+        for (_, effectValue) in symbolEffectValues {
+            nonReplacementBonus -= effectValue // 减去已处理的diminishing_value奖励
+        }
+        if nonReplacementBonus > 0 {
+            totalEarnings += nonReplacementBonus
+        }
         
         // 记录处理效果后的骰子数量
-        let diceCountAfter = effectProcessor.getDiceCount()
-        print("🎲 [结算后] 当前骰子数量: \(diceCountAfter)")
-        if diceCountAfter != diceCountBefore {
-            print("🎲 [骰子变化] 骰子数量已更新: \(diceCountBefore) → \(diceCountAfter)")
-        }
+        // 符号效果处理完成
         
         if effectBonus != 0 {
             print("💰 [效果处理] 符号效果总奖励: \(effectBonus) 金币")
         } else if !minedSymbols.isEmpty {
             print("⚠️ [效果处理] 符号效果处理完成，但奖励为0（可能效果未触发或效果类型为none）")
         }
-        
-        // 更新骰子数量显示（如果挖到了骰子）
-        currentDiceCount = effectProcessor.getDiceCount()
 
         // **新功能：应用倍率效果**
         var multiplierBonus = 0
         if !multiplierEffects.isEmpty || !groupMultiplierEffects.isEmpty {
-            settlementLogs.append("\n✨ 开始应用倍率效果...")
-
             // 重新计算有倍率影响的收益
             for item in settlementSequence {
                 if let symbol = item.symbol {
@@ -1248,7 +1298,6 @@ class GameViewModel: ObservableObject {
                         if symbol.name == multiplierSymbol.name {
                             newValue = item.earnings * multiplier
                             multiplierBonus += (newValue - item.earnings)
-                            settlementLogs.append("✨ \(symbol.name)倍率生效: \(item.earnings) × \(multiplier) = \(newValue)金币")
                         }
                     }
 
@@ -1257,7 +1306,6 @@ class GameViewModel: ObservableObject {
                         if symbol.types.contains(targetType) {
                             newValue = item.earnings * multiplier
                             multiplierBonus += (newValue - item.earnings)
-                            settlementLogs.append("👥 \(symbol.name)群体倍率生效: \(item.earnings) × \(multiplier) = \(newValue)金币")
                         }
                     }
 
@@ -1269,28 +1317,17 @@ class GameViewModel: ObservableObject {
             }
 
             totalEarnings += multiplierBonus
-            settlementLogs.append("✨ 倍率效果总奖励: +\(multiplierBonus) 金币\n")
         }
 
         // 应用哥布林buff效果（使用效果处理器的消除计数）
-        if let goblin = selectedGoblin {
-            settlementLogs.append("🎭 开始处理哥布林buff...")
-        }
-        // 应用羁绊收益加成（如浣熊市的丧尸数量奖励）
+        // 应用羁绊收益加成（如浣熊市的符号池丧尸数量奖励）
         let bondEarningsBonus = calculateBondEarningsBonus()
         totalEarnings += bondEarningsBonus
-        if bondEarningsBonus > 0 {
-            settlementLogs.append("🔗 [羁绊收益] +\(bondEarningsBonus) 金币\n")
-            print("🔗 [羁绊收益] 总加成: +\(bondEarningsBonus) 金币")
-        }
         
         // 应用哥布林buff
         let actualEliminatedCount = effectProcessor.getEliminatedSymbolCount()
         let goblinBonus = applyGoblinBuff(eliminatedSymbolCount: actualEliminatedCount)
         totalEarnings += goblinBonus
-        if goblinBonus > 0 {
-            settlementLogs.append("⚔️ 哥布林buff奖励: +\(goblinBonus) 金币 (消除了\(actualEliminatedCount)个符号)\n")
-        }
 
         // 检查是否有丰收之神的翻倍效果
         var doubleRewardBonus = 0
@@ -1299,14 +1336,56 @@ class GameViewModel: ObservableObject {
             doubleRewardBonus = originalEarnings // 翻倍部分 = 原收益
             totalEarnings *= 2 // 总收益翻倍
             effectProcessor.clearDoubleRewardFlag() // 清除标记
-            settlementLogs.append("🌾 丰收之神效果：收益翻倍！+\(doubleRewardBonus) 金币\n")
             print("🌾 [丰收之神] 收益翻倍生效：原收益\(originalEarnings) × 2 = \(totalEarnings)金币")
         }
         
-        let finalSummary = "💰 最终收益: \(totalEarnings) 金币 (基础\(basicEarnings) + 效果\(effectBonus) + 倍率\(multiplierBonus) + 哥布林\(goblinBonus)\(doubleRewardBonus > 0 ? " + 翻倍\(doubleRewardBonus)" : ""))"
-        print(finalSummary)
+        // 重构最终收益日志格式
+        print("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        print("【获得总金币】")
+        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        print("\(totalEarnings) 金币")
+        print("\n【构成来源】")
+        print("基础金币: \(basicEarnings)")
+        
         settlementLogs.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-        settlementLogs.append(finalSummary)
+        settlementLogs.append("💰 获得总金币: \(totalEarnings) 金币")
+        settlementLogs.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        settlementLogs.append("构成来源:")
+        settlementLogs.append("  • 基础金币: \(basicEarnings)")
+        
+        // 符号效果来源（包括倍率效果）
+        var symbolEffectTotal = effectBonus + multiplierBonus
+        if symbolEffectTotal > 0 {
+            var effectDetails: [String] = []
+            if effectBonus > 0 {
+                effectDetails.append("符号效果\(effectBonus)")
+            }
+            if multiplierBonus > 0 {
+                effectDetails.append("倍率效果\(multiplierBonus)")
+            }
+            let effectDetailStr = effectDetails.joined(separator: " + ")
+            print("符号效果来源: \(symbolEffectTotal) (\(effectDetailStr))")
+            settlementLogs.append("  • 符号效果来源: \(symbolEffectTotal) (\(effectDetailStr))")
+        } else {
+            print("符号效果来源: 0")
+            settlementLogs.append("  • 符号效果来源: 0")
+        }
+        
+        // 羁绊效果来源
+        var bondTotal = bondEarningsBonus
+        if bondTotal > 0 {
+            print("羁绊效果: \(bondTotal) 金币")
+            settlementLogs.append("  • 羁绊效果: \(bondTotal) 金币")
+        } else {
+            print("羁绊效果: 0")
+            settlementLogs.append("  • 羁绊效果: 0")
+        }
+        
+        // 翻倍效果
+        print("翻倍效果: \(doubleRewardBonus)")
+        settlementLogs.append("  • 翻倍效果: \(doubleRewardBonus)")
+        
+        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
         settlementLogs.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
         // 结算动画完全结束
@@ -1330,7 +1409,7 @@ class GameViewModel: ObservableObject {
             let remainingCount = pendingMiningCount
             pendingMiningCount = 0 // 重置状态
             
-            print("🔄 [继续挖矿] 当前棋盘结算完成，刷新棋盘并继续挖矿 \(remainingCount) 个格子")
+            // 继续挖矿
             
             // 刷新棋盘
             generateSlotResults()
@@ -1358,12 +1437,12 @@ class GameViewModel: ObservableObject {
                     self.pendingMiningCount = 0
                 }
                 
-                print("⏸️ [挖矿完成] 新棋盘格子已翻开，等待1秒后开始结算动画")
+                // 等待开始结算
                 
                 // 等待1秒，让玩家看清所有翻开的格子
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                     // 开始结算新棋盘的流程
-                    print("🎬 [开始结算] 新棋盘1秒等待完成，开始逐个结算")
+                    // 开始结算
                     self.calculateEarnings()
                 }
             }
@@ -1374,7 +1453,7 @@ class GameViewModel: ObservableObject {
         // 正常流程：减少旋转次数并继续游戏
         spinsRemaining -= 1
         
-        print("💰 [结算完成] 当前金币: \(currentCoins), 剩余旋转: \(spinsRemaining)")
+        // 结算完成
         
         // 等待收益气泡消失后再显示下一流程弹窗（2秒后）
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.3) { [weak self] in
@@ -1402,7 +1481,6 @@ class GameViewModel: ObservableObject {
         
         // 检查是否启用buff效果
         guard GoblinConfigManager.shared.isBuffEffectsEnabled() else {
-            print("⚠️ [哥布林Buff] buff效果已在配置中禁用")
             return 0
         }
         
@@ -1412,30 +1490,26 @@ class GameViewModel: ObservableObject {
         switch goblin.buffType {
         case "on_symbol_eliminate": // 勇者哥布林：每有一个符号被消除，则+N金币
             bonusCoins = Int(goblin.buffValue) * eliminatedSymbolCount
-            if bonusCoins > 0 {
-                print("\(goblin.icon) [\(goblin.name)] 消除\(eliminatedSymbolCount)个符号，额外获得\(bonusCoins)金币")
-            }
             
         // 已废弃：extra_symbol_choice - 工匠哥布林额外符号选择功能已移除
         // case "extra_symbol_choice": // 工匠哥布林：每回合增加N次获得符号3选1的机会
         //     print("\(goblin.icon) [\(goblin.name)] buff将在回合结束时生效")
             
         case "dice_probability_boost": // 赌徒哥布林：挖到骰子概率翻N倍
-            print("\(goblin.icon) [\(goblin.name)] 骰子概率提升\(goblin.buffValue)倍效果已激活")
+            // 骰子概率提升效果已激活（无日志输出）
+            break
             
         case "soldier_bonus": // 国王哥布林：每有一个士兵，额外获得N金币
             let soldierCount = symbolPool.filter { $0.name == "士兵" }.count
             bonusCoins = soldierCount * Int(goblin.buffValue)
-            if soldierCount > 0 {
-                print("\(goblin.icon) [\(goblin.name)] 符号池有\(soldierCount)个士兵，额外获得\(bonusCoins)金币")
-            }
             
         case "magic_bag_fill": // 巫师哥布林：每回合挖矿之前随机填充N个魔法袋
             // 这个buff会在每回合开始时添加到符号池，不在这里处理
-            print("\(goblin.icon) [\(goblin.name)] 魔法袋buff将在挖矿前生效")
+            break
             
         default:
-            print("⚠️ [哥布林Buff] 未知的buff类型: \(goblin.buffType)")
+            // 未知的buff类型（无日志输出）
+            break
         }
         
         return bonusCoins
@@ -1459,7 +1533,6 @@ class GameViewModel: ObservableObject {
         
         // 获取魔法袋符号
         guard let magicBag = SymbolLibrary.getSymbol(byName: "魔法袋") else {
-            print("⚠️ [巫师哥布林] 找不到魔法袋符号")
             return
         }
         
@@ -1470,9 +1543,6 @@ class GameViewModel: ObservableObject {
         
         // 标记本回合已使用
         wizardBuffUsedThisRound = true
-        
-        print("🧙 [巫师哥布林] 每回合挖矿之前添加\(magicBagCount)个魔法袋到符号池")
-        print("🧙 [巫师哥布林] 当前符号池: \(symbolPool.map { $0.icon + $0.name })")
     }
     
     /// 重置矿石状态（新阶段开始时调用）
@@ -1496,11 +1566,11 @@ class GameViewModel: ObservableObject {
             gamePhase = .payingRent
 
             if currentCoins >= rentAmount {
-                // 检查是否已经完成所有关卡（第30关）
-                let maxRound = 30
+                // 检查是否已经完成所有关卡（第20关）
+                let maxRound = 20
                 if currentRound >= maxRound {
                     // 已完成所有关卡，游戏胜利
-                    print("🎉 [游戏胜利] 恭喜完成所有30关！")
+                    print("🎉 [游戏胜利] 恭喜完成所有20关！")
                     let victoryMessage = localizationManager.localized("game_over.victory_message")
                     gameOver(message: victoryMessage)
                     return
@@ -1532,67 +1602,8 @@ class GameViewModel: ObservableObject {
 
                 print("✅ [房租] 支付成功！进入回合 \(currentRound)")
 
-                // **新功能：回合开始处理**
-                // 添加回合开始日志到调试面板
-                settlementLogs.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-                settlementLogs.append("🌅 回合开始 - 回合\(currentRound)")
-                settlementLogs.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
-                settlementLogs.append("🏠 支付房租: -\(rentAmount) 金币")
-                
-                let roundStartBonus = effectProcessor.processRoundStart(symbolPool: &symbolPool, currentRound: currentRound)
-                currentCoins += roundStartBonus
-                
-                // 检查是否有回合开始奖励和下回合奖励
-                let nextRoundBonus = effectProcessor.processNextRoundBonuses(symbolPool: &symbolPool)
-                currentCoins += nextRoundBonus
-                
-                // 记录回合开始奖励到日志
-                if roundStartBonus != 0 {
-                    settlementLogs.append("🌅 回合开始效果: \(roundStartBonus > 0 ? "+" : "")\(roundStartBonus) 金币")
-                } else {
-                    settlementLogs.append("🌅 回合开始效果: 无")
-                }
-                
-                // 记录下回合奖励到日志
-                if nextRoundBonus != 0 {
-                    settlementLogs.append("🔥 下回合奖励: \(nextRoundBonus > 0 ? "+" : "")\(nextRoundBonus) 金币")
-                }
-                
-                // 计算总变化
-                let totalChange = roundStartBonus + nextRoundBonus - rentAmount
-                settlementLogs.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-                settlementLogs.append("💰 回合开始总变化: \(totalChange > 0 ? "+" : "")\(totalChange) 金币 (房租-\(rentAmount) + 回合开始\(roundStartBonus > 0 ? "+" : "")\(roundStartBonus) + 下回合奖励\(nextRoundBonus > 0 ? "+" : "")\(nextRoundBonus))")
-                settlementLogs.append("💰 当前金币: \(currentCoins) 金币")
-                settlementLogs.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
-                
-                var hasTip = false
-                if roundStartBonus != 0 {
-                    showEarningsTip(text: "\(localizationManager.localized("earnings.round_start")): \(roundStartBonus > 0 ? "+" : "")\(roundStartBonus)\(localizationManager.localized("earnings.coins"))")
-                    hasTip = true
-                    print("🌅 [回合开始] 回合开始效果奖励: \(roundStartBonus > 0 ? "+" : "")\(roundStartBonus)金币")
-                }
-                
-                if nextRoundBonus != 0 {
-                    // 如果有回合开始奖励，等待它消失后再显示下回合奖励
-                    let delay = hasTip ? 2.3 : 0.0
-                    DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
-                        guard let self = self else { return }
-                        self.showEarningsTip(text: "\(self.localizationManager.localized("earnings.next_round_bonus")): \(nextRoundBonus > 0 ? "+" : "")\(nextRoundBonus)\(self.localizationManager.localized("earnings.coins"))")
-                    }
-                    hasTip = true
-                    print("🔥 [下回合奖励] 生效奖励: \(nextRoundBonus > 0 ? "+" : "")\(nextRoundBonus)金币")
-                }
-                
-                // 如果有奖励气泡，等待消失后再显示符号选择；否则直接显示
-                if hasTip {
-                    // 等待最后一个气泡消失（2.3秒）
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.3) { [weak self] in
-                        self?.showSymbolSelectionPhase()
-                    }
-                } else {
-                    // 没有奖励气泡，直接显示符号选择
-                    showSymbolSelectionPhase()
-                }
+                // **新功能：回合开始处理** - 使用processRoundStart函数，它会处理羁绊buff并检查游戏结束
+                processRoundStart()
             } else {
                 // 游戏失败
                 print("❌ [游戏结束] 金币不足，无法达成目标")
@@ -1635,30 +1646,97 @@ class GameViewModel: ObservableObject {
                 if humanCount >= 3 {
                     // 人类3羁绊生效，添加到 bondsWithBonus
                     bondsWithBonus.insert(bondBuff.id)
-                    print("👥 [人类3羁绊] 添加到 bondsWithBonus: \(bondBuff.id)")
                 }
             }
         }
         
-        // **新功能：检查是否需要游戏结束（死神的眷顾）**
+        // **新功能：检查是否需要游戏结束（死神的眷顾羁绊）**
+        if bondBonus.shouldGameOver {
+            let message = localizationManager.localized("game_over.death_blessing_ended")
+            gameOver(message: message)
+            return
+        }
+        
+        // 检查是否需要游戏结束（death符号被挖出时的round_start_buff效果）
         if effectProcessor.shouldEndGame() {
             let message = localizationManager.localized("game_over.death_blessing_ended")
             gameOver(message: message)
             return
         }
 
-        if roundStartBonus != 0 {
-            showEarningsTip(text: "\(localizationManager.localized("earnings.round_start")): \(roundStartBonus > 0 ? "+" : "")\(roundStartBonus)\(localizationManager.localized("earnings.coins"))")
-            print("🌅 [回合开始] 回合开始效果奖励: \(roundStartBonus > 0 ? "+" : "")\(roundStartBonus)金币")
-        }
-
         // 处理下回合奖励
         let nextRoundBonus = effectProcessor.processNextRoundBonuses(symbolPool: &symbolPool)
         currentCoins += nextRoundBonus
 
+        // 重构回合开始日志格式
+        print("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        print("【回合开始】")
+        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        print("回合数: \(currentRound)")
+        print("支付房租: -\(rentAmount) 金币")
+        print("\n【回合前的金币奖励来源】")
+        
+        settlementLogs.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        settlementLogs.append("🌅 回合开始 - 回合\(currentRound)")
+        settlementLogs.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        settlementLogs.append("🏠 支付房租: -\(rentAmount) 金币")
+        settlementLogs.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        settlementLogs.append("回合前的金币奖励来源:")
+        
+        // 符号回合开始效果
+        print("符号回合开始效果: \(roundStartBonus > 0 ? "+" : "")\(roundStartBonus) 金币")
+        if roundStartBonus != 0 {
+            settlementLogs.append("  • 符号回合开始效果: +\(roundStartBonus) 金币")
+            showEarningsTip(text: "\(localizationManager.localized("earnings.round_start")): +\(roundStartBonus)\(localizationManager.localized("earnings.coins"))")
+        } else {
+            settlementLogs.append("  • 符号回合开始效果: 0")
+        }
+        
+        // 羁绊回合开始效果
+        print("羁绊回合开始效果: \(bondBonus.bonus > 0 ? "+" : "")\(bondBonus.bonus) 金币")
+        settlementLogs.append("  • 羁绊回合开始效果: \(bondBonus.bonus > 0 ? "+" : "")\(bondBonus.bonus) 金币")
+        
+        // 下回合奖励
+        print("下回合奖励: \(nextRoundBonus > 0 ? "+" : "")\(nextRoundBonus) 金币")
+        settlementLogs.append("  • 下回合奖励: \(nextRoundBonus > 0 ? "+" : "")\(nextRoundBonus) 金币")
+        
+        // 计算总变化
+        let totalChange = roundStartBonus + bondBonus.bonus + nextRoundBonus - rentAmount
+        print("\n【回合开始总变化】")
+        print("\(totalChange > 0 ? "+" : "")\(totalChange) 金币")
+        print("当前金币: \(currentCoins) 金币")
+        print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+        
+        settlementLogs.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        settlementLogs.append("💰 回合开始总变化: \(totalChange > 0 ? "+" : "")\(totalChange) 金币")
+        settlementLogs.append("💰 当前金币: \(currentCoins) 金币")
+        settlementLogs.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
+        
+        var hasTip = false
+        if roundStartBonus != 0 {
+            hasTip = true
+        }
+
         if nextRoundBonus != 0 {
-            showEarningsTip(text: "\(localizationManager.localized("earnings.next_round_bonus")): \(nextRoundBonus > 0 ? "+" : "")\(nextRoundBonus)\(localizationManager.localized("earnings.coins"))")
+            // 如果有回合开始奖励，等待它消失后再显示下回合奖励
+            let delay = hasTip ? 2.3 : 0.0
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+                guard let self = self else { return }
+                self.showEarningsTip(text: "\(self.localizationManager.localized("earnings.next_round_bonus")): \(nextRoundBonus > 0 ? "+" : "")\(nextRoundBonus)\(self.localizationManager.localized("earnings.coins"))")
+            }
+            hasTip = true
             print("🔥 [下回合奖励] 生效奖励: \(nextRoundBonus > 0 ? "+" : "")\(nextRoundBonus)金币")
+        }
+        
+        // 如果有奖励气泡，等待消失后再显示符号选择；否则直接显示
+        if hasTip {
+            // 等待最后一个气泡消失（2.3秒）
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.3) { [weak self] in
+                self?.showSymbolSelectionPhase()
+            }
+        } else {
+            // 没有奖励气泡，直接显示符号选择
+            showSymbolSelectionPhase()
         }
     }
     
@@ -1823,6 +1901,47 @@ class GameViewModel: ObservableObject {
         // 显示提示
         showEarningsTip(text: "已添加 \(addedCount) 个测试符号")
     }
+    
+    /// 测试功能：添加测试符号（电池、猎人、吸血鬼、骰子、哥莫拉、陨石）
+    func addTestSymbols() {
+        guard goblinSelectionCompleted, gamePhase != .selectingSymbol else {
+            print("⚠️ [测试] 游戏未开始或正在选择符号，无法添加测试符号")
+            return
+        }
+        
+        let testSymbolNameKeys = ["battery", "hunter", "vampire", "dice", "gomorrah", "meteorite"]
+        
+        var addedCount = 0
+        for nameKey in testSymbolNameKeys {
+            if let symbol = SymbolLibrary.getSymbol(byName: nameKey) {
+                // 创建新的符号实例（使用新的UUID）
+                let newSymbol = Symbol(
+                    id: UUID(),
+                    nameKey: symbol.nameKey,
+                    icon: symbol.icon,
+                    baseValue: symbol.baseValue,
+                    rarity: symbol.rarity,
+                    type: symbol.type,
+                    descriptionKey: symbol.descriptionKey,
+                    weight: symbol.weight,
+                    types: symbol.types,
+                    effectType: symbol.effectType,
+                    effectParams: symbol.effectParams,
+                    bondIDs: symbol.bondIDs
+                )
+                symbolPool.append(newSymbol)
+                addedCount += 1
+                print("✅ [测试] 添加符号: \(symbol.name) (nameKey: \(nameKey))")
+            } else {
+                print("❌ [测试] 找不到符号 nameKey: \(nameKey)")
+            }
+        }
+        
+        print("🧪 [测试] 完成！共添加 \(addedCount) 个测试符号，当前符号池总数: \(symbolPool.count)")
+        
+        // 显示提示
+        showEarningsTip(text: "已添加 \(addedCount) 个测试符号")
+    }
 
     /// 测试功能：按羁绊键添加所需符号
     func addSymbolsForBond(nameKey: String) {
@@ -1831,34 +1950,40 @@ class GameViewModel: ObservableObject {
             return
         }
         
-        let bondSymbolIds: [String: [Int]] = [
-            "merchant_trading_bond": [2],
-            "vampire_curse_bond": [16, 44],
-            "death_blessing_bond": [24],
-            "wolf_hunter_bond": [67, 59],
-            "element_master_bond": [25, 26, 27, 28, 29],
-            "justice_bond": [12, 31],
-            "apocalypse_bond": [16, 67, 68, 70],
-            "human_extinction_bond": [71, 72, 73, 74],
-            "raccoon_city_bond": [68],
-            // 类型计数羁绊：填充满足数量的人类/材料/工具等
-            "human_3_bond": [5, 15, 6], // 士兵、公主、村长
-            "human_5_bond": [5, 15, 6, 14, 18],
-            "human_10_bond": [5, 15, 6, 14, 18, 19, 10, 11, 12, 17],
-            "material_2_bond": [30, 48], // 石头、硬币
-            "material_4_bond": [30, 48, 45, 58], // 再加勾玉、公文包
-            "cozylife_3_bond": [42, 43, 49], // 手机、眼镜、枕头
-            "cozylife_6_bond": [42, 43, 49, 50, 57, 58],
-            "tools_2_bond": [37, 38], // 圣瓶、契约卷轴（tool）
-            "tools_4_bond": [37, 38, 63, 64], // +铁钥匙、银钥匙
-            "classictale_2_bond": [4, 5], // 农民、士兵
-            "classictale_4_bond": [4, 5, 14, 15], // +盗贼、公主
-            "classictale_6_bond": [4, 5, 14, 15, 33, 35] // +催眠摆、符文护甲
-        ]
-        
-        guard let ids = bondSymbolIds[nameKey] else {
-            print("⚠️ [测试] 未知羁绊 \(nameKey)")
+        // 从 BondBuffConfigManager 获取羁绊配置
+        guard let bondBuff = BondBuffConfigManager.shared.getBondBuff(byNameKey: nameKey) else {
+            print("⚠️ [测试] 找不到羁绊: \(nameKey)")
             return
+        }
+        
+        var ids: [Int] = []
+        
+        // 如果是类型计数羁绊，根据类型和数量添加符号
+        if let requiredType = bondBuff.requiredType, let requiredCount = bondBuff.requiredCount {
+            // 类型计数羁绊：获取该类型的所有符号，添加所需数量
+            let symbolsOfType = SymbolLibrary.getSymbols(byType: requiredType)
+            let uniqueSymbols = Array(Set(symbolsOfType.map { $0.nameKey }))
+                .compactMap { SymbolLibrary.getSymbol(byName: $0) }
+            
+            // 添加所需数量的符号
+            for i in 0..<min(requiredCount, uniqueSymbols.count) {
+                if uniqueSymbols.indices.contains(i),
+                   let symbolId = SymbolConfigManager.shared.getSymbolConfigId(byNameKey: uniqueSymbols[i].nameKey) {
+                    ids.append(symbolId)
+                }
+            }
+            
+            // 如果数量不够，重复添加
+            while ids.count < requiredCount {
+                for symbol in uniqueSymbols.prefix(requiredCount - ids.count) {
+                    if let symbolId = SymbolConfigManager.shared.getSymbolConfigId(byNameKey: symbol.nameKey) {
+                        ids.append(symbolId)
+                    }
+                }
+            }
+        } else {
+            // 固定ID列表羁绊：使用配置中的 requiredSymbolIds
+            ids = bondBuff.requiredSymbolIds
         }
         
         var addedCount = 0
@@ -1879,7 +2004,7 @@ class GameViewModel: ObservableObject {
             }
         }
         
-        showEarningsTip(text: "羁绊\(nameKey) 已添加\(addedCount)个符号")
+        showEarningsTip(text: "羁绊\(bondBuff.name) 已添加\(addedCount)个符号")
     }
     
     /// 应用羁绊全局buff（如奸商、正义必胜）
@@ -1894,13 +2019,11 @@ class GameViewModel: ObservableObject {
                     targetSymbols: ["勾玉", "硬币"],
                     baseValueBonus: 20
                 )
-                print("💰 [羁绊Buff] 奸商全局buff已激活：勾玉和硬币+20")
             }
             
             // 正义必胜：猎人权重翻倍（这个需要在生成符号时应用，这里只标记）
             if bondBuff.nameKey.contains("justice_bond") {
                 // 权重翻倍需要在SymbolConfigManager中实现
-                print("⚖️ [羁绊Buff] 正义必胜全局buff已激活：猎人权重翻倍")
             }
         }
     }
@@ -1909,27 +2032,53 @@ class GameViewModel: ObservableObject {
     private func processBondBuffsBeforeMining() {
         let bondBuffs = BondBuffConfigManager.shared.getActiveBondBuffs(symbolPool: symbolPool)
         
-        print("🔍 [羁绊Buff] 挖矿前检查羁绊，当前激活的羁绊数量: \(bondBuffs.count)")
+        print("🔍 [挖矿前羁绊] 开始处理挖矿前羁绊效果，激活羁绊数量: \(bondBuffs.count)")
+        
         for bondBuff in bondBuffs {
-            print("🔍 [羁绊Buff] 检查羁绊: \(bondBuff.nameKey)")
+            let nameKey = bondBuff.nameKey.contains(".") ? 
+                String(bondBuff.nameKey.split(separator: ".").dropLast().last ?? "") : 
+                bondBuff.nameKey
+            
             // 处理浣熊市：每次挖矿前感染一个人类变成丧尸
-            if bondBuff.nameKey.contains("raccoon_city_bond") {
-                print("🧟 [羁绊Buff] 浣熊市羁绊已激活，开始感染人类")
-                // 感染一个人类
+            if nameKey.contains("raccoon_city_bond") {
+                print("🧟 [挖矿前羁绊] 检测到浣熊市羁绊，开始感染人类")
+                
+                // 检查符号池中是否有人类
+                let humanCount = symbolPool.filter { $0.types.contains("human") }.count
+                print("🧟 [挖矿前羁绊] 符号池中人类数量: \(humanCount)")
+                
                 if let humanIndex = symbolPool.firstIndex(where: { $0.types.contains("human") }) {
-                    if let zombie = SymbolLibrary.getSymbol(byName: "丧尸") {
+                    // 尝试多种方式获取丧尸符号
+                    var zombie: Symbol?
+                    
+                    // 方式1：通过中文名称
+                    zombie = SymbolLibrary.getSymbol(byName: "丧尸")
+                    if zombie == nil {
+                        // 方式2：通过nameKey
+                        zombie = SymbolLibrary.getSymbol(byName: "zombie")
+                    }
+                    if zombie == nil {
+                        // 方式3：通过SymbolConfigManager
+                        zombie = SymbolConfigManager.shared.getSymbol(byConfigId: 68) // 丧尸的ID是68
+                    }
+                    
+                    if let zombie = zombie {
                         let humanName = symbolPool[humanIndex].name
+                        let humanIcon = symbolPool[humanIndex].icon
                         symbolPool[humanIndex] = zombie
-                        print("🧟 [羁绊Buff] 浣熊市：挖矿前感染1个人类(\(humanName))变成丧尸")
-                        settlementLogs.append("🧟 [羁绊Buff] 浣熊市：挖矿前感染1个人类(\(humanName))变成丧尸")
+                        let logMsg = "🧟 [羁绊Buff] 浣熊市：挖矿前感染1个人类(\(humanName))变成丧尸"
+                        print("  ✅ \(logMsg)")
+                        settlementLogs.append(logMsg)
                     } else {
-                        print("❌ [羁绊Buff] 浣熊市：无法找到丧尸符号")
+                        print("  ❌ [挖矿前羁绊] 无法找到丧尸符号！")
                     }
                 } else {
-                    print("⚠️ [羁绊Buff] 浣熊市：符号池中没有人类可以感染")
+                    print("  ⚠️ [挖矿前羁绊] 符号池中没有人类可感染")
                 }
             }
         }
+        
+        print("🔍 [挖矿前羁绊] 挖矿前羁绊效果处理完成")
     }
     
     /// 计算羁绊收益加成（如浣熊市的丧尸数量奖励、人类羁绊等）
@@ -1938,24 +2087,31 @@ class GameViewModel: ObservableObject {
         var bondsWithBonusThisSettlement: Set<String> = [] // 本次结算有加成的羁绊ID
         let bondBuffs = BondBuffConfigManager.shared.getActiveBondBuffs(symbolPool: symbolPool)
         
+        print("🔗 [羁绊收益] 开始计算羁绊收益加成，当前激活羁绊数量: \(bondBuffs.count)")
+        
+        var bondDetails: [String] = [] // 记录每个羁绊的详细贡献
+        
         for bondBuff in bondBuffs {
             let nameKey = bondBuff.nameKey.contains(".") ? 
                 String(bondBuff.nameKey.split(separator: ".").dropLast().last ?? "") : 
                 bondBuff.nameKey
             
-            // 浣熊市：每挖出一个丧尸，额外金币增加20
+            let bondName = bondBuff.name
+            var bondContribution = 0
+            
+            // 浣熊市：符号池每有一个丧尸，额外金币增加20
             if nameKey.contains("raccoon_city_bond") {
-                // 统计本次挖出的符号中有多少个丧尸
-                let zombieCount = currentRoundMinedCells.compactMap { index -> Symbol? in
-                    guard index < slotMachine.count else { return nil }
-                    return slotMachine[index].symbol
-                }.filter { $0.nameKey == "zombie" }.count
+                // 统计符号池中有多少个丧尸
+                let zombieCount = symbolPool.filter { $0.nameKey == "zombie" }.count
                 
                 if zombieCount > 0 {
-                    bonus += zombieCount * 20
+                    bondContribution = zombieCount * 20
+                    bonus += bondContribution
                     bondsWithBonusThisSettlement.insert(bondBuff.id) // 记录有加成的羁绊ID
-                    print("🧟 [羁绊Buff] 浣熊市：本次挖出\(zombieCount)个丧尸，额外+\(zombieCount * 20)金币")
-                    settlementLogs.append("🧟 [羁绊Buff] 浣熊市：本次挖出\(zombieCount)个丧尸，额外+\(zombieCount * 20)金币")
+                    let detail = "🧟 [羁绊] \(bondName)：符号池有\(zombieCount)个丧尸，+\(bondContribution)金币"
+                    print("  \(detail)")
+                    settlementLogs.append(detail)
+                    bondDetails.append("\(bondName): +\(bondContribution)")
                 }
             }
             
@@ -1968,9 +2124,45 @@ class GameViewModel: ObservableObject {
                 let humanCount = symbolPool.filter { $0.types.contains("human") }.count
                 if humanCount > 0 {
                     bondsWithBonusThisSettlement.insert(bondBuff.id) // 记录有加成的羁绊ID
-                    print("👥 [羁绊Buff] 人类10羁绊生效：符号池有\(humanCount)个人类，每回合额外+\(humanCount * 5)金币")
+                    print("  👥 [羁绊] \(bondName)：已激活（在回合开始时处理，符号池有\(humanCount)个人类）")
                 }
             }
+            
+            // 经典传说-4羁绊：挖到四个角之一，奖励50金币
+            if nameKey == "classictale_4_bond" {
+                let corners: Set<Int> = [0, 4, 20, 24]
+                let hitCorners = Set(currentRoundMinedCells).intersection(corners)
+                if !hitCorners.isEmpty {
+                    bondContribution = 50 * hitCorners.count
+                    bonus += bondContribution
+                    bondsWithBonusThisSettlement.insert(bondBuff.id) // 记录有加成的羁绊ID
+                    let detail = "📜 [羁绊] \(bondName)：挖到角落 \(hitCorners.sorted())，+\(bondContribution)金币"
+                    print("  \(detail)")
+                    settlementLogs.append(detail)
+                    bondDetails.append("\(bondName): +\(bondContribution)")
+                }
+            }
+            
+            // 经典传说-6羁绊：挖到中心格，奖励100金币
+            if nameKey == "classictale_6_bond" {
+                if currentRoundMinedCells.contains(12) {
+                    bondContribution = 100
+                    bonus += bondContribution
+                    bondsWithBonusThisSettlement.insert(bondBuff.id) // 记录有加成的羁绊ID
+                    let detail = "📜 [羁绊] \(bondName)：挖到中心格(12)，+\(bondContribution)金币"
+                    print("  \(detail)")
+                    settlementLogs.append(detail)
+                    bondDetails.append("\(bondName): +\(bondContribution)")
+                }
+            }
+        }
+        
+        // 输出羁绊收益汇总
+        if bonus > 0 {
+            let detailStr = bondDetails.joined(separator: ", ")
+            print("🔗 [羁绊收益] 总加成: +\(bonus)金币 (\(detailStr))")
+        } else {
+            print("🔗 [羁绊收益] 无加成（当前激活的羁绊在本次结算中无收益贡献）")
         }
         
         // 保存有加成的羁绊ID，用于显示对话气泡
@@ -2090,11 +2282,11 @@ class GameViewModel: ObservableObject {
     
     /// 测试功能：跳过所有关卡（直接到最后一关）
     func skipToLastRound() {
-        print("🧪 [测试] 跳过所有关卡，直接到第30关")
-        // 设置到最后一关（第30关）
-        currentRound = 30
+        print("🧪 [测试] 跳过所有关卡，直接到第20关")
+        // 设置到最后一关（第20关）
+        currentRound = 20
         // 给足够的金币来支付当前关卡的房租
-        let lastRoundRent = configManager.getRentAmount(for: 30)
+        let lastRoundRent = configManager.getRentAmount(for: 20)
         currentCoins = max(currentCoins, lastRoundRent + 1000) // 确保有足够金币
         rentAmount = lastRoundRent
         spinsRemaining = configManager.getGameSettings().spinsPerRound
@@ -2116,21 +2308,38 @@ class GameViewModel: ObservableObject {
             self.showSymbolSelectionPhase()
         }
         
-        print("🧪 [测试] 已设置到第30关，当前金币: \(currentCoins)，房租: \(rentAmount)")
+        print("🧪 [测试] 已设置到第20关，当前金币: \(currentCoins)，房租: \(rentAmount)")
     }
     
     /// 重新开始游戏（更换难度时调用，保留哥布林选择）
     func restartGame() {
         print("🔄 [重新开始] 重置游戏（保留哥布林）")
+        
+        // 检查体力是否足够
+        if stamina < staminaPerGame {
+            print("⚠️ [体力不足] 当前体力: \(stamina), 需要: \(staminaPerGame)，无法重新开始游戏")
+            // 这里可以显示提示，暂时先返回（不重置游戏）
+            return
+        }
+        
+        // 扣除体力
+        stamina -= staminaPerGame
+        saveStamina()
+        print("⚡ [体力消耗] 消耗\(staminaPerGame)体力，剩余: \(stamina)")
+        
         // 不重置哥布林选择，但需要重新进行符号选择
         
         // 重置效果处理器
         effectProcessor.resetRoundState()
         effectProcessor.resetDiceCount()
+        effectProcessor.clearAllGlobalBuffs() // 清除所有全局buff（如勾玉的加成）
+        print("🔄 [重新开始] 清除所有全局buff")
+        
+        // 清除死神的眷顾羁绊状态
+        BondEffectProcessor.resetDeathBlessingState()
         
         // 清空羁绊状态（特别是 classic tale）
         BondBuffRuntime.shared.activeTypeBonds.removeAll()
-        print("🔄 [重新开始] 已清空羁绊状态")
         
         // 重置羁绊闪光状态
         previousActiveBondIDs.removeAll()
@@ -2177,7 +2386,6 @@ class GameViewModel: ObservableObject {
         
         // 清空羁绊状态（特别是 classic tale）
         BondBuffRuntime.shared.activeTypeBonds.removeAll()
-        print("🔄 [完全重新开始] 已清空羁绊状态")
         
         // 重置累计统计
         totalRentPaid = 0
@@ -2426,7 +2634,6 @@ class GameViewModel: ObservableObject {
         // 如果当前已经显示同一个羁绊的弹窗，忽略重复点击
         // 注意：只检查 showBondDescription，不检查 selectedBondForDescription，因为关闭动画期间 selectedBondForDescription 可能还没清空
         if showBondDescription && selectedBondForDescription?.id == bondBuff.id {
-            print("⚠️ [羁绊弹窗] 当前已显示该羁绊弹窗，忽略重复点击")
             return
         }
         

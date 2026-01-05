@@ -83,18 +83,16 @@ class RoundRewardConfigManager {
         for round in 1...15 {
             roundRewards[round] = 5
         }
-        // 关卡16-29：10钻石
-        for round in 16...29 {
+        // 关卡16-20：10钻石
+        for round in 16...20 {
             roundRewards[round] = 10
         }
-        // 关卡30：20钻石
-        roundRewards[30] = 20
     }
     
     /// 获取指定关卡的钻石奖励
     func getDiamondsForRound(_ round: Int) -> Int {
-        // 如果关卡超过30，使用第30关的奖励
-        let rewardRound = min(round, 30)
+        // 如果关卡超过20，使用第20关的奖励
+        let rewardRound = min(round, 20)
         return roundRewards[rewardRound] ?? 0
     }
 }

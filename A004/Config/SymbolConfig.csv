@@ -5,9 +5,9 @@ id,nameKey,icon,rarity,types,baseValue,bondID,weight,effect,effectType,effectPar
 4,farmer,symbol_04.png,rare,human;classic tale,3,,800,获得5个类型为#tool的随机符号,count_bonus,"{""""countType"""": """"tool"""", """"bonusPerCount"""": 2}",farmer
 5,soldier,symbol_05.png,rare,human;classic tale,2,,300,获得一个符文铠甲或外星头盔,spawn_random_from_list,"{""""symbols"""": [""""符文铠甲"""", """"外星头盔""""]}",soldier
 6,village_chief,symbol_06.png,normal,human;worship,2,,1000,获得 5 个随机#human符号，金币+10,count_bonus,"{""""countType"""": """"human"""", """"bonusPerCount"""": 1}",village_chief
-7,forest_fairy,symbol_07.png,rare,elf;forest,3,,800,消除符号池的所有'暗月妖精'，每消灭1个获得100金币,eliminate_multiple,"{""""targetSymbols"""": [""""暗月妖精""""], """"bonus"""": 100}",forest_fairy
-8,dark_moon_fairy,symbol_08.png,rare,elf;forest,3,,800,消除符号池里所有'星光妖精'，每消灭1个获得100金币,eliminate_multiple,"{""""targetSymbols"""": [""""星光妖精""""], """"bonus"""": 100}",dark_moon_fairy
-9,starlight_fairy,symbol_09.png,rare,elf;forest,3,,800,消除符号池里所有'森林妖精'，每消灭1个获得100金币,eliminate_multiple,"{""""targetSymbols"""": [""""森林妖精""""], """"bonus"""": 100}",starlight_fairy
+7,forest_fairy,symbol_07.png,rare,elf;forest,3,,800,消除符号池的所有'暗月妖精'，每消灭1个获得50金币,eliminate_multiple,"{""""targetSymbols"""": [""""暗月妖精""""], """"bonus"""": 50}",forest_fairy
+8,dark_moon_fairy,symbol_08.png,rare,elf;forest,3,,800,消除符号池里所有'星光妖精'，每消灭1个获得50金币,eliminate_multiple,"{""""targetSymbols"""": [""""星光妖精""""], """"bonus"""": 50}",dark_moon_fairy
+9,starlight_fairy,symbol_09.png,rare,elf;forest,3,,800,消除符号池里所有'森林妖精'，每消灭1个获得50金币,eliminate_multiple,"{""""targetSymbols"""": [""""森林妖精""""], """"bonus"""": 50}",starlight_fairy
 10,healer,symbol_10.png,normal,human;live or dead,2,,1000,获得圣瓶，电池，医疗包各一个,cure_negative_effect,"{""""targetType"""": """"monster""""}",healer
 11,paladin,symbol_11.png,epic,human;live or dead,3,,800,获得3个随机人类符号。消除符号池里所有怪物，每有 1 个怪物获得金币 100,eliminate_bonus,"{""""eliminateType"""": """"monster"""", """"bonus"""": 50}",paladin
 12,nun,symbol_12.png,normal,human;V's diary,2,,1000,获得1个十字架,conditional_bonus,"{""""condition"""": """"monster_not_eliminated"""", """"bonus"""": 5}",nun
@@ -44,7 +44,7 @@ id,nameKey,icon,rarity,types,baseValue,bondID,weight,effect,effectType,effectPar
 43,glasses,symbol_43.png,normal,material;cozy life,2,,1000,获得1个随机#cozy life符号,conditional_spawn,"{""""triggerSymbol"""": """"领结"""", """"spawnSymbol"""": """"火元素""""}",glasses
 44,tie,symbol_44.png,normal,material;cozy life,2,,1000,获得1个随机#cozy life符号,conditional_spawn,"{""""triggerSymbol"""": """"眼镜"""", """"spawnSymbol"""": """"火元素""""}",tie
 45,magatama,symbol_45.png,rare,material;trading,5,,800,未来所有符号基础价值提升 5,none,{},magatama
-46,battery,symbol_46.png,normal,material;first aid,2,,1000,从符号池移除自身，生成一个'宇宙飞船'到符号池,spawn_specific,"{""""symbol"""": """"宇宙飞船"""", """"eliminateSelf"""": true}",battery
+46,battery,symbol_46.png,normal,material;first aid,2,,1000,生成一个随机#外星符号,spawn_random,"{""""targetType"""": """"alien"""", """"count"""": 1}",battery
 47,medical_kit,symbol_47.png,normal,material;first aid,2,,1000,获得一个治疗师,conditional_spawn,"{""""triggerSymbol"""": """"治疗师"""", """"spawnSymbol"""": """"风元素"""", """"allowFallback"""": true}",medical_kit
 48,coin,symbol_48.png,normal,material;trading,3,,1000,消除自身，获得2个随机材料符号,none,{},coin
 49,pillow,symbol_49.png,normal,material;cozy life,2,,1000,消除两个除#cozy life之外的符号,conditional_bonus_eliminate,"{""""triggerSymbol"""": """"儿童"""", """"bonus"""": 20}",pillow
@@ -58,7 +58,7 @@ id,nameKey,icon,rarity,types,baseValue,bondID,weight,effect,effectType,effectPar
 57,wine_bottle,symbol_57.png,normal,material;cozy life,2,,1000,获得一个野蛮人,conditional_bonus,"{""""triggerSymbol"""": """"野蛮人"""", """"bonus"""": 20}",wine_bottle
 58,briefcase,symbol_58.png,rare,material;cozy life,3,,800,获得1 个村长,conditional_bonus_eliminate,"{""""triggerSymbol"""": """"商人"""", """"bonus"""": 20}",briefcase
 59,hoe,symbol_59.png,rare,material;tool,3,,800,50%概率生成1 个'花精'到符号池，50%概率生成 1 个'丧尸'到符号池,random_spawn,"{""""options"""": [{""""symbol"""": """"花精"""", """"probability"""": 0.5}, {""""symbol"""": """"丧尸"""", """"probability"""": 0.5}]}",hoe
-60,horn,symbol_60.png,epic,material;tool,5,,300,生成5个'士兵'到符号池,spawn_multiple,"{""""symbol"""": """"士兵"""", """"count"""": 5}",horn
+60,horn,symbol_60.png,epic,material;tool,5,,300,获得 3 个士兵和 1 个随机#怪物,spawn_multiple,"{""""symbol"""": """"士兵"""", """"count"""": 3, """"additionalType"""": """"monster"""", """"additionalCount"""": 1}",horn
 61,iron_box,symbol_61.png,normal,box;box,2,,1000,无效果,none,{},iron_box
 62,silver_box,symbol_62.png,rare,box;box,3,,800,无效果,none,{},silver_box
 63,iron_key,symbol_63.png,normal,box;tool,2,,1000,从符号池消除一个'铁箱子'，获得50金币,unlock_bonus,"{""""unlockSymbol"""": """"铁箱子"""", """"bonus"""": 10}",iron_key
@@ -73,7 +73,7 @@ id,nameKey,icon,rarity,types,baseValue,bondID,weight,effect,effectType,effectPar
 72,alien_helmet,symbol_72.png,normal,alien;Extinction,2,,1000,获得随机一个#alien符号,combo_bonus,"{""""comboSymbols"""": [""""光线枪"""", """"宇宙飞船""""], """"bonus"""": 40, """"onceOnly"""": true}",alien_helmet
 73,spaceship,symbol_73.png,rare,alien;Extinction,3,,800,获得随机一个#alien符号,combo_bonus,"{""""comboSymbols"""": [""""外星头盔"""", """"光线枪""""], """"bonus"""": 40, """"onceOnly"""": true}",spaceship
 74,mind_controller,symbol_74.png,rare,alien;tool,3,,800,随机转化符号池的一个符号为type1='material'的符号（变成完全是另一个符号）,convert_symbol_type,"{""""targetType"""": """"material""""}",mind_controller
-75,meteorite,symbol_75.png,epic,alien;Extinction,5,,300,如果符号池里有'哥莫拉'，从符号池消除'哥莫拉'，获得30金币,conditional_target_eliminate,"{""""targetSymbol"""": """"哥莫拉"""", """"bonus"""": 30}",meteorite
+75,meteorite,symbol_75.png,epic,alien;Extinction,5,,300,如果符号池里有'哥莫拉'，从符号池消除'哥莫拉'，获得100金币,none,"{""""targetSymbolId"""": 70, """"bonus"""": 100}",meteorite
 76,dice,symbol_76.png,epic,dice;tool,5,,300,永久增加1个骰子（骰子数量+1）。被挖出后从符号池移除（消除自身）,dice_bonus,"{""""diceBonus"""": 1}",dice
 77,magic_bag,symbol_77.png,epic,material;fantacy,5,,0,随机生成3~5个随机符号到符号池,spawn_random_multiple,"{""""minCount"""": 3, """"maxCount"""": 5}",magic_bag
-78,artwork,symbol_78.png,epic,material;tool,50,,0,生成5个商人,spawn_multiple,"{""""symbol"""": """"merchant"""", """"count"""": 5}",artwork
+78,artwork,symbol_78.png,epic,material;tool,50,,0,消灭符号池里随机 1 个#神,eliminate_random_by_type,"{""""targetType"""": """"god"""", """"count"""": 1}",artwork

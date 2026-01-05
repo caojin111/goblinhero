@@ -51,11 +51,6 @@ struct Bond: Identifiable, Equatable {
         let requiredIdsSet = Set(requiredSymbolIds)
         let isActive = requiredIdsSet.isSubset(of: symbolIdsSet)
         
-        // 打印日志，方便调试
-        if isActive {
-            print("✅ [羁绊系统] 羁绊 '\(nameKey)' 已激活！需要的符号ID: \(requiredSymbolIds)，当前符号池ID: \(symbolConfigIds)")
-        }
-        
         return isActive
     }
 }
@@ -90,7 +85,6 @@ class BondConfigManager {
     /// 获取所有羁绊
     func getAllBonds() -> [Bond] {
         guard let configFile = configFile else {
-            print("⚠️ [羁绊配置] 配置文件未加载，返回空数组")
             return []
         }
         
@@ -114,7 +108,6 @@ class BondConfigManager {
     func getActiveBonds(symbolPool: [Symbol]) -> [Bond] {
         let allBonds = getAllBonds()
         let activeBonds = allBonds.filter { $0.isActive(symbolPool: symbolPool) }
-        print("🔗 [羁绊系统] 检查 \(allBonds.count) 个羁绊，当前激活 \(activeBonds.count) 个")
         return activeBonds
     }
     

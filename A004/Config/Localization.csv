@@ -342,7 +342,7 @@ symbols.tie.description,Get 1 random <color=#E74875>#Comfortable Life</color> sy
 symbols.magatama.name,Magatama,勾玉
 symbols.magatama.description,Increase the base value of all future <color=#080909>Common Symbols</color> by 1.,未来所有普通符号基础价值提升+1
 symbols.battery.name,Battery,电池
-symbols.battery.description,Remove itself and gain 1 <color=#147ED9>Spaceship</color> to the symbol pool.,从符号池移除自身，生成一个<color=#147ED9>宇宙飞船</color>到符号池
+symbols.battery.description,Obtain 1 random <color=#E74875>#Alien</color> symbol.,生成一个随机<color=#E74875>#外星</color>符号。
 symbols.medical_kit.name,Medical Kit,医疗包
 symbols.medical_kit.description,Get a <color=#080909>Healer</color>.,获得一个<color=#080909>治疗师</color>
 symbols.coin.name,Coin,硬币
@@ -425,27 +425,29 @@ bonds.human_extinction_bond.name,Human Extinction,人类灭绝
 bonds.human_extinction_bond.description,"If Ray Gun, Alien Helmet, Spaceship, and Mind Controller exist simultaneously in symbol pool, eliminate 5 humans at the start of next turn and gain 100 coins",如果光线枪，外星头盔，宇宙飞船，精神控制器同时在符号池内， 下个回合开始时，消灭5个人类，获得 100 金币
 bonds.raccoon_city_bond.name,raccoon-city,浣熊市
 bonds.raccoon_city_bond.description,Infect one human into a zombie before each mining. Gain +20 coins for each <color=#147ED9>Zombie</color> mined,每次挖矿前感染一个人类变成丧尸。每挖出一个丧尸,额外金币增加20
-bonds.human_3_bond.name,human-3,人类·三人组
+bonds.human_3_bond.name,human-pairs,人类·三人组
 bonds.human_3_bond.description,Gain 1 random Human each round.,每回合获得1个随机人类
-bonds.human_5_bond.name,human-5,人类·五人组
-bonds.human_5_bond.description,All <color=#080909>Human</color> symbols gain +5 base value.,人类符号基础价值+5
-bonds.human_10_bond.name,human-10,人类·十人团
-bonds.human_10_bond.description,+5 coins per <color=#080909>Human</color> in pool each round.,符号池每有1个人类,每回合额外获得5金币
-bonds.material_2_bond.name,material-2,材料·二合一
+bonds.human_5_bond.name,human-team,人类·五人组
+bonds.human_5_bond.description,All <color=#147ED9>Human</color> symbols gain +5 base value.,人类符号基础价值+5
+bonds.human_10_bond.name,human-crowd,人类·十人团
+bonds.human_10_bond.description,+5 coins per <color=#147ED9>Human</color> in pool each round.,符号池每有1个人类,每回合额外获得5金币
+bonds.material_2_bond.name,material-update,材料·二合一
 bonds.material_2_bond.description,Each round auto-fuse 2 normal materials into 1 rare.,每回合自动熔合2个普通材料为稀有材料
-bonds.material_4_bond.name,material-4,材料·升华
+bonds.material_4_bond.name,material-evolve,材料·升华
 bonds.material_4_bond.description,Each round auto-fuse 2 rare materials into 1 epic.,每回合自动熔合2个稀有材料为史诗材料
-bonds.cozylife_3_bond.name,cozylife-3,舒适生活·温馨
+bonds.cozylife_3_bond.name,cozylife-lie,舒适生活·温馨
 bonds.cozylife_3_bond.description,Empty tiles gain +3 coins.,每个空格子收益+3
-bonds.cozylife_6_bond.name,cozylife-6,舒适生活·奢享
+bonds.cozylife_6_bond.name,cozylife-down,舒适生活·奢享
 bonds.cozylife_6_bond.description,Empty tiles gain +10 coins.,每个空格子收益+10
-bonds.tools_2_bond.name,tools-2,工具·敏捷
+bonds.tools_2_bond.name,tools-again,工具·敏捷
 bonds.tools_2_bond.description,"If any die shows 1, gain an extra roll.",掷出1时，额外再转一次
-bonds.tools_4_bond.name,tools-4,工具·全开
+bonds.tools_4_bond.name,tools-for all,工具·全开
 bonds.tools_4_bond.description,"If any die shows 6, auto-mine all unopened tiles.",掷出6时，自动挖开所有未翻矿石
-bonds.classictale_2_bond.name,classictale-2,经典传说·奇遇
+bonds.classictale_2_bond.name,classictale-spot,经典传说·奇遇
 bonds.classictale_2_bond.description,Mark a random tile as special; its earnings are doubled.,随机一处生成特殊格子，其收益翻倍
-bonds.classictale_4_bond.name,classictale-4,经典传说·角落宝藏
+bonds.classictale_4_bond.name,classictale-coner,经典传说·角落宝藏
 bonds.classictale_4_bond.description,Mining any corner grants +50 coins.,挖到四个角之一，奖励50金币
-bonds.classictale_6_bond.name,classictale-6,经典传说·中心秘宝
+bonds.classictale_6_bond.name,classictale-center,经典传说·中心秘宝
 bonds.classictale_6_bond.description,Mining the center tile grants +100 coins.,挖到中心格，奖励100金币
+bonds.dark_forest_3_bond.name,Dark Forest,黑暗森林
+bonds.dark_forest_3_bond.description,Gain 1 Magic Bag each round.,每回合获得一个魔法袋

@@ -10,6 +10,14 @@ import Foundation
 class BondEffectProcessor {
     // MARK: - 状态追踪
     private var activeBondBuffs: Set<String> = [] // 当前激活的羁绊Buff ID集合
+    static var deathBlessingActivationRound: Int? = nil // 死神的眷顾激活时的回合数
+    static var deathBlessingRoundsPassed: Int = 0 // 死神的眷顾已持续回合数
+    
+    /// 清除死神的眷顾状态（新游戏开始时调用）
+    static func resetDeathBlessingState() {
+        deathBlessingActivationRound = nil
+        deathBlessingRoundsPassed = 0
+    }
     
     /// 处理羁绊Buff效果（在回合开始时调用）
     /// - Parameter isRoundStart: 是否为回合开始调用（true表示回合开始，false表示其他时机）
@@ -22,18 +30,12 @@ class BondEffectProcessor {
         var totalBonus = 0
         var shouldGameOver = false
         
-        print("\n🔗 [羁绊Buff] 开始处理\(bondBuffs.count)个激活的羁绊Buff (isRoundStart: \(isRoundStart))")
-        
         for bondBuff in bondBuffs {
             let effect = processBondBuffEffect(bondBuff: bondBuff, symbolPool: &symbolPool, currentRound: currentRound, isRoundStart: isRoundStart)
             totalBonus += effect.bonus
             if effect.shouldGameOver {
                 shouldGameOver = true
             }
-        }
-        
-        if totalBonus != 0 {
-            print("🔗 [羁绊Buff] 总效果: \(totalBonus > 0 ? "+" : "")\(totalBonus) 金币")
         }
         
         return (bonus: totalBonus, shouldGameOver: shouldGameOver)
@@ -56,20 +58,17 @@ class BondEffectProcessor {
                 let humanCandidates = SymbolLibrary.getSymbols(byType: "human").filter { $0.nameKey != "paladin" }
                 if let human = humanCandidates.randomElement() {
                     symbolPool.append(human)
-                    print("👥 [羁绊] 人类3：回合开始时生成随机人类 \(human.name)")
                 }
             }
             return (0, false)
         case "human_5_bond":
             // 人类基础价值+5（全局加成由效果处理器统一应用，留给上层处理或在收益计算时读取）
-            print("👥 [羁绊] 人类5：基础价值+5（需全局加成支持）")
             return (0, false)
         case "human_10_bond":
             // 符号池每有1个人类，每回合额外获得5金币
             let humanCount = symbolPool.filter { $0.types.contains("human") }.count
             let bonus = humanCount * 5
             if bonus > 0 {
-                print("👥 [羁绊] 人类10：符号池有\(humanCount)个人类，每回合额外+\(bonus)金币")
                 return (bonus, false)
             }
             return (0, false)
@@ -77,7 +76,6 @@ class BondEffectProcessor {
         case "material_2_bond":
             // 每回合自动熔合2个normal材料为rare（第一回合不触发）
             if currentRound == 1 {
-                print("🧪 [羁绊] 材料2：第一回合跳过合成")
                 return (0, false)
             }
             let normals = symbolPool.enumerated().filter { $0.element.types.contains("material") && $0.element.rarity == .common }
@@ -88,7 +86,7 @@ class BondEffectProcessor {
                 // 添加一个rare材料（随机）
                 if let rareMat = SymbolLibrary.getSymbols(byType: "material").filter({ $0.rarity == .rare }).randomElement() {
                     symbolPool.append(rareMat)
-                    print("🧪 [羁绊] 材料2：合成1个稀有材料 \(rareMat.name)")
+                    print("   ➕ [符号添加] 添加「\(rareMat.name)」到符号池（来源：羁绊「材料2」效果）")
                 }
             }
             return (0, false)
@@ -100,37 +98,30 @@ class BondEffectProcessor {
                 remove.forEach { symbolPool.remove(at: $0) }
                 if let epicMat = SymbolLibrary.getSymbols(byType: "material").filter({ $0.rarity == .epic }).randomElement() {
                     symbolPool.append(epicMat)
-                    print("🧪 [羁绊] 材料4：合成1个史诗材料 \(epicMat.name)")
+                    print("   ➕ [符号添加] 添加「\(epicMat.name)」到符号池（来源：羁绊「材料4」效果）")
                 }
             }
             return (0, false)
         case "cozylife_3_bond":
             // 空格收益+3：在收益计算处处理，这里记录激活
-            print("🏠 [羁绊] cozy life 3：空格收益+3（收益计算时应用）")
             return (0, false)
         case "cozylife_6_bond":
             // 空格收益+10
-            print("🏠 [羁绊] cozy life 6：空格收益+10（收益计算时应用）")
             return (0, false)
         case "tools_2_bond":
             // 掷出1再转一次（掷骰逻辑中处理）
-            print("🔧 [羁绊] tools 2：掷出1再转一次（掷骰逻辑中实现）")
             return (0, false)
         case "tools_4_bond":
             // 掷出6挖开未翻矿石（掷骰逻辑中处理）
-            print("🔧 [羁绊] tools 4：掷出6挖开未翻矿石（掷骰逻辑中实现）")
             return (0, false)
         case "classictale_2_bond":
             // 随机一处特殊格子，收益翻倍，简易光效标记（标记逻辑留到棋盘层实现）
-            print("📜 [羁绊] classic tale 2：标记特殊格子收益翻倍（需棋盘层标记）")
             return (0, false)
         case "classictale_4_bond":
             // 四角挖出 +50（在挖掘逻辑中处理）
-            print("📜 [羁绊] classic tale 4：四角挖出+50（挖掘时处理）")
             return (0, false)
         case "classictale_6_bond":
             // 中心挖出 +100
-            print("📜 [羁绊] classic tale 6：中心挖出+100（挖掘时处理）")
             return (0, false)
         case "merchant_trading_bond":
             // 奸商：被商人消除的符号获得其基础价值*2的金币（在商人消除符号时处理，这里不需要处理）
@@ -141,8 +132,8 @@ class BondEffectProcessor {
             return processVampireCurseBond(symbolPool: symbolPool)
             
         case "death_blessing_bond":
-            // 死神的眷顾：接下来5个回合每回合获得1000金币，5个回合后游戏强制结束
-            return processDeathBlessingBond(currentRound: currentRound)
+            // 死神的眷顾：接下来5个回合每回合获得200金币，5个回合后游戏强制结束
+            return processDeathBlessingBond(symbolPool: symbolPool, currentRound: currentRound, isRoundStart: isRoundStart)
             
         case "wolf_hunter_bond":
             // 捕狼队：如果狼人与锄头同时存在，每回合减少20金币
@@ -165,7 +156,7 @@ class BondEffectProcessor {
             return processHumanExtinctionBond(symbolPool: &symbolPool)
             
         case "raccoon_city_bond":
-            // 浣熊市：每次挖矿前感染一个人类变成丧尸。每有一个丧尸，额外金币增加20
+            // 浣熊市：每次挖矿前感染一个人类变成丧尸。符号池每有一个丧尸，额外金币增加20
             return processRaccoonCityBond(symbolPool: &symbolPool)
             
         case "dark_forest_3_bond":
@@ -173,7 +164,6 @@ class BondEffectProcessor {
             return processDarkForest3Bond(symbolPool: &symbolPool)
             
         default:
-            print("⚠️ [羁绊Buff] 未知的羁绊Buff: \(bondBuff.nameKey)")
             return (bonus: 0, shouldGameOver: false)
         }
     }
@@ -183,7 +173,6 @@ class BondEffectProcessor {
     private func processMerchantTradingBond() -> (bonus: Int, shouldGameOver: Bool) {
         // 奸商羁绊效果：被商人消除的符号获得其基础价值*2的金币
         // 这个效果在 SymbolEffectProcessor 中商人消除符号时处理，这里不需要额外处理
-        print("💰 [羁绊Buff] 奸商羁绊已激活：被商人消除的符号将获得其基础价值*2的金币")
         return (bonus: 0, shouldGameOver: false)
     }
     
@@ -193,23 +182,50 @@ class BondEffectProcessor {
         let hasTie = symbolPool.contains { $0.nameKey == "tie" }
         
         if hasVampire && hasTie {
-            print("🧛 [羁绊Buff] 吸血鬼的诅咒：-50金币")
             return (bonus: -50, shouldGameOver: false)
         }
         return (bonus: 0, shouldGameOver: false)
     }
     
-    private func processDeathBlessingBond(currentRound: Int) -> (bonus: Int, shouldGameOver: Bool) {
-        // 死神的眷顾：接下来5个回合每回合获得1000金币，5个回合后游戏强制结束
-        // 这个效果应该在死神符号被挖出时注册到roundStartBuffs
-        // 这里检查是否应该结束游戏（如果已经过了5个回合）
-        // 注意：实际回合奖励在SymbolEffectProcessor的roundStartBuffs中处理
-        // 这里只检查是否需要结束游戏
+    private func processDeathBlessingBond(symbolPool: [Symbol], currentRound: Int, isRoundStart: Bool) -> (bonus: Int, shouldGameOver: Bool) {
+        // 死神的眷顾：接下来5个回合每回合获得200金币，5个回合后游戏强制结束
+        // 这是一个羁绊效果，只要death符号在符号池中就会激活
+        // 与death符号被挖出时的效果（round_start_buff）分开处理
         
-        // 检查死神是否在符号池中，如果在，说明buff已注册
-        // 实际游戏结束逻辑需要在GameViewModel中根据roundStartBuffs的状态来判断
-        print("💀 [羁绊Buff] 死神的眷顾：每回合+1000金币（已注册）")
-        return (bonus: 0, shouldGameOver: false) // 游戏结束逻辑在SymbolEffectProcessor中处理
+        // 检查death符号是否在符号池中（使用nameKey匹配）
+        let hasDeath = symbolPool.contains { $0.nameKey == "death" }
+        
+        if !hasDeath {
+            // death符号不在符号池中，重置状态
+            BondEffectProcessor.deathBlessingActivationRound = nil
+            BondEffectProcessor.deathBlessingRoundsPassed = 0
+            return (bonus: 0, shouldGameOver: false)
+        }
+        
+        // death符号在符号池中，羁绊激活
+        // 如果是第一次激活，记录激活回合
+        if BondEffectProcessor.deathBlessingActivationRound == nil {
+            BondEffectProcessor.deathBlessingActivationRound = currentRound
+            BondEffectProcessor.deathBlessingRoundsPassed = 0
+        }
+        
+        // 只在回合开始时给予金币奖励
+        if isRoundStart {
+            // 计算已持续回合数（从激活回合的下一个回合开始计算）
+            if let activationRound = BondEffectProcessor.deathBlessingActivationRound {
+                BondEffectProcessor.deathBlessingRoundsPassed = currentRound - activationRound
+                
+                // 如果已持续5个回合，游戏强制结束
+                if BondEffectProcessor.deathBlessingRoundsPassed >= 5 {
+                    return (bonus: 0, shouldGameOver: true)
+                }
+                
+                // 每回合给予200金币
+                return (bonus: 200, shouldGameOver: false)
+            }
+        }
+        
+        return (bonus: 0, shouldGameOver: false)
     }
     
     private func processWolfHunterBond(symbolPool: [Symbol]) -> (bonus: Int, shouldGameOver: Bool) {
@@ -218,19 +234,17 @@ class BondEffectProcessor {
         let hasHoe = symbolPool.contains { $0.nameKey == "hoe" }
         
         if hasWerewolf && hasHoe {
-            print("🐺 [羁绊Buff] 捕狼队：-20金币")
             return (bonus: -20, shouldGameOver: false)
         }
         return (bonus: 0, shouldGameOver: false)
     }
     
     private func processElementMasterBond(symbolPool: [Symbol]) -> (bonus: Int, shouldGameOver: Bool) {
-        // 检查是否拥有全部五种元素
-        let requiredElements = Set(["水元素", "火元素", "雷元素", "冰元素", "土元素"])
-        let collectedElements = Set(symbolPool.filter { requiredElements.contains($0.name) }.map { $0.name })
+        // 检查是否拥有全部五种元素（使用nameKey匹配，避免多语言问题）
+        let requiredElementNameKeys = Set(["water_element", "fire_element", "thunder_element", "ice_element", "earth_element"])
+        let collectedElementNameKeys = Set(symbolPool.filter { requiredElementNameKeys.contains($0.nameKey) }.map { $0.nameKey })
         
-        if collectedElements.count == 5 && collectedElements == requiredElements {
-            print("✨ [羁绊Buff] 元素掌握者：+100金币")
+        if collectedElementNameKeys.count == 5 && collectedElementNameKeys == requiredElementNameKeys {
             return (bonus: 100, shouldGameOver: false)
         }
         return (bonus: 0, shouldGameOver: false)
@@ -244,12 +258,8 @@ class BondEffectProcessor {
             // 如果未拥有，则添加一个龙之火铳
             if let dragonFireGun = SymbolLibrary.getSymbol(byName: "dragon_fire_gun") {
                 symbolPool.append(dragonFireGun)
-                print("⚖️ [羁绊Buff] 正义必胜：获得龙之火铳")
-            } else {
-                print("⚠️ [羁绊Buff] 正义必胜：无法找到龙之火铳符号")
+                print("   ➕ [符号添加] 添加「\(dragonFireGun.name)」到符号池（来源：羁绊「正义必胜」效果）")
             }
-        } else {
-            print("⚖️ [羁绊Buff] 正义必胜：已拥有龙之火铳，无需添加")
         }
         
         return (bonus: 0, shouldGameOver: false)
@@ -285,7 +295,6 @@ class BondEffectProcessor {
                 symbolPool.remove(at: index)
             }
             
-            print("🌍 [羁绊Buff] 世界末日：消灭\(eliminatedCount)个符号，+500金币")
             return (bonus: 500, shouldGameOver: false)
         }
         return (bonus: 0, shouldGameOver: false)
@@ -313,7 +322,6 @@ class BondEffectProcessor {
                 for index in sortedIndices {
                     symbolPool.remove(at: index)
                 }
-                print("👽 [羁绊Buff] 人类灭绝：消灭\(eliminateCount)个人类，+100金币")
                 return (bonus: 100, shouldGameOver: false)
             }
         }
@@ -323,13 +331,12 @@ class BondEffectProcessor {
     private func processRaccoonCityBond(symbolPool: inout [Symbol]) -> (bonus: Int, shouldGameOver: Bool) {
         // 每次挖矿前感染一个人类变成丧尸
         // 这个效果应该在挖矿前触发，不是在回合开始时
-        // 每有一个丧尸，额外金币增加20（这个在计算收益时应用）
+        // 符号池每有一个丧尸，额外金币增加20（这个在计算收益时应用）
         
         // 感染一个人类
         if let humanIndex = symbolPool.firstIndex(where: { $0.types.contains("human") }) {
             if let zombie = SymbolLibrary.getSymbol(byName: "丧尸") {
                 symbolPool[humanIndex] = zombie
-                print("🧟 [羁绊Buff] 浣熊市：感染1个人类变成丧尸")
             }
         }
         
@@ -340,12 +347,11 @@ class BondEffectProcessor {
     private func processDarkForest3Bond(symbolPool: inout [Symbol]) -> (bonus: Int, shouldGameOver: Bool) {
         // 黑暗森林-3：每回合获得一个魔法袋
         guard let magicBag = SymbolLibrary.getSymbol(byName: "魔法袋") else {
-            print("⚠️ [羁绊Buff] 黑暗森林-3：找不到魔法袋符号")
             return (bonus: 0, shouldGameOver: false)
         }
         
         symbolPool.append(magicBag)
-        print("🌲 [羁绊Buff] 黑暗森林-3：每回合获得1个魔法袋")
+        print("   ➕ [符号添加] 添加「\(magicBag.name)」到符号池（来源：羁绊「黑暗森林3」效果）")
         return (bonus: 0, shouldGameOver: false)
     }
 }

@@ -74,7 +74,6 @@ struct Symbol: Identifiable, Codable, Hashable {
         if icon.hasSuffix(".png") {
             // 去掉.png后缀，因为Assets.xcassets中的imageset名称不包含扩展名
             let name = String(icon.dropLast(4))
-            print("🖼️ [符号图片] icon: \(icon) -> imageName: \(name)")
             return name
         }
         return icon

@@ -250,11 +250,6 @@ class SymbolConfigManager {
                 // 解析bondID（多个用引号分割）
                 let bondIDs = CSVReader.parseIDList(config.bondID).map { String($0) }
                 
-                // 调试：检查关键符号
-                if config.nameKey == "death" {
-                    print("🔍 [符号创建] 死神符号: effectType=\(config.effectType), effectParams=\(config.effectParams)")
-                }
-                
                 let symbol = Symbol(
                     id: UUID(),
                     nameKey: config.nameKey,
@@ -280,7 +275,6 @@ class SymbolConfigManager {
         }
         
         guard let configFile = configFile else {
-            print("⚠️ [符号配置] 配置文件未加载，返回空数组")
             return []
         }
         
