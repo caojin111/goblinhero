@@ -5,12 +5,12 @@ ID,NameKey,DesKey,Effect,BondMember,requiredCount,CardColor
 4,bonds.wolf_hunter_bond.name,bonds.wolf_hunter_bond.description,如果 狼人与斧头同时存在符号池，每回合都会减少20金币.,67;59,,#FFD700
 5,bonds.element_master_bond.name,bonds.element_master_bond.description,如果元素池里拥有全部五种元素，则每回合获得 100 金币,25;26;27;28;29,,#FFD700
 6,bonds.justice_bond.name,bonds.justice_bond.description,如果十字架和修女同时在符号池内，获得一个龙之火铳（如果未拥有）,12;31,,#FFD700
-7,bonds.apocalypse_bond.name,bonds.apocalypse_bond.description,如果哥莫拉,丧尸,狼人,吸血鬼同时在符号池内,下个回合开始时,随机消灭一半的符号,获得500金币,16;67;68;70,,#FFD700
+7,bonds.apocalypse_bond.name,bonds.apocalypse_bond.description,如果哥莫拉，丧尸，狼人，吸血鬼同时在符号池，下个回合开始时，随机消灭一半的符号。每消灭一个符号，获得300金币。,16;67;68;70,,#FFD700
 8,bonds.human_extinction_bond.name,bonds.human_extinction_bond.description,如果光线枪，外星头盔，宇宙飞船，精神控制器同时在符号池内， 下个回合开始时，消灭5个人类，获得 100 金币,71;72;73;74,,#FFD700
 9,bonds.raccoon_city_bond.name,bonds.raccoon_city_bond.description,"每次挖矿前感染一个人类变成丧尸。每挖出一个丧尸,额外金币增加20",68,,#FFD700
 10,bonds.human_3_bond.name,bonds.human_3_bond.description,每回合获得1个随机人类,type:human,3,#806651
 11,bonds.human_5_bond.name,bonds.human_5_bond.description,人类符号基础价值+5,type:human,5,#C0C0C0
-12,bonds.human_10_bond.name,bonds.human_10_bond.description,符号池每有1个人类,每回合额外获得5金币,type:human,10,#FFD700
+12,bonds.human_10_bond.name,bonds.human_10_bond.description,符号池每有1个人类，每次转动额外获得5金币,type:human,10,#FFD700
 13,bonds.material_2_bond.name,bonds.material_2_bond.description,每回合自动熔合2个normal材料为rare,type:material,2,#806651
 14,bonds.material_4_bond.name,bonds.material_4_bond.description,每回合自动熔合2个rare材料为epic,type:material,4,#C0C0C0
 15,bonds.cozylife_3_bond.name,bonds.cozylife_3_bond.description,每个空格子收益+3,type:cozy life,3,#806651

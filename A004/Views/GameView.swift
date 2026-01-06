@@ -935,7 +935,7 @@ struct ActiveBondsView: View {
                     .fontWeight(.semibold)
                     .foregroundColor(.white)
                 
-                // 羁绊卡片列表（使用固定高度容器，为对话气泡留出空间）
+                // 羁绊卡片列表（添加顶部 padding 为对话气泡留出空间）
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 12) {
                         ForEach(activeBonds) { bondBuff in
@@ -943,9 +943,9 @@ struct ActiveBondsView: View {
                         }
                     }
                     .padding(.horizontal, 4)
+                    .padding(.top, 40) // 为对话气泡留出空间
                 }
-                .frame(height: 75) // 卡片高度45 + 气泡空间30 = 75
-                .clipped() // 限制显示区域，防止气泡超出容器
+                .padding(.top, -40) // 抵消 padding，保持布局不变
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 7) // 从10减少到7（减少约1/3）
@@ -979,52 +979,47 @@ struct BondCardView: View {
     }
     
     var body: some View {
-        // 使用 ZStack 包装，精确控制气泡位置，避免 overlay 创建额外布局空间
-        ZStack(alignment: .top) {
-            Button(action: {
-                // 注意：羁绊卡片点击不播放 click 音效，因为用户要求只有 start 按钮外的其他按钮才播放
-                // 但根据需求，应该是"除了start按钮，其他所有地方的点击音效"，所以这里也播放
-                AudioManager.shared.playSoundEffect("click", fileExtension: "wav")
-                viewModel.showBondDescriptionView(bondBuff: bondBuff)
-            }) {
-                // 只显示羁绊名称
-                Text(bondBuff.name)
-                    .font(customFont(size: localizationManager.currentLanguage == "zh" ? 19 : 19)) // 中文19号，英文19号（减小5号）
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                    .textStroke() // 添加黑色描边
-                    .lineLimit(1)
-                    .frame(width: 140, height: 45) // 从60减少到45（减少1/4）
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6) // 从8减少到6，保持比例
-                    .background(
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(bondBuff.cardColor.opacity(0.8))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.white.opacity(0.3), lineWidth: 1)
-                            )
-                    )
-            }
-            .shadow(color: Color.yellow.opacity(isFlashing ? 0.9 : 0.0), radius: isFlashing ? 10 : 0, x: 0, y: 0)
-            .animation(.easeInOut(duration: 0.4), value: isFlashing)
-            .buttonStyle(PlainButtonStyle())
-            
-            // 对话气泡（使用 ZStack 而不是 overlay，避免创建额外的布局空间）
+        Button(action: {
+            // 注意：羁绊卡片点击不播放 click 音效，因为用户要求只有 start 按钮外的其他按钮才播放
+            // 但根据需求，应该是"除了start按钮，其他所有地方的点击音效"，所以这里也播放
+            AudioManager.shared.playSoundEffect("click", fileExtension: "wav")
+            viewModel.showBondDescriptionView(bondBuff: bondBuff)
+        }) {
+            // 只显示羁绊名称
+            Text(bondBuff.name)
+                .font(customFont(size: localizationManager.currentLanguage == "zh" ? 19 : 19)) // 中文19号，英文19号（减小5号）
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+                .textStroke() // 添加黑色描边
+                .lineLimit(1)
+                .frame(width: 140, height: 45) // 从60减少到45（减少1/4）
+        .padding(.horizontal, 10)
+                .padding(.vertical, 6) // 从8减少到6，保持比例
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                        .fill(bondBuff.cardColor.opacity(0.8))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                )
+        )
+        }
+        .shadow(color: Color.yellow.opacity(isFlashing ? 0.9 : 0.0), radius: isFlashing ? 10 : 0, x: 0, y: 0)
+        .animation(.easeInOut(duration: 0.4), value: isFlashing)
+        .buttonStyle(PlainButtonStyle())
+        .overlay(alignment: .top) {
+            // 对话气泡（单独一层，覆盖在羁绊卡片之上，不被裁剪）
             if hasBonus {
                 Image("emoji5")
                     .resizable()
-                    .renderingMode(.original) // 确保使用原始图片，不添加任何背景
                     .scaledToFit()
                     .frame(width: 50, height: 50)
                     .offset(y: -30) // 在卡片顶部上方
                     .transition(.scale.combined(with: .opacity))
                     .animation(.spring(response: 0.3, dampingFraction: 0.7), value: hasBonus)
-                    .allowsHitTesting(false) // 不拦截点击事件
+                    .zIndex(1000) // 确保在最上层
             }
         }
-        .frame(width: 140, height: 75) // 卡片高度45 + 气泡空间30，限制 ZStack 的大小
-        .clipped() // 限制显示区域，防止气泡超出边界
     }
 }
 

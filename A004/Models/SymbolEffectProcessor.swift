@@ -202,6 +202,7 @@ class SymbolEffectProcessor {
         tempDiceBonus = 0 // 重置临时骰子奖励
         nextRoundBonuses.removeAll() // 清除已使用的下回合奖励
         shouldDoubleDigCount = false // 重置挖矿数量翻倍标记
+        extraSymbolChoices = 0 // 重置额外符号选择次数
         // 注意：shouldDoubleNextReward 不在回合开始时清除，而是在结算收益时清除
         print("🔄 [效果处理] 回合重置：独眼怪物计数器清空，消除计数器清零，临时奖励清空")
     }
@@ -988,23 +989,19 @@ class SymbolEffectProcessor {
             return 100
         // 神/怪物等
         case "god_of_speed":
-            // 速之神：本次挖矿数量翻倍，被挖出后从符号池移除
+            // 速之神：增加一次符号选择的机会，被挖出后从符号池移除
             let eliminateSelf = symbol.effectParams["eliminateSelf"] as? Bool ?? false
-            
-            // 设置挖矿数量翻倍标记（只设置一次）
-            if shouldDoubleDigCount {
-                print("    ⚠️ 速之神效果标记已存在，跳过重复设置（确保只生效一次）")
-            } else {
-                shouldDoubleDigCount = true
-                print("    ⚡ 本次挖矿数量翻倍（速之神效果）- 标记已设置，将在下次掷骰子时生效")
-            }
-            
+
+            // 增加额外符号选择次数
+            extraSymbolChoices += 1
+            print("    ⚡ 额外符号选择机会+1（速之神效果）- 当前额外选择次数: \(extraSymbolChoices)")
+
             if eliminateSelf {
                 symbolPool.removeAll { $0.nameKey == symbol.nameKey }
                 eliminatedSymbolCount += 1
                 print("    ✗ 速之神被消耗，从符号池中移除")
             }
-            
+
             return 0
         case "god_of_harvest":
             // 丰收之神：下回合收益翻倍，被挖出后从符号池移除
@@ -1107,13 +1104,27 @@ class SymbolEffectProcessor {
             spawnSpecific("earth_element", symbolPool: &symbolPool, count: 1, logCallback: logCallback, sourceSymbol: symbol)
             return 0
         case "death":
-            // 死神效果：消除符号池一半
+            // 死神效果：消除符号池一半（但不包括死神自己）
             // 注意：回合开始buff（死神的眷顾）通过effectType "round_start_buff" 处理
             // 所以这里只处理消除逻辑，返回nil让effectType处理buff注册
-            let half = symbolPool.count / 2
+
+            // 过滤掉死神自己，计算要消除的数量
+            let nonDeathSymbols = symbolPool.filter { $0.nameKey != "death" }
+            let half = nonDeathSymbols.count / 2
+
             if half > 0 {
-                for _ in 0..<half { symbolPool.removeFirst() }
+                // 随机选择要消除的非死神符号
+                let symbolsToRemove = Array(nonDeathSymbols.shuffled().prefix(half))
+
+                // 从原始symbolPool中移除这些符号
+                for symbolToRemove in symbolsToRemove {
+                    if let index = symbolPool.firstIndex(where: { $0.id == symbolToRemove.id }) {
+                        symbolPool.remove(at: index)
+                        print("   💀 [死神] 消灭了符号「\(symbolToRemove.name)」（死神自己不会被消灭）")
+                    }
+                }
             }
+
             // 返回nil，让effectType的处理逻辑来注册round_start_buff
             return nil
         case "battery":
@@ -2335,16 +2346,11 @@ class SymbolEffectProcessor {
     private func processDoubleDigCount(symbol: Symbol, symbolPool: inout [Symbol], logCallback: ((String) -> Void)? = nil) -> Int {
         let eliminateSelf = symbol.effectParams["eliminateSelf"] as? Bool ?? false
 
-        // **重要：如果标记已经存在，说明之前已经设置过，不应该重复设置**
-        if shouldDoubleDigCount {
-            let msg = "   ⚠️ 速之神效果标记已存在，跳过重复设置（确保只生效一次）"
+        // 增加额外符号选择次数
+        extraSymbolChoices += 1
+
+        let msg = "   ⚡ 额外符号选择机会+1（速之神效果）"
         print(msg)
-        } else {
-            // 设置挖矿数量翻倍标记（只设置一次）
-            shouldDoubleDigCount = true
-            let msg = "   ⚡ 本次挖矿数量翻倍（速之神效果）- 标记已设置，将在下次掷骰子时生效"
-            print(msg)
-        }
 
         if eliminateSelf {
             // 使用nameKey匹配

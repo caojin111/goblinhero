@@ -64,14 +64,8 @@ class BondEffectProcessor {
         case "human_5_bond":
             // 人类基础价值+5（全局加成由效果处理器统一应用，留给上层处理或在收益计算时读取）
             return (0, false)
-        case "human_10_bond":
-            // 符号池每有1个人类，每回合额外获得5金币
-            let humanCount = symbolPool.filter { $0.types.contains("human") }.count
-            let bonus = humanCount * 5
-            if bonus > 0 {
-                return (bonus, false)
-            }
-            return (0, false)
+        // human_10_bond 在每次转动时处理，不在这里处理
+        // case "human_10_bond":
             
         case "material_2_bond":
             // 每回合自动熔合2个normal材料为rare（第一回合不触发）
@@ -147,12 +141,10 @@ class BondEffectProcessor {
             // 正义必胜：如果十字架和修女同时存在，获得一个龙之火铳（如果未拥有）
             return processJusticeBond(symbolPool: &symbolPool)
             
-        case "apocalypse_bond":
-            // 世界末日：如果哥莫拉、丧尸、狼人、吸血鬼同时存在，下回合开始时随机消灭一半符号，获得2000金币
-            return processApocalypseBond(symbolPool: &symbolPool)
+        // case "apocalypse_bond": 世界末日羁绊现在在挖矿后立即处理，不再在回合开始时处理
             
         case "human_extinction_bond":
-            // 人类灭绝：如果光线枪、外星头盔、宇宙飞船、精神控制器同时存在，下回合开始时消灭5个人类，获得100金币
+            // 实验：如果光线枪、外星头盔、宇宙飞船、精神控制器同时存在，下回合开始时随机复制3个已有的符号
             return processHumanExtinctionBond(symbolPool: &symbolPool)
             
         case "raccoon_city_bond":
@@ -161,7 +153,11 @@ class BondEffectProcessor {
             
         case "dark_forest_3_bond":
             // 黑暗森林-3：每回合获得一个魔法袋
+            // 注意：只在回合开始时触发，不在每次转动时触发
+            if isRoundStart {
             return processDarkForest3Bond(symbolPool: &symbolPool)
+            }
+            return (0, false)
             
         default:
             return (bonus: 0, shouldGameOver: false)
@@ -265,40 +261,6 @@ class BondEffectProcessor {
         return (bonus: 0, shouldGameOver: false)
     }
     
-    private func processApocalypseBond(symbolPool: inout [Symbol]) -> (bonus: Int, shouldGameOver: Bool) {
-        // 检查是否有哥莫拉、丧尸、狼人、吸血鬼（使用nameKey匹配）
-        let requiredNameKeys = Set(["gomorrah", "zombie", "werewolf", "vampire"])
-        let hasAll = requiredNameKeys.allSatisfy { nameKey in
-            symbolPool.contains { $0.nameKey == nameKey }
-        }
-        
-        if hasAll {
-            // 随机消灭一半符号
-            let halfCount = symbolPool.count / 2
-            var eliminatedCount = 0
-            var indicesToRemove: [Int] = []
-            
-            // 随机选择要消除的符号索引
-            var availableIndices = Array(0..<symbolPool.count)
-            for _ in 0..<halfCount {
-                if let randomIndex = availableIndices.randomElement(),
-                   let arrayIndex = availableIndices.firstIndex(of: randomIndex) {
-                    indicesToRemove.append(randomIndex)
-                    availableIndices.remove(at: arrayIndex)
-                    eliminatedCount += 1
-                }
-            }
-            
-            // 按索引从大到小排序，避免删除时索引错乱
-            indicesToRemove.sort(by: >)
-            for index in indicesToRemove {
-                symbolPool.remove(at: index)
-            }
-            
-            return (bonus: 500, shouldGameOver: false)
-        }
-        return (bonus: 0, shouldGameOver: false)
-    }
     
     private func processHumanExtinctionBond(symbolPool: inout [Symbol]) -> (bonus: Int, shouldGameOver: Bool) {
         // 检查是否有光线枪、外星头盔、宇宙飞船、精神控制器（使用nameKey匹配）
@@ -308,21 +270,31 @@ class BondEffectProcessor {
         }
         
         if hasAll {
-            // 消灭5个随机人类
-            let humans = symbolPool.enumerated().filter { (_, symbol) in
-                symbol.types.contains("human")
-            }
-            
-            let eliminateCount = min(5, humans.count)
-            if eliminateCount > 0 {
-                // 随机选择5个人类（如果不足5个，则全部消灭）
-                let selectedHumans = Array(humans.shuffled().prefix(eliminateCount))
-                // 按索引从大到小排序，确保删除时索引不会错乱
-                let sortedIndices = selectedHumans.map { $0.offset }.sorted(by: >)
-                for index in sortedIndices {
-                    symbolPool.remove(at: index)
+            // 随机复制3个已有的符号
+            let copyCount = min(3, symbolPool.count)
+            if copyCount > 0 {
+                // 随机选择要复制的符号
+                let symbolsToCopy = Array(symbolPool.shuffled().prefix(copyCount))
+                for symbol in symbolsToCopy {
+                    // 创建符号的副本
+                    let copiedSymbol = Symbol(
+                        id: UUID(),
+                        nameKey: symbol.nameKey,
+                        icon: symbol.icon,
+                        baseValue: symbol.baseValue,
+                        rarity: symbol.rarity,
+                        type: symbol.type,
+                        descriptionKey: symbol.descriptionKey,
+                        weight: symbol.weight,
+                        types: symbol.types,
+                        effectType: symbol.effectType,
+                        effectParams: symbol.effectParams,
+                        bondIDs: symbol.bondIDs
+                    )
+                    symbolPool.append(copiedSymbol)
+                    print("   🔄 [实验羁绊] 复制了符号「\(symbol.nameKey)」（来源：羁绊 'human_extinction_bond'）")
                 }
-                return (bonus: 100, shouldGameOver: false)
+                return (bonus: 0, shouldGameOver: false)
             }
         }
         return (bonus: 0, shouldGameOver: false)

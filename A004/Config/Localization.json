@@ -690,7 +690,7 @@
       "bonds": {
         "child_merchant_bond": {
           "name": "Child & Merchant Bond",
-          "description": "When you have both Child and Merchant symbols, gain +5 coins per turn"
+          "description": "When you have both Child and Merchant symbols, gain +<color=#FFC700>5</color> coins per turn"
         },
         "merchant_trading_bond": {
           "name": "Shrewd Merchant",
@@ -698,47 +698,47 @@
         },
         "vampire_curse_bond": {
           "name": "Vampire's Curse",
-          "description": "If Vampire and Tie exist simultaneously in symbol pool, lose 50 coins at the start of each turn (triggers at round start)"
+          "description": "If <color=#147ED9>Vampire</color> and <color=#147ED9>Tie</color> exist simultaneously in symbol pool, lose <color=#FFC700>50</color> coins at the start of each turn"
         },
         "death_blessing_bond": {
           "name": "Death's Blessing",
-          "description": "Gain 200 coins for the next 5 turns, but the game will forcefully end after 5 turns"
+          "description": "Gain <color=#FFC700>200</color> coins for the next 5 turns, but the game will forcefully end after 5 turns"
         },
         "wolf_hunter_bond": {
           "name": "Wolf Hunters",
-          "description": "If Werewolf and Axe exist simultaneously in symbol pool, lose 20 coins each turn"
+          "description": "If <color=#147ED9>Werewolf</color> and <color=#147ED9>Axe</color> exist simultaneously in symbol pool, lose <color=#FFC700>20</color> coins each turn"
         },
         "element_master_bond": {
           "name": "Element Master",
-          "description": "If symbol pool has all five elements, gain 100 coins each turn"
+          "description": "If symbol pool has all five <color=#147ED9>elements</color>, gain <color=#FFC700>100</color> coins each turn"
         },
         "justice_bond": {
           "name": "Justice Prevails",
-          "description": "If Cross and Nun exist simultaneously in symbol pool, gain a Dragon Firearm (if not owned)"
+          "description": "If <color=#147ED9>Cross</color> and <color=#147ED9>Nun</color> exist simultaneously in symbol pool, gain a <color=#147ED9>Dragon Firearm</color> (if not owned)"
         },
         "apocalypse_bond": {
           "name": "Apocalypse",
-          "description": "If Gomorrah, Zombie, Werewolf, and Vampire exist simultaneously in symbol pool, randomly eliminate half of symbols at the start of next turn and gain 500 coins"
+          "description": "If Gomorrah, Zombie, Werewolf, and Vampire exist simultaneously in symbol pool, randomly eliminate half of symbols at the start of next turn and gain 300 coins per eliminated symbol"
         },
         "human_extinction_bond": {
-          "name": "Human Extinction",
-          "description": "If Ray Gun, Alien Helmet, Spaceship, and Mind Controller exist simultaneously in symbol pool, eliminate 5 humans at the start of next turn and gain 100 coins"
+          "name": "Experiment",
+          "description": "If Ray <color=#147ED9>Gun</color>, <color=#147ED9>Alien Helmet</color>, <color=#147ED9>Spaceship</color>, and <color=#147ED9>Mind Controller</color> exist simultaneously in symbol pool, copy random 3 symbols"
         },
         "raccoon_city_bond": {
           "name": "raccoon-city",
-          "description": "Infect one human into a zombie before each mining. Gain +20 coins for each <color=#147ED9>Zombie</color> mined"
+          "description": "Infect one human into a zombie before each mining. Gain +<color=#FFC700>20</color> coins for each <color=#147ED9>Zombie</color> in pool"
         },
         "human_3_bond": {
           "name": "human-pairs",
-          "description": "Gain 1 random Human each round."
+          "description": "Gain 1 random <color=#147ED9>Human</color> each round."
         },
         "human_5_bond": {
           "name": "human-team",
-          "description": "All <color=#147ED9>Human</color> symbols gain +5 base value."
+          "description": "All <color=#147ED9>Human</color> symbols gain +<color=#FFC700>5</color> base value."
         },
         "human_10_bond": {
           "name": "human-crowd",
-          "description": "+5 coins per <color=#147ED9>Human</color> in pool each round."
+          "description": "+<color=#FFC700>5</color> coins per <color=#147ED9>Human</color> in pool each roll."
         },
         "material_2_bond": {
           "name": "material-update",
@@ -750,11 +750,11 @@
         },
         "cozylife_3_bond": {
           "name": "cozylife-lie",
-          "description": "Empty tiles gain +3 coins."
+          "description": "Empty tiles gain +<color=#FFC700>3</color> coins."
         },
         "cozylife_6_bond": {
           "name": "cozylife-down",
-          "description": "Empty tiles gain +10 coins."
+          "description": "Empty tiles gain +<color=#FFC700>10</color> coins."
         },
         "tools_2_bond": {
           "name": "tools-again",
@@ -766,19 +766,19 @@
         },
         "classictale_2_bond": {
           "name": "classictale-spot",
-          "description": "Mark a random tile as special; its earnings are doubled."
+          "description": "Mark a random tile as special; its earnings are <color=#FFC700>doubled</color>."
         },
         "classictale_4_bond": {
           "name": "classictale-coner",
-          "description": "Mining any corner grants +50 coins."
+          "description": "Mining any corner grants +<color=#FFC700>50</color> coins."
         },
         "classictale_6_bond": {
           "name": "classictale-center",
-          "description": "Mining the center tile grants +100 coins."
+          "description": "Mining the center tile grants +<color=#FFC700>500</color> coins."
         },
         "dark_forest_3_bond": {
           "name": "Dark Forest",
-          "description": "Gain 1 Magic Bag each round."
+          "description": "Gain 1 <color=#147ED9>Magic Bag</color> each round."
         }
       }
     },
@@ -1467,7 +1467,7 @@
       "bonds": {
         "child_merchant_bond": {
           "name": "儿童与商人羁绊",
-          "description": "同时拥有儿童和商人符号时，每回合额外获得+5金币"
+          "description": "同时拥有儿童和商人符号时，每回合额外获得+<color=#FFC700>5</color>金币"
         },
         "merchant_trading_bond": {
           "name": "奸商",
@@ -1475,47 +1475,47 @@
         },
         "vampire_curse_bond": {
           "name": "吸血鬼的诅咒",
-          "description": "如果吸血鬼与领结同时存在于符号池，每回合开始时减少50金币（回合开始时触发）"
+          "description": "如果<color=#147ED9>吸血鬼</color>与<color=#147ED9>领结</color>同时存在于符号池，每回合开始时减少<color=#FFC700>50</color>金币"
         },
         "death_blessing_bond": {
           "name": "死神的眷顾",
-          "description": "接下来五个回合每回合获得 200 金币，但是五个回合之后游戏强制结束。"
+          "description": "接下来五个回合每回合获得 <color=#FFC700>200</color> 金币，但是五个回合之后游戏强制结束。"
         },
         "wolf_hunter_bond": {
           "name": "捕狼队",
-          "description": "如果 狼人与斧头同时存在符号池，每回合都会减少20金币."
+          "description": "如果 <color=#147ED9>狼人</color>与<color=#147ED9>斧头</color>同时存在符号池，每回合都会减少<color=#FFC700>20</color>金币."
         },
         "element_master_bond": {
           "name": "元素掌握者",
-          "description": "如果元素池里拥有全部五种元素，则每回合获得 100 金币"
+          "description": "如果元素池里拥有全部五种<color=#147ED9>元素</color>，则每回合获得 <color=#FFC700>100</color> 金币"
         },
         "justice_bond": {
           "name": "正义必胜",
-          "description": "如果十字架和修女同时在符号池内，获得一个龙之火铳（如果未拥有）"
+          "description": "如果<color=#147ED9>十字架</color>和<color=#147ED9>修女</color>同时在符号池内，获得一个<color=#147ED9>龙之火铳</color>（如果未拥有）"
         },
         "apocalypse_bond": {
           "name": "世界末日",
-          "description": "如果哥莫拉,丧尸,狼人,吸血鬼同时在符号池内,下个回合开始时,随机消灭一半的符号,获得500金币"
+          "description": "如果<color=#147ED9>哥莫拉</color>、<color=#147ED9>丧尸</color>、<color=#147ED9>狼人</color>、<color=#147ED9>吸血鬼</color>同时在符号池内,下个回合开始时,随机消灭一半的符号,每消灭一个符号获得<color=#FFC700>300</color>金币"
         },
         "human_extinction_bond": {
-          "name": "人类灭绝",
-          "description": "如果光线枪，外星头盔，宇宙飞船，精神控制器同时在符号池内， 下个回合开始时，消灭5个人类，获得 100 金币"
+          "name": "实验",
+          "description": "如果<color=#147ED9>光线枪</color>，<color=#147ED9>外星头盔</color>，<color=#147ED9>宇宙飞船</color>，<color=#147ED9>精神控制器</color>同时在符号池内， 下个回合开始时，随机复制3个已有的符号"
         },
         "raccoon_city_bond": {
           "name": "浣熊市",
-          "description": "每次挖矿前感染一个人类变成丧尸。每挖出一个丧尸,额外金币增加20"
+          "description": "每次挖矿前感染一个<color=#147ED9>人类</color>变成<color=#147ED9>丧尸</color>。每拥有一个<color=#147ED9>丧尸</color>,额外金币增加<color=#FFC700>20</color>"
         },
         "human_3_bond": {
           "name": "人类·三人组",
-          "description": "每回合获得1个随机人类"
+          "description": "每回合获得1个随机<color=#147ED9>人类</color>"
         },
         "human_5_bond": {
           "name": "人类·五人组",
-          "description": "人类符号基础价值+5"
+          "description": "<color=#147ED9>人类</color>符号基础价值+<color=#FFC700>5</color>"
         },
         "human_10_bond": {
           "name": "人类·十人团",
-          "description": "符号池每有1个人类,每回合额外获得5金币"
+          "description": "符号池每有1个<color=#147ED9>人类</color>,每次转动额外获得<color=#FFC700>5</color>金币"
         },
         "material_2_bond": {
           "name": "材料·二合一",
@@ -1527,11 +1527,11 @@
         },
         "cozylife_3_bond": {
           "name": "舒适生活·温馨",
-          "description": "每个空格子收益+3"
+          "description": "每个空格子收益+<color=#FFC700>3</color>"
         },
         "cozylife_6_bond": {
           "name": "舒适生活·奢享",
-          "description": "每个空格子收益+10"
+          "description": "每个空格子收益+<color=#FFC700>10</color>"
         },
         "tools_2_bond": {
           "name": "工具·敏捷",
@@ -1543,19 +1543,19 @@
         },
         "classictale_2_bond": {
           "name": "经典传说·奇遇",
-          "description": "随机一处生成特殊格子，其收益翻倍"
+          "description": "随机一处生成特殊格子，其收益<color=#FFC700>翻倍</color>"
         },
         "classictale_4_bond": {
           "name": "经典传说·角落宝藏",
-          "description": "挖到四个角之一，奖励50金币"
+          "description": "挖到四个角之一，奖励<color=#FFC700>50</color>金币"
         },
         "classictale_6_bond": {
           "name": "经典传说·中心秘宝",
-          "description": "挖到中心格，奖励100金币"
+          "description": "挖到中心格，奖励<color=#FFC700>500</color>金币"
         },
         "dark_forest_3_bond": {
           "name": "黑暗森林",
-          "description": "每回合获得一个魔法袋"
+          "description": "每回合获得一个<color=#147ED9>魔法袋</color>"
         }
       }
     }

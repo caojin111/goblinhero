@@ -148,34 +148,6 @@ struct GameSettingsView: View {
                         )
                     }
                     .buttonStyle(PlainButtonStyle())
-
-                    // 测试按钮：添加测试符号
-                    Button(action: {
-                        viewModel.addTestSymbols()
-                    }) {
-                        HStack {
-                            Image(systemName: "wrench.and.screwdriver.fill")
-                                .font(.title2)
-                                    .foregroundColor(.orange)
-
-                            Text("测试：添加符号")
-                                    .font(.headline)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
-                                    .textStroke()
-
-                            Spacer()
-
-                            Image(systemName: "chevron.right")
-                                .foregroundColor(.white.opacity(0.6))
-                        }
-                        .padding()
-                        .background(
-                            RoundedRectangle(cornerRadius: 15)
-                                    .fill(Color.orange.opacity(0.2))
-                        )
-                    }
-                    .buttonStyle(PlainButtonStyle())
                     
                     // 退出游戏按钮
                     Button(action: {
@@ -212,58 +184,6 @@ struct GameSettingsView: View {
                         )
                     }
                     .buttonStyle(PlainButtonStyle())
-                    
-                    // 羁绊测试区域
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("羁绊测试")
-                            .font(.headline)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-                            .textStroke()
-                            .padding(.horizontal)
-                        
-                        // 所有羁绊测试按钮
-                        ForEach(BondBuffConfigManager.shared.getAllBondBuffs(), id: \.id) { bondBuff in
-                            Button(action: {
-                                viewModel.addSymbolsForBond(nameKey: bondBuff.nameKey)
-                                isPresented = false
-                            }) {
-                                HStack {
-                                    // 羁绊颜色指示器
-                                    Circle()
-                                        .fill(bondBuff.cardColor)
-                                        .frame(width: 12, height: 12)
-                                    
-                                    VStack(alignment: .leading, spacing: 3) {
-                                        Text(bondBuff.name)
-                                            .font(.subheadline)
-                                            .fontWeight(.semibold)
-                                            .foregroundColor(.white)
-                                            .textStroke()
-                                        
-                                        Text(bondBuff.description)
-                                            .font(.caption)
-                                            .foregroundColor(.white.opacity(0.7))
-                                            .textStroke()
-                                            .lineLimit(2)
-                                    }
-                                    
-                                    Spacer()
-                                    
-                                    Image(systemName: "plus.circle.fill")
-                                        .foregroundColor(.green)
-                                }
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 10)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .fill(Color.white.opacity(0.1))
-                                )
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                        }
-                    }
-                    .padding(.top, 10)
                     }
                     .padding(.horizontal, 20)
                 }

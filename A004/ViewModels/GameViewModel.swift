@@ -666,13 +666,32 @@ class GameViewModel: ObservableObject {
         let activeTypeBonds = BondBuffRuntime.shared.activeTypeBonds
         let activeBondBuffs = BondBuffConfigManager.shared.getActiveBondBuffs(symbolPool: symbolPool)
         
-        // 人类10羁绊已改为每回合开始时处理，不再在每次转动时处理
+        // 人类10羁绊：符号池每有1个人类，每次转动额外获得5金币
+        if activeTypeBonds.contains("human_10_bond") {
+            let humanCount = symbolPool.filter { $0.types.contains("human") }.count
+            if humanCount > 0 {
+                let human10Bonus = humanCount * 5
+                totalPoints += human10Bonus
+                print("👥 [人类10羁绊] 符号池有\(humanCount)个人类，转动点数+\(human10Bonus)（总点数变为\(totalPoints)）")
+            }
+        }
         
         // tools_2：总点数为1再转一次（给额外一次旋转机会）
         // 注意：多个骰子时，看点数总数是否为1
         if activeTypeBonds.contains("tools_2_bond"), totalPoints == 1 {
             spinsRemaining += 1
             print("🔧 [tools_2] 总点数为1，额外+1次掷骰机会，剩余旋转：\(spinsRemaining)")
+            
+            // 找到 tools_2_bond 羁绊并添加到 bondsWithBonus，用于显示气泡
+            if let tools2Bond = activeBondBuffs.first(where: { bondBuff in
+                let nameKey = bondBuff.nameKey.contains(".") ? 
+                    String(bondBuff.nameKey.split(separator: ".").dropLast().last ?? "") : 
+                    bondBuff.nameKey
+                return nameKey == "tools_2_bond"
+            }) {
+                bondsWithBonus.insert(tools2Bond.id)
+                print("🔧 [tools_2] 羁绊气泡已添加: \(tools2Bond.name)")
+            }
             
             // 如果当前棋盘没有未挖开的矿石，则刷新棋盘
             let unminedCount = slotMachine.filter { !$0.isMined }.count
@@ -753,6 +772,9 @@ class GameViewModel: ObservableObject {
             
             // 等待1秒，让玩家看清所有翻开的格子
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                // 检查并处理世界末日羁绊（需要在挖矿完成后立即处理，避免羁绊失效）
+                self.processApocalypseBondAfterMining()
+
                 // 开始结算流程（包含动画）
                 // 注意：金币更新、旋转次数减少、游戏流程控制都已移到 finishSettlement 中
                 // 开始结算
@@ -1580,12 +1602,12 @@ class GameViewModel: ObservableObject {
                 currentCoins -= rentAmount
                 totalRentPaid += rentAmount // 累计已支付的房租
                 
-                // 检查成就：第一次通过 15-3（在进入第16关之前检查）
-                if currentRound == 15 && displayedSpinInRound == 3 {
+                // 检查成就：第一次通过 10-3（在进入第11关之前检查）
+                if currentRound == 10 && displayedSpinInRound == 3 {
                     let hasCompletedAchievement2 = UserDefaults.standard.bool(forKey: "achievement_achivement_2")
                     if !hasCompletedAchievement2 {
                         GameCenterManager.shared.unlockAchievement("achivement_2")
-                        print("🏆 [成就] 检测到第一次通过 15-3，解锁成就 achivement_2")
+                        print("🏆 [成就] 检测到第一次通过 10-3，解锁成就 achivement_2")
                     }
                 }
                 
@@ -2035,18 +2057,22 @@ class GameViewModel: ObservableObject {
         print("🔍 [挖矿前羁绊] 开始处理挖矿前羁绊效果，激活羁绊数量: \(bondBuffs.count)")
         
         for bondBuff in bondBuffs {
+            // 提取正确的nameKey（处理 "bonds.raccoon_city_bond.name" 格式）
             let nameKey = bondBuff.nameKey.contains(".") ? 
                 String(bondBuff.nameKey.split(separator: ".").dropLast().last ?? "") : 
                 bondBuff.nameKey
             
+            print("🔍 [挖矿前羁绊] 检查羁绊: \(bondBuff.name) (nameKey: \(nameKey))")
+            
             // 处理浣熊市：每次挖矿前感染一个人类变成丧尸
-            if nameKey.contains("raccoon_city_bond") {
+            if nameKey == "raccoon_city_bond" {
                 print("🧟 [挖矿前羁绊] 检测到浣熊市羁绊，开始感染人类")
                 
                 // 检查符号池中是否有人类
                 let humanCount = symbolPool.filter { $0.types.contains("human") }.count
                 print("🧟 [挖矿前羁绊] 符号池中人类数量: \(humanCount)")
                 
+                // 感染一个人类
                 if let humanIndex = symbolPool.firstIndex(where: { $0.types.contains("human") }) {
                     // 尝试多种方式获取丧尸符号
                     var zombie: Symbol?
@@ -2064,7 +2090,6 @@ class GameViewModel: ObservableObject {
                     
                     if let zombie = zombie {
                         let humanName = symbolPool[humanIndex].name
-                        let humanIcon = symbolPool[humanIndex].icon
                         symbolPool[humanIndex] = zombie
                         let logMsg = "🧟 [羁绊Buff] 浣熊市：挖矿前感染1个人类(\(humanName))变成丧尸"
                         print("  ✅ \(logMsg)")
@@ -2074,11 +2099,71 @@ class GameViewModel: ObservableObject {
                     }
                 } else {
                     print("  ⚠️ [挖矿前羁绊] 符号池中没有人类可感染")
+                    }
                 }
             }
-        }
         
         print("🔍 [挖矿前羁绊] 挖矿前羁绊效果处理完成")
+    }
+
+    /// 挖矿后处理世界末日羁绊（需要在挖矿完成后立即处理，避免羁绊失效）
+    private func processApocalypseBondAfterMining() {
+        // 检查世界末日羁绊是否激活
+        let bondBuffs = BondBuffConfigManager.shared.getActiveBondBuffs(symbolPool: symbolPool)
+
+        for bondBuff in bondBuffs {
+            // 提取正确的nameKey（处理 "bonds.apocalypse_bond.name" 格式）
+            let nameKey = bondBuff.nameKey.contains(".") ?
+                String(bondBuff.nameKey.split(separator: ".").dropLast().last ?? "") :
+                bondBuff.nameKey
+
+            // 如果是世界末日羁绊
+            if nameKey == "apocalypse_bond" {
+                print("💀 [世界末日羁绊] 检测到世界末日羁绊激活，开始在挖矿后立即处理")
+
+                // 检查是否有哥莫拉、丧尸、狼人、吸血鬼（使用nameKey匹配）
+                let requiredNameKeys = Set(["gomorrah", "zombie", "werewolf", "vampire"])
+                let hasAll = requiredNameKeys.allSatisfy { nameKey in
+                    symbolPool.contains { $0.nameKey == nameKey }
+                }
+
+                if hasAll {
+                    // 随机消灭一半符号（但不包括死神自己）
+                    let nonDeathSymbols = symbolPool.filter { $0.nameKey != "death" }
+                    let half = nonDeathSymbols.count / 2
+
+                    if half > 0 {
+                        // 随机选择要消灭的非死神符号
+                        let symbolsToRemove = Array(nonDeathSymbols.shuffled().prefix(half))
+
+                        // 从原始symbolPool中移除这些符号
+                        for symbolToRemove in symbolsToRemove {
+                            if let index = symbolPool.firstIndex(where: { $0.id == symbolToRemove.id }) {
+                                symbolPool.remove(at: index)
+                                print("   💀 [世界末日] 消灭了符号「\(symbolToRemove.nameKey)」（挖矿后立即处理）")
+                            }
+                        }
+
+                        // 计算奖励：每消灭一个符号获得300金币
+                        let totalBonus = half * 300
+                        currentCoins += totalBonus
+                        totalEarnings += totalBonus
+
+                        print("   💀 [世界末日羁绊] 消灭了\(half)个符号，获得\(totalBonus)金币")
+                        print("   💰 [金币更新] 世界末日奖励: +\(totalBonus)金币 (当前总金币: \(currentCoins))")
+
+                        // 记录到结算日志
+                        settlementLogs.append("💀 世界末日羁绊: 消灭\(half)个符号，奖励\(totalBonus)金币")
+                    } else {
+                        print("   💀 [世界末日羁绊] 没有足够的符号可以消灭")
+                    }
+                } else {
+                    print("   💀 [世界末日羁绊] 必要符号不足，无法触发效果")
+                }
+
+                break // 只处理第一个找到的世界末日羁绊
+            }
+        }
     }
     
     /// 计算羁绊收益加成（如浣熊市的丧尸数量奖励、人类羁绊等）
@@ -2143,10 +2228,10 @@ class GameViewModel: ObservableObject {
                 }
             }
             
-            // 经典传说-6羁绊：挖到中心格，奖励100金币
+            // 经典传说-6羁绊：挖到中心格，奖励500金币
             if nameKey == "classictale_6_bond" {
                 if currentRoundMinedCells.contains(12) {
-                    bondContribution = 100
+                    bondContribution = 500
                     bonus += bondContribution
                     bondsWithBonusThisSettlement.insert(bondBuff.id) // 记录有加成的羁绊ID
                     let detail = "📜 [羁绊] \(bondName)：挖到中心格(12)，+\(bondContribution)金币"
@@ -2274,6 +2359,15 @@ class GameViewModel: ObservableObject {
         // 这代表玩家在这局游戏中获得的总金币数
         print("🎮 [Game Center] 准备提交单局最高金币数: \(singleGameCoins)")
         GameCenterManager.shared.submitScore(Int64(singleGameCoins))
+
+        // 检查成就：通过所有20关卡
+        if currentRound >= 20 {
+            let hasCompletedAchievement3 = UserDefaults.standard.bool(forKey: "achievement_achivement_3")
+            if !hasCompletedAchievement3 {
+                GameCenterManager.shared.unlockAchievement("achivement_3")
+                print("🏆 [成就] 检测到通过所有20关卡，解锁成就 achivement_3")
+            }
+        }
 
         gamePhase = .gameOver
         gameOverMessage = message
