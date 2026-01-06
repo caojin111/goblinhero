@@ -18,8 +18,16 @@ class RoundRewardConfigManager {
     
     /// 加载配置文件（从CSV）
     private func loadConfig() {
-        guard let url = Bundle.main.url(forResource: "RoundRewardConfig", withExtension: "csv", subdirectory: "Config"),
-              let csvContent = try? String(contentsOf: url, encoding: .utf8) else {
+        // 尝试从Config目录加载
+        var url = Bundle.main.url(forResource: "RoundRewardConfig", withExtension: "csv", subdirectory: "Config")
+        
+        // 如果Config目录找不到，尝试从根目录加载
+        if url == nil {
+            url = Bundle.main.url(forResource: "RoundRewardConfig", withExtension: "csv")
+        }
+        
+        guard let fileUrl = url,
+              let csvContent = try? String(contentsOf: fileUrl, encoding: .utf8) else {
             print("⚠️ [关卡奖励配置] 无法加载CSV配置文件，使用默认配置")
             loadDefaultRewards()
             return
@@ -54,6 +62,12 @@ class RoundRewardConfigManager {
         }
         
         print("✅ [关卡奖励配置] 成功从CSV加载 \(roundRewards.count) 个关卡奖励配置")
+        // 打印所有奖励配置用于调试
+        for round in 1...20 {
+            if let diamonds = roundRewards[round] {
+                print("💎 第\(round)关：\(diamonds)钻石")
+            }
+        }
     }
     
     /// 解析CSV行（处理逗号在引号内的情况）
@@ -79,21 +93,26 @@ class RoundRewardConfigManager {
     
     /// 加载默认奖励（当配置文件加载失败时使用）
     private func loadDefaultRewards() {
-        // 关卡1-15：5钻石
-        for round in 1...15 {
+        // 关卡1-9：0钻石
+        for round in 1...9 {
+            roundRewards[round] = 0
+        }
+        // 关卡10-19：5钻石
+        for round in 10...19 {
             roundRewards[round] = 5
         }
-        // 关卡16-20：10钻石
-        for round in 16...20 {
-            roundRewards[round] = 10
-        }
+        // 关卡20：10钻石
+        roundRewards[20] = 10
+        print("⚠️ [关卡奖励配置] 使用默认奖励配置")
     }
     
     /// 获取指定关卡的钻石奖励
     func getDiamondsForRound(_ round: Int) -> Int {
         // 如果关卡超过20，使用第20关的奖励
         let rewardRound = min(round, 20)
-        return roundRewards[rewardRound] ?? 0
+        let diamonds = roundRewards[rewardRound] ?? 0
+        print("💎 [关卡奖励] 第\(round)关奖励：\(diamonds)钻石")
+        return diamonds
     }
 }
 

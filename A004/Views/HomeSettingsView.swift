@@ -302,7 +302,7 @@ struct HomeSettingsView: View {
                                 // Discord 按钮
                                 Button(action: {
                                     audioManager.playSoundEffect("click", fileExtension: "wav")
-                                    if let url = URL(string: "https://discord.gg/genAZ3Kp") {
+                                    if let url = URL(string: "https://discord.gg/cxQmzQrc6v") {
                                         UIApplication.shared.open(url)
                                     }
                                 }) {

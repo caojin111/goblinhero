@@ -30,6 +30,8 @@ struct HomeView: View {
     @State private var triggerEmoji1: Bool = false // 触发哥布林显示emoji1
     @State private var motionManager: CMMotionManager? // 运动管理器
     @State private var lastShakeTime: Date = Date() // 上次抖动时间，防止频繁触发
+    @State private var floatingOffset: CGFloat = 0 // 浮动偏移量
+    @State private var floatingTimer: Timer? // 浮动定时器
     
     // 检测是否为iPad（每次访问时重新计算，确保在所有iOS版本上都能正确工作）
     private var isPad: Bool {
@@ -205,7 +207,7 @@ struct HomeView: View {
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(width: min(1102 * scaleX, geometry.size.width * 0.9), height: min(1121 * scaleY, geometry.size.height * 0.5))
-                        .offset(x: shakeOffset) // 抖动效果
+                        .offset(x: shakeOffset, y: floatingOffset) // 抖动效果 + 浮动效果
                         .position(
                             x: geometry.size.width / 2,
                             y: (609 + 1121/2) * scaleY
@@ -214,7 +216,18 @@ struct HomeView: View {
                             print("🏠 [首页] 点击房子")
                             triggerHouseShake()
                         }
-                    
+
+                    // 哥布林待机动画（放在 ZStack 最后，确保层级最高）
+                    // 位置待根据 Figma 调整，暂时放在房子前方
+                    GoblinIdleAnimationView(triggerEmoji1: $triggerEmoji1)
+                        .frame(width: 200 * scaleX * 5 / 3, height: 200 * scaleY * 5 / 3) // 缩小3倍（原来是5倍，现在除以3）
+                        .offset(x: shakeOffset, y: floatingOffset) // 跟随房子一起抖动和浮动
+                        .position(
+                            x: geometry.size.width / 2 - 80 * scaleX, // 向左移动 30 像素
+                            y: (609 + 1121/2) * scaleY - 100 * scaleY + 300 * scaleY // 向下移动 50 像素
+                        )
+                        .zIndex(1000) // 确保层级最高
+
                     // Start 按钮（Figma: x: 344, y: 1802, 503 x 263）
                     Button(action: {
                         // 播放 start 按钮音效
@@ -358,17 +371,6 @@ struct HomeView: View {
                                 y: geometry.size.height - (figmaHeight - 2525 - 69/2) * scaleY - 55 - (currentIsPad ? 130 : 0) // iPad向上移动130像素
                             )
                     }
-                    
-                    // 哥布林待机动画（放在 ZStack 最后，确保层级最高）
-                    // 位置待根据 Figma 调整，暂时放在房子前方
-                    GoblinIdleAnimationView(triggerEmoji1: $triggerEmoji1)
-                        .frame(width: 200 * scaleX * 5 / 3, height: 200 * scaleY * 5 / 3) // 缩小3倍（原来是5倍，现在除以3）
-                        .offset(x: shakeOffset) // 跟随房子一起抖动
-                        .position(
-                            x: geometry.size.width / 2 - 80 * scaleX, // 向左移动 30 像素
-                            y: (609 + 1121/2) * scaleY - 100 * scaleY + 300 * scaleY // 向下移动 50 像素
-                        )
-                        .zIndex(1000) // 确保层级最高
                 }
                 .scaleEffect(deviceScale) // 在标准iPad/Pro上应用50%缩放
                 .frame(width: geometry.size.width, height: geometry.size.height) // 确保缩放后仍然居中
@@ -427,9 +429,15 @@ struct HomeView: View {
             }
         }
         // 设置弹窗（首页设置）
+        .onDisappear {
+            // 停止浮动动画
+            stopFloatingAnimation()
+        }
         .onAppear {
             // 更新钻石宝箱状态，确保红点正确显示
             viewModel.updateFreeDiamondsClaimStatus()
+            // 启动浮动动画
+            startFloatingAnimation()
         }
         .overlay {
             if showSettings {
@@ -536,7 +544,7 @@ struct HomeView: View {
         
         // 抖动参数
         let shakeDuration: TimeInterval = 0.5 // 抖动持续时间
-        let shakeIntensity: CGFloat = 10 // 抖动强度
+        let shakeIntensity: CGFloat = 5 // 抖动强度
         let shakeCount: Int = 6 // 抖动次数
         
         var currentShake = 0
@@ -557,7 +565,53 @@ struct HomeView: View {
             }
         }
     }
-    
+
+    /// 启动浮动动画
+    private func startFloatingAnimation() {
+        print("🌊 [首页] 启动浮动动画")
+        // 停止可能存在的定时器
+        stopFloatingAnimation()
+
+        // 浮动参数
+        let floatingDuration: TimeInterval = 2.0 // 完整浮动循环的持续时间
+        let floatingRange: CGFloat = 5.0 // 浮动范围（上下移动5像素）
+        let stepCount: Int = 60 // 每秒60帧，流畅度高
+
+        var currentStep = 0
+        floatingTimer = Timer.scheduledTimer(withTimeInterval: floatingDuration / Double(stepCount), repeats: true) { timer in
+            currentStep += 1
+
+            // 使用正弦波创建平滑的浮动效果
+            let progress = Double(currentStep) / Double(stepCount)
+            let sineValue = sin(progress * 2 * .pi) // -1 到 1
+            self.floatingOffset = sineValue * floatingRange
+
+            // 添加调试日志（可选）
+            // print("🌊 [浮动动画] 步骤: \(currentStep), 进度: \(String(format: "%.2f", progress)), 偏移: \(String(format: "%.2f", self.floatingOffset))")
+
+            // 重置循环
+            if currentStep >= stepCount {
+                currentStep = 0
+            }
+        }
+
+        // 将定时器添加到 common mode，确保在滚动等操作时也能正常运行
+        if let timer = floatingTimer {
+            RunLoop.current.add(timer, forMode: .common)
+        }
+    }
+
+    /// 停止浮动动画
+    private func stopFloatingAnimation() {
+        print("🌊 [首页] 停止浮动动画")
+        floatingTimer?.invalidate()
+        floatingTimer = nil
+        // 重置浮动偏移
+        withAnimation(.easeOut(duration: 0.3)) {
+            floatingOffset = 0
+        }
+    }
+
     /// 创建教程步骤
     private func createTutorialSteps() -> [TutorialStep] {
         let screenWidth = UIScreen.main.bounds.width

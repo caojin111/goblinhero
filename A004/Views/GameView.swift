@@ -1326,7 +1326,7 @@ struct GameOverView: View {
                         .fontWeight(.bold)
                         .foregroundColor(.yellow)
                 }
-                
+
                 HStack {
                     Text(localizationManager.localized("game_over.final_coins"))
                         .foregroundColor(.white.opacity(0.8))
@@ -1337,7 +1337,7 @@ struct GameOverView: View {
                         .fontWeight(.bold)
                         .foregroundColor(.yellow)
                 }
-                
+
                 HStack {
                     Text(localizationManager.localized("game_over.total_coins"))
                         .foregroundColor(.white.opacity(0.8))
@@ -1347,6 +1347,26 @@ struct GameOverView: View {
                         .font(.body)
                         .fontWeight(.bold)
                         .foregroundColor(.green)
+                }
+
+                // 钻石奖励显示（只有在有奖励时才显示）
+                if viewModel.roundRewardDiamonds > 0 {
+                    HStack {
+                        Text(localizationManager.localized("game_over.round_reward_diamonds"))
+                            .foregroundColor(.white.opacity(0.8))
+                            .font(.subheadline)
+                        Spacer()
+                        HStack(spacing: 4) {
+                            Image("diamond_1")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 20, height: 20)
+                            Text("+\(viewModel.roundRewardDiamonds)")
+                                .font(.body)
+                                .fontWeight(.bold)
+                                .foregroundColor(.cyan)
+                        }
+                    }
                 }
             }
             .padding()
