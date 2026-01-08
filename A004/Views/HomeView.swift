@@ -403,24 +403,12 @@ struct HomeView: View {
                 viewModel.onGoblinSelected()
             }
         }
-        // 付费商城弹窗
-        .sheet(item: $storeTabIdentifier) { identifier in
-            let isPad = UIDevice.current.userInterfaceIdiom == .pad
-            let screenWidth = UIScreen.main.bounds.width
-            let screenHeight = UIScreen.main.bounds.height
-            let needsScaling = isPad && (screenHeight > 1024 || screenWidth >= 1024)
-            
-            PaidStoreView(
-                viewModel: viewModel,
-                isPresented: Binding(
-                    get: { storeTabIdentifier != nil },
-                    set: { if !$0 { storeTabIdentifier = nil } }
-                ),
-                initialTab: identifier.tab
-            )
-            .presentationCornerRadius(10) // 设置顶部圆角，可根据需要调整数值
-            .presentationDetents([.large]) // 所有设备都使用全屏（下拉抽屉式）
-        }
+        // 付费商城弹窗 - iPad 上全屏，iPhone 上使用 sheet
+        .modifier(ConditionalStorePresentation(
+            storeTabIdentifier: $storeTabIdentifier,
+            viewModel: viewModel,
+            isPad: isPad
+        ))
         // 七日签到弹窗（普通弹窗，非抽屉式）
         .overlay {
             if showDailySignIn {
@@ -1061,6 +1049,45 @@ struct CloudView: View {
     private func stopAnimations() {
         animationTimer?.invalidate()
         animationTimer = nil
+    }
+}
+
+// MARK: - 条件商店展示修饰符
+struct ConditionalStorePresentation: ViewModifier {
+    @Binding var storeTabIdentifier: StoreTabIdentifier?
+    @ObservedObject var viewModel: GameViewModel
+    let isPad: Bool
+    
+    func body(content: Content) -> some View {
+        if isPad {
+            // iPad 上使用全屏覆盖
+            content
+                .fullScreenCover(item: $storeTabIdentifier) { identifier in
+                    PaidStoreView(
+                        viewModel: viewModel,
+                        isPresented: Binding(
+                            get: { storeTabIdentifier != nil },
+                            set: { if !$0 { storeTabIdentifier = nil } }
+                        ),
+                        initialTab: identifier.tab
+                    )
+                }
+        } else {
+            // iPhone 上使用 sheet
+            content
+                .sheet(item: $storeTabIdentifier) { identifier in
+                    PaidStoreView(
+                        viewModel: viewModel,
+                        isPresented: Binding(
+                            get: { storeTabIdentifier != nil },
+                            set: { if !$0 { storeTabIdentifier = nil } }
+                        ),
+                        initialTab: identifier.tab
+                    )
+                    .presentationCornerRadius(10)
+                    .presentationDetents([.large])
+                }
+        }
     }
 }
 

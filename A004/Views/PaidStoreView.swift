@@ -56,6 +56,7 @@ struct PaidStoreView: View {
         GeometryReader { geometry in
             let scaleX = geometry.size.width / figmaWidth
             let scaleY = geometry.size.height / figmaHeight
+            let isPad = UIDevice.current.userInterfaceIdiom == .pad
             
             ZStack {
                 // 背景颜色（纯色8DBDB3）
@@ -179,10 +180,10 @@ struct PaidStoreView: View {
                         }
                         .frame(maxWidth: .infinity) // 确保页签填满宽度
                         .frame(height: 200 * scaleY) // 确保底部页签有足够高度
-                    .scaleEffect(1.0 / 1.2) // 统一缩小 1.2 倍
+                    .scaleEffect(isPad ? (1.0 / 1.2) * 0.9 : (1.0 / 1.2)) // iPad 上缩小到 90%，iPhone 保持原样
                     .position(
                         x: geometry.size.width / 2,
-                        y: geometry.size.height - (figmaHeight - 2314 - 308/2) * scaleY - 50 + 300 * scaleY - 30 * scaleY
+                        y: geometry.size.height - (figmaHeight - 2314 - 308/2) * scaleY - 50 + 300 * scaleY - 30 * scaleY - (isPad ? 20 : 0) // iPad 上上移 20 像素
                     )
                 }
                 .allowsHitTesting(true) // 确保页签可以点击，不参与滑动
@@ -763,6 +764,18 @@ struct StaminaPackCard: View {
         let cornerRadius = 30 * scaleX
         
         ZStack {
+            // 购买按钮 - 覆盖整个卡片区域（包括 offset），放在最底层但能接收触摸事件
+            Button(action: {
+                print("🛒 [商店] 点击购买体力包: \(pack.stamina)体力, 价格: \(pack.diamonds), 当前钻石: \(viewModel.diamonds)")
+                onPurchase()
+            }) {
+                Color.clear
+                    .frame(width: cardWidth, height: totalHeight + 10 * scaleY) // 增加高度以覆盖 offset 区域
+                    .contentShape(Rectangle()) // 确保整个区域可点击
+            }
+            .buttonStyle(PlainButtonStyle())
+            .zIndex(0) // 购买按钮在最底层
+            
             VStack(spacing: 0) {
                 // 标题栏 (Figma: height: 143, 背景色 #E7A757)
                 ZStack {
@@ -853,18 +866,8 @@ struct StaminaPackCard: View {
                     }
                 }
             }
-            
-            // 购买按钮 - 覆盖整个卡片区域
-            Button(action: {
-                print("🛒 [商店] 点击购买体力包: \(pack.stamina)体力, 价格: \(pack.diamonds), 当前钻石: \(viewModel.diamonds)")
-                onPurchase()
-            }) {
-                Color.clear
-                    .frame(width: cardWidth, height: totalHeight)
-                    .contentShape(Rectangle()) // 确保整个区域可点击
-            }
-            .buttonStyle(PlainButtonStyle())
-            .zIndex(1) // 购买按钮在底层，但覆盖整个卡片
+            .allowsHitTesting(false) // 让触摸事件穿透到购买按钮
+            .zIndex(1) // VStack 在上层显示，但不拦截触摸事件
         }
         .frame(width: cardWidth, height: totalHeight)
         .cornerRadius(cornerRadius)
@@ -1306,6 +1309,37 @@ struct DiamondProductCard: View {
         let cornerRadius = 30 * scaleX
         
         ZStack {
+            // 购买按钮 - 覆盖整个卡片区域（包括 offset），放在最底层但能接收触摸事件
+            Button(action: {
+                if product.type == .freeDaily {
+                    print("🛒 [商店] 点击领取每日免费钻石宝箱")
+                } else {
+                    print("🛒 [商店] 点击购买钻石商品: \(product.diamonds)钻石")
+                }
+                onPurchase()
+            }) {
+                Color.clear
+                    .frame(width: cardWidth, height: totalHeight + 10 * scaleY) // 增加高度以覆盖 offset 区域
+                    .contentShape(Rectangle()) // 确保整个区域可点击
+            }
+            .buttonStyle(PlainButtonStyle())
+            .disabled(!canClaim && product.type == .freeDaily)
+            .zIndex(0) // 购买按钮在最底层
+            .onAppear {
+                // 检查是否可以领取（每天00:00刷新）
+                updateClaimStatus()
+                // 设置定时器检查每天00:00刷新
+                setupDailyRefreshTimer()
+            }
+            .onChange(of: refreshTrigger) { _ in
+                // 当收到刷新触发时，更新状态
+                updateClaimStatus()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
+                // 监听系统时间变化（包括跨天）
+                updateClaimStatus()
+            }
+            
             VStack(spacing: 0) {
                 // 标题栏 (Figma: height: 143, 背景色 #E7A757)
                 ZStack {
@@ -1411,37 +1445,8 @@ struct DiamondProductCard: View {
                     }
                 }
             }
-            
-            // 购买按钮 - 覆盖整个卡片区域
-            Button(action: {
-                if product.type == .freeDaily {
-                    print("🛒 [商店] 点击领取每日免费钻石宝箱")
-                } else {
-                    print("🛒 [商店] 点击购买钻石商品: \(product.diamonds)钻石")
-                }
-                onPurchase()
-            }) {
-                Color.clear
-                    .frame(width: cardWidth, height: totalHeight)
-                    .contentShape(Rectangle()) // 确保整个区域可点击
-            }
-            .buttonStyle(PlainButtonStyle())
-            .disabled(!canClaim && product.type == .freeDaily)
-            .zIndex(1) // 购买按钮在底层，但覆盖整个卡片
-            .onAppear {
-                // 检查是否可以领取（每天00:00刷新）
-                updateClaimStatus()
-                // 设置定时器检查每天00:00刷新
-                setupDailyRefreshTimer()
-            }
-            .onChange(of: refreshTrigger) { _ in
-                // 当收到刷新触发时，更新状态
-                updateClaimStatus()
-            }
-            .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
-                // 监听系统时间变化（包括跨天）
-                updateClaimStatus()
-            }
+            .allowsHitTesting(false) // 让触摸事件穿透到购买按钮
+            .zIndex(1) // VStack 在上层显示，但不拦截触摸事件
         }
         .frame(width: cardWidth, height: totalHeight)
         .cornerRadius(cornerRadius)
