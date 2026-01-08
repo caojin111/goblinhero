@@ -758,77 +758,76 @@ struct StaminaPackCard: View {
         let cardContentHeight = 653 * scaleY
         let titleHeight = 143 * scaleY
         let priceHeight = 128 * scaleY
+        let quantityHeight = 125 * scaleY
+        let totalHeight = titleHeight + cardContentHeight + quantityHeight + priceHeight
         let cornerRadius = 30 * scaleX
         
-        VStack(spacing: 0) {
-            // 标题栏 (Figma: height: 143, 背景色 #E7A757)
-            ZStack {
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(Color(hex: "E7A757"))
-                    .frame(height: titleHeight)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: cornerRadius)
-                            .stroke(Color.clear, lineWidth: 0)
-                    )
-                    .mask(
-                        TopRoundedRectangle(cornerRadius: cornerRadius)
-                    )
-                
-                Text({
-                    let title = getTitle().replacingOccurrences(of: "\n", with: " ")
-                    // 如果是中文，移除空格；英文保留空格
-                    return localizationManager.currentLanguage == "zh" ? title.replacingOccurrences(of: " ", with: "") : title
-                }())
-                    .font(customFont(size: (localizationManager.currentLanguage == "zh" ? 64 : 54) * scaleX))
-                    .foregroundColor(Color(hex: "81331B")) // 标题字体色 #81331B
-                    .multilineTextAlignment(.center)
-                    .lineLimit(1) // 不换行
-                    .minimumScaleFactor(0.5) // 自动缩小字体以适应宽度，避免省略号
-                    .frame(width: localizationManager.currentLanguage == "zh" ? (cardWidth + 90 * scaleX) : (cardWidth + 100 * scaleX), height: titleHeight, alignment: .center) // 横向扩张（向右再扩张50像素）
-            }
-            
-            // 内容区域 (Figma: height: 653, 背景色 #FDE9B4)
-            ZStack {
-                // 背景色
-                Color(hex: "FDE9B4")
-                    .frame(height: cardContentHeight)
-                
-                // 花纹蒙层（mask.png）- 覆盖在背景之上，文字与图片之下
-                Image("mask")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: cardWidth, height: cardContentHeight)
-                    .clipped()
-                
-                // 体力图标 - 根据体力数量显示对应的图标（放大3倍：2 * 1.5）
-                VStack {
-                    Spacer()
-                    Image(getStaminaImageName())
-                        .resizable()
-                        .scaledToFit()
-                        .frame(maxWidth: 207 * 3 * scaleX, maxHeight: 137 * 3 * scaleY)
-                        .padding(.bottom, 100 * scaleY) // 距离底部一定距离
+        ZStack {
+            VStack(spacing: 0) {
+                // 标题栏 (Figma: height: 143, 背景色 #E7A757)
+                ZStack {
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .fill(Color(hex: "E7A757"))
+                        .frame(height: titleHeight)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: cornerRadius)
+                                .stroke(Color.clear, lineWidth: 0)
+                        )
+                        .mask(
+                            TopRoundedRectangle(cornerRadius: cornerRadius)
+                        )
+                    
+                    Text({
+                        let title = getTitle().replacingOccurrences(of: "\n", with: " ")
+                        // 如果是中文，移除空格；英文保留空格
+                        return localizationManager.currentLanguage == "zh" ? title.replacingOccurrences(of: " ", with: "") : title
+                    }())
+                        .font(customFont(size: (localizationManager.currentLanguage == "zh" ? 64 : 54) * scaleX))
+                        .foregroundColor(Color(hex: "81331B")) // 标题字体色 #81331B
+                        .multilineTextAlignment(.center)
+                        .lineLimit(1) // 不换行
+                        .minimumScaleFactor(0.5) // 自动缩小字体以适应宽度，避免省略号
+                        .frame(width: localizationManager.currentLanguage == "zh" ? (cardWidth + 90 * scaleX) : (cardWidth + 100 * scaleX), height: titleHeight, alignment: .center) // 横向扩张（向右再扩张50像素）
                 }
-            }
-            .frame(height: cardContentHeight)
-            
-            // 数量显示区域 (背景色与卡片统一 #FDE9B4)
-            ZStack {
-                RoundedRectangle(cornerRadius: 0)
-                    .fill(Color(hex: "FDE9B4"))
-                    .frame(height: 125 * scaleY)
                 
-                Text("x\(pack.stamina)")
-                    .font(customFont(size: (localizationManager.currentLanguage == "zh" ? 100 : 77) * scaleX))
-                    .foregroundColor(.white)
-                    .textStroke()
-            }
-            
-            // 价格栏 (Figma: height: 128, 购买按钮背景色 #FFC400)
-            Button(action: {
-                print("🛒 [商店] 点击购买体力包: \(pack.stamina)体力, 价格: \(pack.diamonds), 当前钻石: \(viewModel.diamonds)")
-                onPurchase()
-            }) {
+                // 内容区域 (Figma: height: 653, 背景色 #FDE9B4)
+                ZStack {
+                    // 背景色
+                    Color(hex: "FDE9B4")
+                        .frame(height: cardContentHeight)
+                    
+                    // 花纹蒙层（mask.png）- 覆盖在背景之上，文字与图片之下
+                    Image("mask")
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: cardWidth, height: cardContentHeight)
+                        .clipped()
+                    
+                    // 体力图标 - 根据体力数量显示对应的图标（放大3倍：2 * 1.5）
+                    VStack {
+                        Spacer()
+                        Image(getStaminaImageName())
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxWidth: 207 * 3 * scaleX, maxHeight: 137 * 3 * scaleY)
+                            .padding(.bottom, 100 * scaleY) // 距离底部一定距离
+                    }
+                }
+                .frame(height: cardContentHeight)
+                
+                // 数量显示区域 (背景色与卡片统一 #FDE9B4)
+                ZStack {
+                    RoundedRectangle(cornerRadius: 0)
+                        .fill(Color(hex: "FDE9B4"))
+                        .frame(height: quantityHeight)
+                    
+                    Text("x\(pack.stamina)")
+                        .font(customFont(size: (localizationManager.currentLanguage == "zh" ? 100 : 77) * scaleX))
+                        .foregroundColor(.white)
+                        .textStroke()
+                }
+                
+                // 价格栏 (Figma: height: 128, 购买按钮背景色 #FFC400)
                 ZStack {
                     RoundedRectangle(cornerRadius: 0)
                         .fill(Color(hex: "FFC400"))
@@ -854,9 +853,20 @@ struct StaminaPackCard: View {
                     }
                 }
             }
+            
+            // 购买按钮 - 覆盖整个卡片区域
+            Button(action: {
+                print("🛒 [商店] 点击购买体力包: \(pack.stamina)体力, 价格: \(pack.diamonds), 当前钻石: \(viewModel.diamonds)")
+                onPurchase()
+            }) {
+                Color.clear
+                    .frame(width: cardWidth, height: totalHeight)
+                    .contentShape(Rectangle()) // 确保整个区域可点击
+            }
             .buttonStyle(PlainButtonStyle())
+            .zIndex(1) // 购买按钮在底层，但覆盖整个卡片
         }
-        .frame(width: cardWidth)
+        .frame(width: cardWidth, height: totalHeight)
         .cornerRadius(cornerRadius)
         .overlay(
             RoundedRectangle(cornerRadius: cornerRadius)
@@ -1291,96 +1301,91 @@ struct DiamondProductCard: View {
         let cardContentHeight = 653 * scaleY
         let titleHeight = 143 * scaleY
         let priceHeight = 128 * scaleY
+        let quantityHeight = 125 * scaleY
+        let totalHeight = titleHeight + cardContentHeight + quantityHeight + priceHeight
         let cornerRadius = 30 * scaleX
         
-        VStack(spacing: 0) {
-            // 标题栏 (Figma: height: 143, 背景色 #E7A757)
-            ZStack {
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(Color(hex: "E7A757"))
-                    .frame(height: titleHeight)
-                    .mask(
-                        TopRoundedRectangle(cornerRadius: cornerRadius)
-                    )
-                
-                Text({
-                    let title = getTitle().replacingOccurrences(of: "\n", with: " ")
-                    // 如果是中文，移除空格；英文保留空格
-                    return localizationManager.currentLanguage == "zh" ? title.replacingOccurrences(of: " ", with: "") : title
-                }())
-                    .font(customFont(size: (localizationManager.currentLanguage == "zh" ? 64 : 54) * scaleX))
-                    .foregroundColor(Color(hex: "81331B")) // 标题字体色 #81331B
-                    .multilineTextAlignment(.center)
-                    .lineLimit(1) // 不换行
-                    .minimumScaleFactor(0.5) // 自动缩小字体以适应宽度，避免省略号
-                    .frame(width: localizationManager.currentLanguage == "zh" ? (cardWidth + 90 * scaleX) : (cardWidth + 100 * scaleX), height: titleHeight, alignment: .center) // 横向扩张（向右再扩张50像素）
-            }
-            
-            // 内容区域 (Figma: height: 653, 背景色 #FDE9B4)
-            ZStack {
-                // 背景色
-                Color(hex: "FDE9B4")
-                    .frame(height: cardContentHeight)
-                
-                // 花纹蒙层（mask.png）- 覆盖在背景之上，文字与图片之下
-                Image("mask")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: cardWidth, height: cardContentHeight)
-                    .clipped()
-                
-                if product.type == .freeDaily {
-                    // 免费每日：显示宝箱图片（放大1.3倍）
-                    Image(canClaim ? "diamonds_box_full" : "diamonds_box_none")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 300 * 1.3 * scaleX, height: 300 * 1.3 * scaleY)
-                } else {
-                    // 付费商品：根据钻石数量显示对应的图标（放大3倍：2 * 1.5）
-                    Image(getDiamondImageName(for: product.diamonds))
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 150 * 3 * scaleX, height: 150 * 3 * scaleY)
+        ZStack {
+            VStack(spacing: 0) {
+                // 标题栏 (Figma: height: 143, 背景色 #E7A757)
+                ZStack {
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .fill(Color(hex: "E7A757"))
+                        .frame(height: titleHeight)
+                        .mask(
+                            TopRoundedRectangle(cornerRadius: cornerRadius)
+                        )
+                    
+                    Text({
+                        let title = getTitle().replacingOccurrences(of: "\n", with: " ")
+                        // 如果是中文，移除空格；英文保留空格
+                        return localizationManager.currentLanguage == "zh" ? title.replacingOccurrences(of: " ", with: "") : title
+                    }())
+                        .font(customFont(size: (localizationManager.currentLanguage == "zh" ? 64 : 54) * scaleX))
+                        .foregroundColor(Color(hex: "81331B")) // 标题字体色 #81331B
+                        .multilineTextAlignment(.center)
+                        .lineLimit(1) // 不换行
+                        .minimumScaleFactor(0.5) // 自动缩小字体以适应宽度，避免省略号
+                        .frame(width: localizationManager.currentLanguage == "zh" ? (cardWidth + 90 * scaleX) : (cardWidth + 100 * scaleX), height: titleHeight, alignment: .center) // 横向扩张（向右再扩张50像素）
                 }
-            }
-            .frame(height: cardContentHeight)
-            
-            // 数量显示区域 (背景色与卡片统一 #FDE9B4)
-            ZStack {
-                RoundedRectangle(cornerRadius: 0)
-                    .fill(Color(hex: "FDE9B4"))
-                    .frame(height: 125 * scaleY)
                 
-                if product.type == .freeDaily {
-                    // 免费每日：显示随机宝箱提示（10~50 + crystal图标）
-                    HStack(spacing: 8 * scaleX) {
-                        Text("10~50")
-                            .font(customFont(size: 80 * scaleX))
-                            .foregroundColor(.white)
-                            .textStroke()
-                        Image("crystal")
+                // 内容区域 (Figma: height: 653, 背景色 #FDE9B4)
+                ZStack {
+                    // 背景色
+                    Color(hex: "FDE9B4")
+                        .frame(height: cardContentHeight)
+                    
+                    // 花纹蒙层（mask.png）- 覆盖在背景之上，文字与图片之下
+                    Image("mask")
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: cardWidth, height: cardContentHeight)
+                        .clipped()
+                    
+                    if product.type == .freeDaily {
+                        // 免费每日：显示宝箱图片（放大1.3倍）
+                        Image(canClaim ? "diamonds_box_full" : "diamonds_box_none")
                             .resizable()
                             .scaledToFit()
-                            .frame(width: 60 * scaleX, height: 60 * scaleY)
+                            .frame(width: 300 * 1.3 * scaleX, height: 300 * 1.3 * scaleY)
+                    } else {
+                        // 付费商品：根据钻石数量显示对应的图标（放大3倍：2 * 1.5）
+                        Image(getDiamondImageName(for: product.diamonds))
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 150 * 3 * scaleX, height: 150 * 3 * scaleY)
                     }
-                } else {
-                    // 付费商品：显示钻石数量
-                    Text("x\(product.diamonds)")
-                        .font(customFont(size: (localizationManager.currentLanguage == "zh" ? 100 : 77) * scaleX))
-                        .foregroundColor(.white)
-                        .textStroke()
                 }
-            }
-            
-            // 价格栏 (Figma: height: 128, 购买按钮背景色 #FFC400)
-            Button(action: {
-                if product.type == .freeDaily {
-                    print("🛒 [商店] 点击领取每日免费钻石宝箱")
-                } else {
-                    print("🛒 [商店] 点击购买钻石商品: \(product.diamonds)钻石")
+                .frame(height: cardContentHeight)
+                
+                // 数量显示区域 (背景色与卡片统一 #FDE9B4)
+                ZStack {
+                    RoundedRectangle(cornerRadius: 0)
+                        .fill(Color(hex: "FDE9B4"))
+                        .frame(height: quantityHeight)
+                    
+                    if product.type == .freeDaily {
+                        // 免费每日：显示随机宝箱提示（10~50 + crystal图标）
+                        HStack(spacing: 8 * scaleX) {
+                            Text("10~50")
+                                .font(customFont(size: 80 * scaleX))
+                                .foregroundColor(.white)
+                                .textStroke()
+                            Image("crystal")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 60 * scaleX, height: 60 * scaleY)
+                        }
+                    } else {
+                        // 付费商品：显示钻石数量
+                        Text("x\(product.diamonds)")
+                            .font(customFont(size: (localizationManager.currentLanguage == "zh" ? 100 : 77) * scaleX))
+                            .foregroundColor(.white)
+                            .textStroke()
+                    }
                 }
-                onPurchase()
-            }) {
+                
+                // 价格栏 (Figma: height: 128, 购买按钮背景色 #FFC400)
                 ZStack {
                     RoundedRectangle(cornerRadius: 0)
                         .fill((canClaim && product.type == .freeDaily) ? Color(hex: "FFC400") : (product.type == .freeDaily ? Color(hex: "CCCCCC") : Color(hex: "FFC400")))
@@ -1406,8 +1411,23 @@ struct DiamondProductCard: View {
                     }
                 }
             }
+            
+            // 购买按钮 - 覆盖整个卡片区域
+            Button(action: {
+                if product.type == .freeDaily {
+                    print("🛒 [商店] 点击领取每日免费钻石宝箱")
+                } else {
+                    print("🛒 [商店] 点击购买钻石商品: \(product.diamonds)钻石")
+                }
+                onPurchase()
+            }) {
+                Color.clear
+                    .frame(width: cardWidth, height: totalHeight)
+                    .contentShape(Rectangle()) // 确保整个区域可点击
+            }
             .buttonStyle(PlainButtonStyle())
             .disabled(!canClaim && product.type == .freeDaily)
+            .zIndex(1) // 购买按钮在底层，但覆盖整个卡片
             .onAppear {
                 // 检查是否可以领取（每天00:00刷新）
                 updateClaimStatus()
@@ -1423,7 +1443,7 @@ struct DiamondProductCard: View {
                 updateClaimStatus()
             }
         }
-        .frame(width: cardWidth)
+        .frame(width: cardWidth, height: totalHeight)
         .cornerRadius(cornerRadius)
         .overlay(
             RoundedRectangle(cornerRadius: cornerRadius)

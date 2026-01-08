@@ -19,7 +19,6 @@ struct HomeSettingsView: View {
     @State private var showContactUs = false
     @State private var showLanguageSelection = false
     @State private var showSymbolBook = false
-    @State private var showRedeemCode = false
     
     /// 恢复已购买的哥布林和钻石
     private func restorePurchasedGoblins() async {
@@ -66,433 +65,390 @@ struct HomeSettingsView: View {
     }
     
     var body: some View {
-        ZStack {
-            // 背景
-            Color.black.opacity(0.4)
-                .ignoresSafeArea()
-                .onTapGesture {
-                    isPresented = false
-                }
-            
-            // 抽屉式窗口 - 从底部滑出
-            VStack {
-                Spacer()
+        GeometryReader { geometry in
+            ZStack {
+                // 背景遮罩
+                Color.black.opacity(0.4)
+                    .ignoresSafeArea()
+                    .onTapGesture {
+                        isPresented = false
+                    }
                 
-                ZStack(alignment: .topTrailing) {
+                // 普通弹窗 - 居中显示
                 VStack(spacing: 0) {
-                    // 拖拽指示器
-                    RoundedRectangle(cornerRadius: 3)
-                        .fill(Color.white.opacity(0.3))
-                        .frame(width: 40, height: 5)
-                        .padding(.top, 12)
-                        .padding(.bottom, 8)
+                    // 标题栏
+                    HStack {
+                        Text(localizationManager.localized("settings.title"))
+                            .font(customFont(size: 38))
+                            .foregroundColor(.white)
+                            .textStroke()
+                        
+                        Spacer()
+                        
+                        Button(action: {
+                            audioManager.playSoundEffect("click", fileExtension: "wav")
+                            isPresented = false
+                        }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.title2)
+                                .foregroundColor(.white.opacity(0.7))
+                        }
+                    }
+                    .padding(.horizontal, 30)
+                    .padding(.top, 25)
+                    .padding(.bottom, 20)
                     
+                    // 内容区域 - 自适应高度，内容多时可滚动
                     ScrollView {
-                        VStack(spacing: 25) {
-                            // 标题
-                            Text(localizationManager.localized("settings.title"))
-                                .font(customFont(size: 38)) // 从 33 增加到 38（+5）
+                        VStack(spacing: 15) {
+                        // 音乐开关
+                        HStack {
+                            Image(systemName: "music.note")
+                                .font(.title2)
+                                .foregroundColor(.purple)
+                            
+                            Text(localizationManager.localized("settings.music"))
+                                .font(customFont(size: 22))
                                 .foregroundColor(.white)
                                 .textStroke()
                             
-                            // 设置选项
-                            VStack(spacing: 15) {
-                                            // 音乐开关
-                                HStack {
-                                    Image(systemName: "music.note")
-                                        .font(.title2)
-                                        .foregroundColor(.purple)
-                                    
-                                    Text(localizationManager.localized("settings.music"))
-                                        .font(customFont(size: 22)) // 从 17 增加到 22（+5）
-                                        .foregroundColor(.white)
-                                        .textStroke()
-                                    
-                                    Spacer()
-                                    
-                                    Toggle("", isOn: $audioManager.isMusicEnabled)
-                                        .labelsHidden()
-                                        .tint(.purple)
-                                }
-                                .padding()
-                                .background(
-                                    RoundedRectangle(cornerRadius: 15)
-                                        .fill(Color.white.opacity(0.1))
-                                )
-                                
-                                // 音效开关
-                                HStack {
-                                    Image(systemName: "speaker.wave.2")
-                                        .font(.title2)
-                                        .foregroundColor(.blue)
-                                    
-                                    Text(localizationManager.localized("settings.sound_effects"))
-                                        .font(customFont(size: 22)) // 从 17 增加到 22（+5）
-                                        .foregroundColor(.white)
-                                        .textStroke()
-                                    
-                                    Spacer()
-                                    
-                                    Toggle("", isOn: $audioManager.isSoundEffectsEnabled)
-                                        .labelsHidden()
-                                        .tint(.blue)
-                                }
-                                .padding()
-                                .background(
-                                    RoundedRectangle(cornerRadius: 15)
-                                        .fill(Color.white.opacity(0.1))
-                                )
-                                
-                                // 语言选择按钮
-                                Button(action: {
-                                    showLanguageSelection = true
-                                }) {
-                                    HStack {
-                                        Image(systemName: "globe")
-                                            .font(.title2)
-                                            .foregroundColor(.cyan)
-                                        
-                                        VStack(alignment: .leading, spacing: 5) {
-                                            Text(localizationManager.localized("settings.language"))
-                                                .font(customFont(size: 22)) // 从 17 增加到 22（+5）
-                                                .foregroundColor(.white)
-                                                .textStroke()
-                                            
-                                            Text("\(localizationManager.getAvailableLanguages().first { $0.code == localizationManager.currentLanguage }?.name ?? "Unknown")")
-                                                .font(customFont(size: 16))
-                                                .foregroundColor(.white.opacity(0.8))
-                                                .textStroke()
-                                        }
-                                        
-                                        Spacer()
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .foregroundColor(.white.opacity(0.6))
-                                    }
-                                    .padding()
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 15)
-                                            .fill(Color.white.opacity(0.1))
-                                    )
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                                
-                                // 图鉴按钮
-                                Button(action: {
-                                    audioManager.playSoundEffect("click", fileExtension: "wav")
-                                    showSymbolBook = true
-                                }) {
-                                    HStack {
-                                        Image(systemName: "book.fill")
-                                            .font(.title2)
-                                            .foregroundColor(.blue)
-                                        
-                                        Text(localizationManager.localized("settings.book"))
-                                            .font(customFont(size: 22))
-                                            .foregroundColor(.white)
-                                            .textStroke()
-                                        
-                                        Spacer()
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .foregroundColor(.white.opacity(0.6))
-                                    }
-                                    .padding()
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 15)
-                                            .fill(Color.white.opacity(0.1))
-                                    )
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                                
-                                Divider()
-                                    .background(Color.white.opacity(0.3))
-                                    .padding(.vertical, 5)
-                                
-                                // 隐私政策按钮
-                                Button(action: {
-                                    showPrivacyPolicy = true
-                                }) {
-                                    HStack {
-                                        Image(systemName: "doc.text")
-                                            .font(.title2)
-                                            .foregroundColor(.green)
-                                        
-                                        Text(localizationManager.localized("settings.privacy_policy"))
-                                            .font(customFont(size: 22)) // 从 17 增加到 22（+5）
-                                            .foregroundColor(.white)
-                                            .textStroke()
-                                        
-                                        Spacer()
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .foregroundColor(.white.opacity(0.6))
-                                    }
-                                    .padding()
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 15)
-                                            .fill(Color.white.opacity(0.1))
-                                    )
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                                
-                                // 使用条款按钮
-                                Button(action: {
-                                    audioManager.playSoundEffect("click", fileExtension: "wav")
-                                    showTermsOfService = true
-                                }) {
-                                    HStack {
-                                        Image(systemName: "doc.text.fill")
-                                            .font(.title2)
-                                            .foregroundColor(.blue)
-                                        
-                                        Text(localizationManager.localized("settings.terms_of_service"))
-                                            .font(customFont(size: 22))
-                                            .foregroundColor(.white)
-                                            .textStroke()
-                                        
-                                        Spacer()
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .foregroundColor(.white.opacity(0.6))
-                                    }
-                                    .padding()
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 15)
-                                            .fill(Color.white.opacity(0.1))
-                                    )
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                                
-                                Divider()
-                                    .background(Color.white.opacity(0.3))
-                                    .padding(.vertical, 5)
-                                
-                                // 联系我们按钮（直接打开邮件应用）
-                                Button(action: {
-                                    audioManager.playSoundEffect("click", fileExtension: "wav")
-                                    // 直接打开邮件应用，发送邮件到 dxycj250@gmail.com
-                                    if let url = URL(string: "mailto:dxycj250@gmail.com") {
-                                        UIApplication.shared.open(url)
-                                    }
-                                }) {
-                                    HStack {
-                                        Image(systemName: "envelope")
-                                            .font(.title2)
-                                            .foregroundColor(.orange)
-                                        
-                                        Text(localizationManager.localized("settings.contact_us"))
-                                            .font(customFont(size: 22)) // 从 17 增加到 22（+5）
-                                            .foregroundColor(.white)
-                                            .textStroke()
-                                        
-                                        Spacer()
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .foregroundColor(.white.opacity(0.6))
-                                    }
-                                    .padding()
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 15)
-                                            .fill(Color.white.opacity(0.1))
-                                    )
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                                
-                                // Discord 按钮
-                                Button(action: {
-                                    audioManager.playSoundEffect("click", fileExtension: "wav")
-                                    if let url = URL(string: "https://discord.gg/cxQmzQrc6v") {
-                                        UIApplication.shared.open(url)
-                                    }
-                                }) {
-                                    HStack {
-                                        Image("Discord")
-                                            .resizable()
-                                            .scaledToFit()
-                                            .frame(width: 28, height: 28)
-                                        
-                                        Text("Discord")
-                                            .font(customFont(size: 22)) // 从 17 增加到 22（+5）
-                                            .foregroundColor(.white)
-                                            .textStroke()
-                                        
-                                        Spacer()
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .foregroundColor(.white.opacity(0.6))
-                                    }
-                                    .padding()
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 15)
-                                            .fill(Color.white.opacity(0.1))
-                                    )
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                                
-                                // 兑换码按钮
-                                Button(action: {
-                                    audioManager.playSoundEffect("click", fileExtension: "wav")
-                                    showRedeemCode = true
-                                }) {
-                                    HStack {
-                                        Image(systemName: "gift.fill")
-                                            .font(.title2)
-                                            .foregroundColor(.orange)
-                                        
-                                        Text(localizationManager.localized("settings.redeem_code"))
-                                            .font(customFont(size: 22))
-                                            .foregroundColor(.white)
-                                            .textStroke()
-                                        
-                                        Spacer()
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .foregroundColor(.white.opacity(0.6))
-                                    }
-                                    .padding()
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 15)
-                                            .fill(Color.white.opacity(0.1))
-                                    )
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                                
-                                // Restore 按钮
-                                Button(action: {
-                                    audioManager.playSoundEffect("click", fileExtension: "wav")
-                                    print("🔄 [设置] 点击恢复购买")
-                                    Task { @MainActor in
-                                        let restored = await StoreKitManager.shared.restorePurchases()
-                                        if restored {
-                                            print("✅ [设置] 恢复购买成功")
-                                            // 恢复购买后，检查已购买的哥布林
-                                            await restorePurchasedGoblins()
-                                        } else {
-                                            print("⚠️ [设置] 没有可恢复的购买")
-                                        }
-                                    }
-                                }) {
-                                    HStack {
-                                        Image(systemName: "arrow.clockwise")
-                                            .font(.title2)
-                                            .foregroundColor(.green)
-                                        
-                                        Text(localizationManager.localized("settings.restore"))
-                                            .font(customFont(size: 22))
-                                            .foregroundColor(.white)
-                                            .textStroke()
-                                        
-                                        Spacer()
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .foregroundColor(.white.opacity(0.6))
-                                    }
-                                    .padding()
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 15)
-                                            .fill(Color.white.opacity(0.1))
-                                    )
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                            
-                                // Rate Us 按钮
-                                Button(action: {
-                                audioManager.playSoundEffect("click", fileExtension: "wav")
-                                    rateUs()
-                                }) {
-                                    HStack {
-                                        Image(systemName: "star.fill")
-                                            .font(.title2)
-                                            .foregroundColor(.yellow)
-                                        
-                                        Text(localizationManager.localized("settings.rate_us"))
-                                            .font(customFont(size: 22))
-                            .foregroundColor(.white)
-                            .textStroke()
-                                        
-                                        Spacer()
-                                        
-                                        Image(systemName: "chevron.right")
-                                            .foregroundColor(.white.opacity(0.6))
-                                    }
-                                    .padding()
-                            .background(
-                                        RoundedRectangle(cornerRadius: 15)
-                                            .fill(Color.white.opacity(0.1))
-                            )
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                            }
-                            
-                            // 底部内边距
                             Spacer()
-                                .frame(height: 30)
+                            
+                            Toggle("", isOn: $audioManager.isMusicEnabled)
+                                .labelsHidden()
+                                .tint(.purple)
+                        }
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 15)
+                                .fill(Color.white.opacity(0.1))
+                        )
+                        
+                        // 音效开关
+                        HStack {
+                            Image(systemName: "speaker.wave.2")
+                                .font(.title2)
+                                .foregroundColor(.blue)
+                            
+                            Text(localizationManager.localized("settings.sound_effects"))
+                                .font(customFont(size: 22))
+                                .foregroundColor(.white)
+                                .textStroke()
+                            
+                            Spacer()
+                            
+                            Toggle("", isOn: $audioManager.isSoundEffectsEnabled)
+                                .labelsHidden()
+                                .tint(.blue)
+                        }
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 15)
+                                .fill(Color.white.opacity(0.1))
+                        )
+                        
+                        // 语言选择按钮
+                        Button(action: {
+                            showLanguageSelection = true
+                        }) {
+                            HStack {
+                                Image(systemName: "globe")
+                                    .font(.title2)
+                                    .foregroundColor(.cyan)
+                                
+                                VStack(alignment: .leading, spacing: 5) {
+                                    Text(localizationManager.localized("settings.language"))
+                                        .font(customFont(size: 22))
+                                        .foregroundColor(.white)
+                                        .textStroke()
+                                    
+                                    Text("\(localizationManager.getAvailableLanguages().first { $0.code == localizationManager.currentLanguage }?.name ?? "Unknown")")
+                                        .font(customFont(size: 16))
+                                        .foregroundColor(.white.opacity(0.8))
+                                        .textStroke()
+                                }
+                                
+                                Spacer()
+                                
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(.white.opacity(0.6))
+                            }
+                            .padding()
+                            .background(
+                                RoundedRectangle(cornerRadius: 15)
+                                    .fill(Color.white.opacity(0.1))
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        
+                        // 图鉴按钮
+                        Button(action: {
+                            audioManager.playSoundEffect("click", fileExtension: "wav")
+                            showSymbolBook = true
+                        }) {
+                            HStack {
+                                Image(systemName: "book.fill")
+                                    .font(.title2)
+                                    .foregroundColor(.blue)
+                                
+                                Text(localizationManager.localized("settings.book"))
+                                    .font(customFont(size: 22))
+                                    .foregroundColor(.white)
+                                    .textStroke()
+                                
+                                Spacer()
+                                
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(.white.opacity(0.6))
+                            }
+                            .padding()
+                            .background(
+                                RoundedRectangle(cornerRadius: 15)
+                                    .fill(Color.white.opacity(0.1))
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        
+                        Divider()
+                            .background(Color.white.opacity(0.3))
+                            .padding(.vertical, 5)
+                        
+                        // 隐私政策按钮
+                        Button(action: {
+                            showPrivacyPolicy = true
+                        }) {
+                            HStack {
+                                Image(systemName: "doc.text")
+                                    .font(.title2)
+                                    .foregroundColor(.green)
+                                
+                                Text(localizationManager.localized("settings.privacy_policy"))
+                                    .font(customFont(size: 22))
+                                    .foregroundColor(.white)
+                                    .textStroke()
+                                
+                                Spacer()
+                                
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(.white.opacity(0.6))
+                            }
+                            .padding()
+                            .background(
+                                RoundedRectangle(cornerRadius: 15)
+                                    .fill(Color.white.opacity(0.1))
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        
+                        // 使用条款按钮
+                        Button(action: {
+                            audioManager.playSoundEffect("click", fileExtension: "wav")
+                            showTermsOfService = true
+                        }) {
+                            HStack {
+                                Image(systemName: "doc.text.fill")
+                                    .font(.title2)
+                                    .foregroundColor(.blue)
+                                
+                                Text(localizationManager.localized("settings.terms_of_service"))
+                                    .font(customFont(size: 22))
+                                    .foregroundColor(.white)
+                                    .textStroke()
+                                
+                                Spacer()
+                                
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(.white.opacity(0.6))
+                            }
+                            .padding()
+                            .background(
+                                RoundedRectangle(cornerRadius: 15)
+                                    .fill(Color.white.opacity(0.1))
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        
+                        Divider()
+                            .background(Color.white.opacity(0.3))
+                            .padding(.vertical, 5)
+                        
+                        // 联系我们按钮（直接打开邮件应用）
+                        Button(action: {
+                            audioManager.playSoundEffect("click", fileExtension: "wav")
+                            // 直接打开邮件应用，发送邮件到 dxycj250@gmail.com
+                            if let url = URL(string: "mailto:dxycj250@gmail.com") {
+                                UIApplication.shared.open(url)
+                            }
+                        }) {
+                            HStack {
+                                Image(systemName: "envelope")
+                                    .font(.title2)
+                                    .foregroundColor(.orange)
+                                
+                                Text(localizationManager.localized("settings.contact_us"))
+                                    .font(customFont(size: 22))
+                                    .foregroundColor(.white)
+                                    .textStroke()
+                                
+                                Spacer()
+                                
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(.white.opacity(0.6))
+                            }
+                            .padding()
+                            .background(
+                                RoundedRectangle(cornerRadius: 15)
+                                    .fill(Color.white.opacity(0.1))
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        
+                        // Discord 按钮
+                        Button(action: {
+                            audioManager.playSoundEffect("click", fileExtension: "wav")
+                            if let url = URL(string: "https://discord.gg/cxQmzQrc6v") {
+                                UIApplication.shared.open(url)
+                            }
+                        }) {
+                            HStack {
+                                Image("Discord")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 28, height: 28)
+                                
+                                Text("Discord")
+                                    .font(customFont(size: 22))
+                                    .foregroundColor(.white)
+                                    .textStroke()
+                                
+                                Spacer()
+                                
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(.white.opacity(0.6))
+                            }
+                            .padding()
+                            .background(
+                                RoundedRectangle(cornerRadius: 15)
+                                    .fill(Color.white.opacity(0.1))
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        
+                        // Restore 按钮
+                        Button(action: {
+                            audioManager.playSoundEffect("click", fileExtension: "wav")
+                            print("🔄 [设置] 点击恢复购买")
+                            Task { @MainActor in
+                                let restored = await StoreKitManager.shared.restorePurchases()
+                                if restored {
+                                    print("✅ [设置] 恢复购买成功")
+                                    // 恢复购买后，检查已购买的哥布林
+                                    await restorePurchasedGoblins()
+                                } else {
+                                    print("⚠️ [设置] 没有可恢复的购买")
+                                }
+                            }
+                        }) {
+                            HStack {
+                                Image(systemName: "arrow.clockwise")
+                                    .font(.title2)
+                                    .foregroundColor(.green)
+                                
+                                Text(localizationManager.localized("settings.restore"))
+                                    .font(customFont(size: 22))
+                                    .foregroundColor(.white)
+                                    .textStroke()
+                                
+                                Spacer()
+                                
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(.white.opacity(0.6))
+                            }
+                            .padding()
+                            .background(
+                                RoundedRectangle(cornerRadius: 15)
+                                    .fill(Color.white.opacity(0.1))
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        
+                        // Rate Us 按钮
+                        Button(action: {
+                            audioManager.playSoundEffect("click", fileExtension: "wav")
+                            rateUs()
+                        }) {
+                            HStack {
+                                Image(systemName: "star.fill")
+                                    .font(.title2)
+                                    .foregroundColor(.yellow)
+                                
+                                Text(localizationManager.localized("settings.rate_us"))
+                                    .font(customFont(size: 22))
+                                    .foregroundColor(.white)
+                                    .textStroke()
+                                
+                                Spacer()
+                                
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(.white.opacity(0.6))
+                            }
+                            .padding()
+                            .background(
+                                RoundedRectangle(cornerRadius: 15)
+                                    .fill(Color.white.opacity(0.1))
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
                         }
                         .padding(.horizontal, 30)
-                        .padding(.top, 10)
+                        .padding(.bottom, 20)
                     }
-                    }
-                    
-                    // 固定在右上角的关闭按钮
-                    Button(action: {
-                        audioManager.playSoundEffect("click", fileExtension: "wav")
-                        isPresented = false
-                    }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.title2)
-                            .foregroundColor(.white.opacity(0.7))
-                    }
-                    .padding(.top, 20)
-                    .padding(.trailing, 20)
+                    .frame(maxHeight: geometry.size.height * 0.7) // 限制最大高度，超过时可滚动
                 }
-                .frame(maxHeight: UIScreen.main.bounds.height * 0.95) // 抽屉高度为屏幕的95%，接近全屏，和商店页面一样高
+                .frame(width: min(geometry.size.width * 0.9, 500)) // 弹窗宽度为屏幕宽度的90%，最大500
+                .fixedSize(horizontal: false, vertical: true) // 根据内容自适应高度，不占用多余空间
                 .background(
                     RoundedRectangle(cornerRadius: 25)
                         .fill(Color.black.opacity(0.9))
+                        .shadow(color: .black.opacity(0.5), radius: 20, x: 0, y: 10)
                 )
-                .padding(.horizontal, 0)
-            }
-            
-            // 隐私政策弹窗
-            if showPrivacyPolicy {
-                HTMLContentView(
-                    isPresented: $showPrivacyPolicy,
-                    title: localizationManager.localized("settings.privacy_policy"),
-                    htmlFileName: "privacy_policy.html"
-                )
-            }
-            
-            // 使用条款弹窗
-            if showTermsOfService {
-                HTMLContentView(
-                    isPresented: $showTermsOfService,
-                    title: localizationManager.localized("settings.terms_of_service"),
-                    htmlFileName: "terms_of_service.html"
-                )
-            }
-            
-            // 联系我们弹窗
-            if showContactUs {
-                ContactUsView(isPresented: $showContactUs)
-            }
-            
-            // 语言选择弹窗
-            if showLanguageSelection {
-                LanguageSelectionView(isPresented: $showLanguageSelection)
-            }
-            
-            // 图鉴弹窗
-            if showSymbolBook {
-                SymbolBookView(isPresented: $showSymbolBook, viewModel: nil)
-            }
-            
-            // 兑换码弹窗
-            if showRedeemCode {
-                RedeemCodeView(isPresented: $showRedeemCode, viewModel: viewModel)
+                .position(x: geometry.size.width / 2, y: geometry.size.height / 2) // 居中显示
+                
+                // 隐私政策弹窗
+                if showPrivacyPolicy {
+                    HTMLContentView(
+                        isPresented: $showPrivacyPolicy,
+                        title: localizationManager.localized("settings.privacy_policy"),
+                        htmlFileName: "privacy_policy.html"
+                    )
+                }
+                
+                // 使用条款弹窗
+                if showTermsOfService {
+                    HTMLContentView(
+                        isPresented: $showTermsOfService,
+                        title: localizationManager.localized("settings.terms_of_service"),
+                        htmlFileName: "terms_of_service.html"
+                    )
+                }
+                
+                // 联系我们弹窗
+                if showContactUs {
+                    ContactUsView(isPresented: $showContactUs)
+                }
+                
+                // 语言选择弹窗
+                if showLanguageSelection {
+                    LanguageSelectionView(isPresented: $showLanguageSelection)
+                }
+                
+                // 图鉴弹窗
+                if showSymbolBook {
+                    SymbolBookView(isPresented: $showSymbolBook, viewModel: nil)
+                }
             }
         }
-        .transition(.move(edge: .bottom).combined(with: .opacity))
+        .transition(.scale.combined(with: .opacity))
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isPresented)
     }
     
@@ -524,148 +480,6 @@ struct HomeSettingsView: View {
         }
         
         print("⭐ [Rate Us] 跳转到App Store评分页面，ID: \(appStoreID)")
-    }
-}
-
-// MARK: - 兑换码视图
-struct RedeemCodeView: View {
-    @Binding var isPresented: Bool
-    @ObservedObject var viewModel: GameViewModel
-    @ObservedObject var localizationManager = LocalizationManager.shared
-    @ObservedObject var audioManager = AudioManager.shared
-    @State private var codeInput: String = ""
-    @State private var showSuccessAlert: Bool = false
-    @State private var showErrorAlert: Bool = false
-    @State private var alertMessage: String = ""
-    
-    // 获取自定义字体
-    private func customFont(size: CGFloat) -> Font {
-        return FontManager.shared.customFont(size: size)
-    }
-    
-    var body: some View {
-        ZStack {
-            // 背景遮罩
-            Color.black.opacity(0.5)
-                .ignoresSafeArea()
-                .onTapGesture {
-                    isPresented = false
-                }
-            
-            // 弹窗内容
-            VStack(spacing: 25) {
-                // 标题
-                HStack {
-                    Text(localizationManager.localized("redeem_code.title"))
-                        .font(customFont(size: 28))
-                        .foregroundColor(.white)
-                        .textStroke()
-                    
-                    Spacer()
-                    
-                    Button(action: {
-                        audioManager.playSoundEffect("click", fileExtension: "wav")
-                        isPresented = false
-                    }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.title2)
-                            .foregroundColor(.white.opacity(0.7))
-                    }
-                }
-                
-                // 输入框
-                VStack(alignment: .leading, spacing: 10) {
-                    Text(localizationManager.localized("redeem_code.enter_code"))
-                        .font(customFont(size: 18))
-                        .foregroundColor(.white.opacity(0.9))
-                    
-                    TextField("", text: $codeInput)
-                        .font(customFont(size: 24))
-                        .foregroundColor(.white)
-                        .textInputAutocapitalization(.characters)
-                        .autocorrectionDisabled()
-                        .textCase(.uppercase)
-                        .padding()
-                        .background(
-                            RoundedRectangle(cornerRadius: 15)
-                                .fill(Color.white.opacity(0.1))
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 15)
-                                .stroke(Color.white.opacity(0.3), lineWidth: 1)
-                        )
-                        .onChange(of: codeInput) { newValue in
-                            // 限制只能输入字母和数字，最多6位
-                            let filtered = newValue.uppercased().filter { $0.isLetter || $0.isNumber }
-                            if filtered.count <= 6 {
-                                codeInput = filtered
-                            } else {
-                                codeInput = String(filtered.prefix(6))
-                            }
-                        }
-                }
-                
-                // 兑换按钮
-                Button(action: {
-                    audioManager.playSoundEffect("click", fileExtension: "wav")
-                    redeemCode()
-                }) {
-                    Text(localizationManager.localized("redeem_code.redeem"))
-                        .font(customFont(size: 20))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(
-                            LinearGradient(
-                                gradient: Gradient(colors: [Color.green, Color.blue]),
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .cornerRadius(20)
-                }
-                .disabled(codeInput.count != 6)
-                .opacity(codeInput.count == 6 ? 1.0 : 0.5)
-            }
-            .padding(30)
-            .frame(width: 350)
-            .background(
-                RoundedRectangle(cornerRadius: 25)
-                    .fill(Color.black.opacity(0.95))
-            )
-        }
-        .alert(localizationManager.localized("redeem_code.success_title"), isPresented: $showSuccessAlert) {
-            Button(localizationManager.localized("confirmations.confirm"), role: .cancel) { }
-        } message: {
-            Text(alertMessage)
-        }
-        .alert(localizationManager.localized("redeem_code.error_title"), isPresented: $showErrorAlert) {
-            Button(localizationManager.localized("confirmations.confirm"), role: .cancel) { }
-        } message: {
-            Text(alertMessage)
-        }
-        .transition(.scale.combined(with: .opacity))
-    }
-    
-    private func redeemCode() {
-        let code = codeInput.uppercased().trimmingCharacters(in: .whitespaces)
-        
-        if code.count != 6 {
-            alertMessage = localizationManager.localized("redeem_code.error_invalid_format")
-            showErrorAlert = true
-            return
-        }
-        
-        let result = viewModel.redeemCode(code)
-        
-        if result.success {
-            alertMessage = localizationManager.localized("redeem_code.success_message")
-            showSuccessAlert = true
-            codeInput = "" // 清空输入框
-        } else {
-            alertMessage = result.message
-            showErrorAlert = true
-        }
     }
 }
 

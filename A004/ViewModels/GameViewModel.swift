@@ -3204,60 +3204,6 @@ class GameViewModel: ObservableObject {
         print("🧪 [测试] 跳到下一天，当前签到天数: \(signInDay), 上次完成天数: \(lastCompletedSignInDay), 可签到: \(canSignInToday)")
     }
     
-    // MARK: - 兑换码系统
-    
-    /// 兑换码配置
-    private let redeemCodes: [String: Int] = [
-        "GBLOK1": 100,  // 100钻石
-        "GBLXYE": 150,  // 150钻石
-        "GBLHHW": 350,  // 350钻石
-        "GBLYSG": 600   // 600钻石
-    ]
-    
-    /// 兑换码结果
-    struct RedeemCodeResult {
-        let success: Bool
-        let message: String
-    }
-    
-    /// 兑换码
-    func redeemCode(_ code: String) -> RedeemCodeResult {
-        let upperCode = code.uppercased().trimmingCharacters(in: .whitespaces)
-        
-        // 检查兑换码是否存在
-        guard let diamonds = redeemCodes[upperCode] else {
-            print("🎫 [兑换码] 无效的兑换码: \(upperCode)")
-            return RedeemCodeResult(
-                success: false,
-                message: LocalizationManager.shared.localized("redeem_code.error_invalid_code")
-            )
-        }
-        
-        // 检查是否已使用过
-        let usedCodesKey = "usedRedeemCodes"
-        var usedCodes = Set<String>(UserDefaults.standard.stringArray(forKey: usedCodesKey) ?? [])
-        
-        if usedCodes.contains(upperCode) {
-            print("🎫 [兑换码] 兑换码已使用: \(upperCode)")
-            return RedeemCodeResult(
-                success: false,
-                message: LocalizationManager.shared.localized("redeem_code.error_already_used")
-            )
-        }
-        
-        // 发放奖励
-        addDiamonds(diamonds)
-        
-        // 标记为已使用
-        usedCodes.insert(upperCode)
-        UserDefaults.standard.set(Array(usedCodes), forKey: usedCodesKey)
-        
-        print("🎫 [兑换码] 兑换成功: \(upperCode), 获得\(diamonds)钻石")
-        return RedeemCodeResult(
-            success: true,
-            message: LocalizationManager.shared.localized("redeem_code.success_message")
-        )
-    }
 }
 
 // MARK: - 签到奖励模型
